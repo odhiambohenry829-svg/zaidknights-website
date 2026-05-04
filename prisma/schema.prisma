@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  password  String
+  role      Role      @default(GUEST)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  member    Member?
+  registrations Registration[]
+  results   Result[]
+  posts     Post[]
+}
+
+model Member {
+  id       String   @id @default(cuid())
+  user     User     @relation(fields: [userId], references: [id])
+  userId   String   @unique
+  level    MembershipLevel @default(BEGINNER)
+  rating   Int      @default(1200)
+  status   MemberStatus  @default(PENDING)
+  joinedAt DateTime @default(now())
+}
+
+model Event {
+  id           String    @id @default(cuid())
+  title        String
+  slug         String    @unique
+  description  String
+  location     String
+  startDate    DateTime
+  endDate      DateTime
+  capacity     Int       @default(32)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  registrations Registration[]
+  results       Result[]
+}
+
+model Registration {
+  id      String   @id @default(cuid())
+  user    User     @relation(fields: [userId], references: [id])
+  userId  String
+  event   Event    @relation(fields: [eventId], references: [id])
+  eventId String
+  status  RegistrationStatus @default(PENDING)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, eventId])
+}
+
+model Result {
+  id        String   @id @default(cuid())
+  event     Event    @relation(fields: [eventId], references: [id])
+  eventId   String
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  score     Float    @default(0)
+  wins      Int      @default(0)
+  losses    Int      @default(0)
+  draws     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  excerpt   String
+  content   String
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  published Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GalleryItem {
+  id        String   @id @default(cuid())
+  title     String
+  imageUrl  String
+  caption   String?
+  createdAt DateTime @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String
+  status    String   @default("NEW")
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  ADMIN
+  COACH
+  MEMBER
+  GUEST
+}
+
+enum MembershipLevel {
+  BEGINNER
+  ADVANCED
+  MASTER
+}
+
+enum MemberStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+enum RegistrationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
