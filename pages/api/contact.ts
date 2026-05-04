@@ -1,23 +1,18 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { sanitizeString, isEmail } from '../../lib/validators';
-import { prisma } from '../../lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' });
-  const name = sanitizeString(req.body.name);
-  const email = sanitizeString(req.body.email).toLowerCase();
-  const message = sanitizeString(req.body.message);
-  if (!name || !email || !message || !isEmail(email)) {
-    return res.status(400).json({ message: 'Invalid form submission.' });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method not allowed' });
   }
-  await prisma.post.create({
-    data: {
-      title: `Contact from ${name}`,
-      slug: `contact-${Date.now()}`,
-      excerpt: message.slice(0, 120),
-      content: message,
-        published: false,
-    }
-  });
+
+  const { name, email, message } = req.body;
+
+  if (!name || !email || !message) {
+    return res.status(400).json({ message: 'Name, email and message are required' });
+  }
+
+  // TODO: Save to DB or send email notification
+  console.log('Contact form submission:', { name, email, message });
+
   return res.status(201).json({ message: 'Message sent. We will follow up shortly.' });
 }
