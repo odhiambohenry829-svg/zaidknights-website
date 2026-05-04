@@ -16,8 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       slug: `contact-${Date.now()}`,
       excerpt: message.slice(0, 120),
       content: message,
-      authorId: (await prisma.user.findFirst({ where: { email: process.env.ADMIN_EMAIL || 'admin@zaidknights.com' } }))?.id || undefined,
-      published: false
+      authorId: session?.user?.id ?? undefined,
     }
   });
   return res.status(201).json({ message: 'Message sent. We will follow up shortly.' });
