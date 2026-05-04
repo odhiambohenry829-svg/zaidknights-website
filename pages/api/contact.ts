@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       slug: `contact-${Date.now()}`,
       excerpt: message.slice(0, 120),
       content: message,
-      authorId: session?.user?.id ?? undefined,
+        published: false,
     }
   });
   return res.status(201).json({ message: 'Message sent. We will follow up shortly.' });
