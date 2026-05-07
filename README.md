@@ -1,45 +1,111 @@
-# Zaid Knights Website
+# ZaidKnights Chess Club
 
-Next.js and Prisma website for a chess club with events, news, gallery, contact
-messages, member profiles, registrations, and results.
+A production-ready web platform for ZaidKnights Chess Club built with Next.js, Tailwind CSS, Prisma, and PostgreSQL.
 
-The project now also includes donations, membership renewals, organization
-registration, payments, attendance, pairings, rating history, announcements,
-audit logs, and admin analytics.
+## Project Structure
 
-## Run Locally
+- `pages/` - Next.js page routes for public site, auth, member dashboard, and admin dashboard.
+- `pages/api/` - REST API endpoints for authentication, events, posts, gallery, members, contact, and dashboard stats.
+- `components/` - Reusable UI components, layouts, and homepage sections.
+- `lib/` - Backend utilities for Prisma, JWT auth, and input validation.
+- `prisma/schema.prisma` - PostgreSQL schema for users, members, events, registrations, results, posts, and gallery.
+- `styles/globals.css` - Tailwind global styling and glassmorphism theme.
 
-```bash
-npm install
-npm run prisma:check
-npm run prisma:deploy
-npm run prisma:seed
-npm run prisma:smoke
-npm run dev
-```
+## Database Schema
 
-Open `http://localhost:3000`.
+Core tables in `prisma/schema.prisma`:
+- `User` (id, name, email, password, role, timestamps)
+- `Member` (userId, level, rating, status, joinedAt)
+- `Event` (title, slug, description, location, startDate, endDate, capacity)
+- `Registration` (userId, eventId, status)
+- `Result` (eventId, userId, score, wins, losses, draws)
+- `Post` (blog/news articles)
+- `GalleryItem` (images and captions)
 
-Useful pages:
+Enums:
+- `Role` - ADMIN, COACH, MEMBER, GUEST
+- `MembershipLevel` - BEGINNER, ADVANCED, MASTER
+- `MemberStatus` - PENDING, ACTIVE, SUSPENDED
+- `RegistrationStatus` - PENDING, CONFIRMED, CANCELLED
 
-- `/donate`
-- `/renew`
-- `/organizations`
-- `/organizations/dashboard`
-- `/profile`
-- `/admin`
+## Install & Run
 
-## Database
+1. Copy `.env.example` to `.env` and configure values.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Generate Prisma client:
+   ```bash
+   npx prisma generate
+   ```
+4. Run database migrations after configuring `DATABASE_URL`:
+   ```bash
+   npx prisma db push
+   ```
+5. Start development server:
+   ```bash
+   npm run dev
+   ```
 
-Copy `.env.example` to `.env`, then replace `PROJECT_REF` and `DB_PASSWORD`
-with the values from Supabase Dashboard > Connect.
+## Deployment Guide
 
-Set `ADMIN_API_KEY` to a long random value. API write routes expect it in the
-`x-admin-key` request header.
+### 1. GitHub Push
+- Initialize Git and push repository to GitHub.
 
-The checked-in initial migration is in `prisma/migrations/20260507000000_init`.
-The expanded club-management migration is in
-`prisma/migrations/20260507001000_club_management_features`.
-Use `npm run prisma:deploy` to apply both.
+### 2. Frontend Deployment
+- Deploy to Vercel.
+- Set environment variables in Vercel: `DATABASE_URL`, `JWT_SECRET`, `NEXT_PUBLIC_SITE_URL`, `ADMIN_EMAIL`.
+- Build command: `npm run build`
+- Output directory: `.next`
 
-See `FEATURE_CHECKLIST.md` for the full feature map.
+### 3. Backend / Database
+- Host PostgreSQL on Supabase or Neon.
+- Connect `DATABASE_URL` from provider.
+- Use Prisma migration/push to initialize schema.
+
+### 4. Domain Setup
+- Preferred domains:
+  - `zaidknights.com`
+  - `zaidknightschess.com`
+  - `zaidknightsclub.com`
+  - `zkchess.com`
+  - `zaidknightsacademy.com`
+- Alternative domain options:
+  - `.org` for club identity, e.g. `zaidknights.org`
+  - `.ke` for Kenya focus, e.g. `zaidknights.co.ke`
+  - `.chess` for modern branding, e.g. `zkchess.chess`
+
+### 5. DNS & SSL
+- Use Cloudflare or Namecheap DNS.
+- Point A / CNAME records to Vercel.
+- Enable SSL via Vercel automatic HTTPS.
+- For other hosts, use Let's Encrypt or provider-managed certificates.
+
+### 6. Environment Variables
+- `DATABASE_URL`
+- `JWT_SECRET`
+- `NEXT_PUBLIC_SITE_URL`
+- `ADMIN_EMAIL`
+
+## Production Readiness
+
+### Security
+- Passwords hashed with bcrypt.
+- JWT authentication with secure cookies.
+- Admin and dashboard routes should be protected with auth middleware in production.
+- Input validation for API payloads.
+
+### SEO & Performance
+- Uses meta tags and Open Graph metadata.
+- `robots.txt` and `sitemap.xml` included.
+- Tailwind-driven responsive design.
+- Framer Motion used for animated hero transitions.
+
+## Next Improvements
+
+- Add real payment integration (Stripe or M-Pesa).
+- Implement live bracket management.
+- Add email newsletter and WhatsApp notification system.
+- Add AI puzzle generator and live chess board integration.
+- Harden server-side route protection and rate limiting.

@@ -9,7 +9,7 @@ const nextConfig = {
     ],
   },
   experimental: {
-    serverExternalPackages: ['@prisma/client', 'bcryptjs'],
+    serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],
   },
   webpack: (config, { isServer }) => {
     if (isServer) {
