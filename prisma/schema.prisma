@@ -1,6 +1,5 @@
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -9,170 +8,32 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-/////////////////////////////////////////////////////
-// USER
-/////////////////////////////////////////////////////
-
 model User {
-  id        String   @id @default(cuid())
-  name      String?
+  id        String   @id @default(uuid())
   email     String   @unique
+  name      String?
   password  String
-  role      Role     @default(MEMBER)
+  role      Role     @default(USER)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  member        Member?
-  registrations Registration[]
-  results       Result[]
-  posts         Post[]
+  posts     Post[]
 }
-
-/////////////////////////////////////////////////////
-// MEMBER PROFILE
-/////////////////////////////////////////////////////
-
-model Member {
-  id     String @id @default(cuid())
-  user   User   @relation(fields: [userId], references: [id])
-  userId String @unique
-
-  level    MembershipLevel @default(BEGINNER)
-  rating   Int             @default(1200)
-  status   MemberStatus    @default(PENDING)
-  joinedAt DateTime        @default(now())
-}
-
-/////////////////////////////////////////////////////
-// EVENTS
-/////////////////////////////////////////////////////
-
-model Event {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  description String
-  location    String
-  startDate   DateTime
-  endDate     DateTime
-  capacity    Int      @default(32)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  registrations Registration[]
-  results       Result[]
-}
-
-/////////////////////////////////////////////////////
-// REGISTRATION
-/////////////////////////////////////////////////////
-
-model Registration {
-  id String @id @default(cuid())
-
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
-
-  event   Event  @relation(fields: [eventId], references: [id])
-  eventId String
-
-  status    RegistrationStatus @default(PENDING)
-  createdAt DateTime           @default(now())
-
-  @@unique([userId, eventId])
-}
-
-/////////////////////////////////////////////////////
-// RESULTS
-/////////////////////////////////////////////////////
-
-model Result {
-  id String @id @default(cuid())
-
-  event   Event  @relation(fields: [eventId], references: [id])
-  eventId String
-
-  user   User   @relation(fields: [userId], references: [id])
-  userId String
-
-  score  Float @default(0)
-  wins   Int   @default(0)
-  losses Int   @default(0)
-  draws  Int   @default(0)
-
-  createdAt DateTime @default(now())
-
-  @@unique([eventId, userId])
-}
-
-/////////////////////////////////////////////////////
-// POSTS (NEWS / BLOG)
-/////////////////////////////////////////////////////
 
 model Post {
-  id      String @id @default(cuid())
-  title   String
-  slug    String @unique
-  excerpt String
-  content String
-
-  author   User   @relation(fields: [authorId], references: [id])
-  authorId String
-
+  id        String   @id @default(uuid())
+  title     String
+  content   String?
   published Boolean  @default(false)
+  authorId  String
+
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-/////////////////////////////////////////////////////
-// GALLERY
-/////////////////////////////////////////////////////
-
-model GalleryItem {
-  id        String   @id @default(cuid())
-  title     String
-  imageUrl  String
-  caption   String?
-  createdAt DateTime @default(now())
-}
-
-/////////////////////////////////////////////////////
-// CONTACT
-/////////////////////////////////////////////////////
-
-model ContactMessage {
-  id        String   @id @default(cuid())
-  name      String
-  email     String
-  message   String
-  status    String   @default("NEW")
-  createdAt DateTime @default(now())
-}
-
-/////////////////////////////////////////////////////
-// ENUMS
-/////////////////////////////////////////////////////
-
 enum Role {
+  USER
   ADMIN
-  COACH
-  MEMBER
-  GUEST
-}
-
-enum MembershipLevel {
-  BEGINNER
-  ADVANCED
-  MASTER
-}
-
-enum MemberStatus {
-  PENDING
-  ACTIVE
-  SUSPENDED
-}
-
-enum RegistrationStatus {
-  PENDING
-  CONFIRMED
-  CANCELLED
 }
