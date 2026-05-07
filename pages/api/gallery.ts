@@ -1,10 +1,58 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { prisma } from '../../lib/prisma';
+import prisma from '../../lib/prisma';
+import { getUserFromRequest } from '../../lib/auth';
+import { sanitizeString } from '../../lib/validators';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
-    const gallery = await prisma.galleryItem.findMany({ orderBy: { createdAt: 'desc' } });
-    return res.status(200).json(gallery);
+    try {
+      const items = await prisma.galleryItem.findMany({
+        orderBy: { createdAt: 'desc' },
+      });
+      return res.status(200).json({ items });
+    } catch (err) {
+      console.error('Gallery GET error:', err);
+      return res.status(500).json({ error: 'Failed to fetch gallery' });
+    }
   }
-  return res.status(405).json({ message: 'Method not allowed' });
+
+  if (req.method === 'POST') {
+    const user = getUserFromRequest(req);
+    if (!user || user.role !== 'ADMIN') return res.status(403).json({ error: 'Forbidden' });
+
+    const { title, imageUrl, caption } = req.body;
+    if (!title || !imageUrl) return res.status(400).json({ error: 'title and imageUrl are required' });
+
+    try {
+      const item = await prisma.galleryItem.create({
+        data: {
+          title: sanitizeString(title),
+          imageUrl,
+          caption: caption ? sanitizeString(caption) : null,
+        },
+      });
+      return res.status(201).json({ item });
+    } catch (err) {
+      console.error('Gallery POST error:', err);
+      return res.status(500).json({ error: 'Failed to create gallery item' });
+    }
+  }
+
+  if (req.method === 'DELETE') {
+    const user = getUserFromRequest(req);
+    if (!user || user.role !== 'ADMIN') return res.status(403).json({ error: 'Forbidden' });
+
+    const { id } = req.body;
+    if (!id) return res.status(400).json({ error: 'id is required' });
+
+    try {
+      await prisma.galleryItem.delete({ where: { id } });
+      return res.status(200).json({ ok: true });
+    } catch (err) {
+      console.error('Gallery DELETE error:', err);
+      return res.status(500).json({ error: 'Failed to delete item' });
+    }
+  }
+
+  return res.status(405).json({ error: 'Method not allowed' });
 }

@@ -1,65 +1,94 @@
-import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
+function useCountdown(targetDate: Date) {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    const tick = () => {
+      const diff = targetDate.getTime() - Date.now();
+      if (diff <= 0) return;
+      setTimeLeft({
+        days:    Math.floor(diff / 86400000),
+        hours:   Math.floor((diff % 86400000) / 3600000),
+        minutes: Math.floor((diff % 3600000) / 60000),
+        seconds: Math.floor((diff % 60000) / 1000),
+      });
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [targetDate]);
+
+  return timeLeft;
+}
+
 export default function Hero() {
+  const nextEvent = new Date(Date.now() + 14 * 86400000); // 14 days from now
+  const countdown = useCountdown(nextEvent);
+
   return (
-    <section className="relative overflow-hidden px-6 py-24 sm:px-10">
-      <div className="absolute inset-0 opacity-30">
-        <div className="gradient-board h-full w-full bg-cover bg-center" />
+    <section className="relative min-h-[90vh] flex items-center overflow-hidden chess-pattern">
+      {/* Background glow */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-yellow-500/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-yellow-500/3 rounded-full blur-3xl" />
       </div>
-      <div className="relative mx-auto max-w-6xl">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="grid gap-8 lg:grid-cols-[1.2fr,0.8fr]"
-        >
-          <div className="space-y-6 text-white">
-            <span className="inline-flex rounded-full border border-gold/50 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.25em] text-gold">
-              Join the next chess movement
-            </span>
-            <h1 className="text-5xl font-semibold tracking-tight sm:text-6xl">
-              ZaidKnights Chess Club
-            </h1>
-            <p className="max-w-2xl text-lg text-slate-300">Strategy. Discipline. Excellence. A full chess ecosystem for members, tournaments, coaches, and champions.</p>
-            <div className="flex flex-wrap gap-4">
-              <Link href="/membership" className="rounded-full bg-gold px-6 py-3 text-black transition hover:bg-gold/90">
-                Join the Club
-              </Link>
-              <Link href="/events" className="rounded-full border border-white/20 px-6 py-3 text-white transition hover:border-gold hover:text-gold">
-                View Tournaments
-              </Link>
-            </div>
+
+      {/* Large chess piece decoration */}
+      <div className="absolute right-8 top-1/2 -translate-y-1/2 text-[20rem] opacity-5 select-none pointer-events-none hidden lg:block">
+        ♞
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div className="max-w-3xl animate-fade-in">
+          {/* Tag */}
+          <div className="inline-flex items-center gap-2 badge-gold mb-6 py-1.5 px-4 text-sm">
+            <span className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
+            Nairobi's Premier Chess Club
           </div>
-          <div className="rounded-[2rem] border border-white/10 bg-slate-950/70 p-8 shadow-glass">
-            <div className="mb-8 rounded-3xl border border-white/10 bg-black/70 p-6">
-              <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Next event</p>
-              <h2 className="mt-3 text-3xl font-semibold text-white">Nairobi Rapid Open</h2>
-              <p className="mt-2 text-slate-300">May 25, 2026 · Nairobi Chess Academy</p>
-              <div className="mt-6 grid grid-cols-2 gap-4 text-center text-white">
-                <div className="rounded-3xl bg-white/5 p-4">
-                  <p className="text-3xl font-semibold">12</p>
-                  <p className="text-sm text-slate-400">Days</p>
-                </div>
-                <div className="rounded-3xl bg-white/5 p-4">
-                  <p className="text-3xl font-semibold">4</p>
-                  <p className="text-sm text-slate-400">Hours</p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-4 text-slate-300">
-              <p className="text-sm uppercase tracking-[0.2em] text-gold">Featured Champions</p>
-              <div className="grid gap-3">
-                {['Amina Mwangi', 'David Okello', 'Sofia Kariuki'].map((name) => (
-                  <div key={name} className="rounded-3xl bg-white/5 p-4">
-                    <p className="text-base font-semibold text-white">{name}</p>
-                    <p className="text-sm text-slate-400">Elite Knight • 1830 ELO</p>
+
+          {/* Headline */}
+          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight" style={{ fontFamily: 'Playfair Display, serif' }}>
+            Master the{' '}
+            <span className="gold-gradient">Game of Kings</span>
+          </h1>
+
+          <p className="text-xl text-gray-400 mb-10 leading-relaxed">
+            Join Zaid Knights Chess Club — where strategy meets community. Compete in tournaments,
+            climb the rankings, and grow with Kenya's most passionate chess players.
+          </p>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-wrap gap-4 mb-14">
+            <Link href="/register" className="btn-primary text-base px-8 py-4">
+              Join the Club →
+            </Link>
+            <Link href="/events" className="btn-secondary text-base px-8 py-4">
+              View Events
+            </Link>
+          </div>
+
+          {/* Countdown */}
+          <div>
+            <p className="text-gray-500 text-sm mb-3 uppercase tracking-widest">Next Tournament</p>
+            <div className="flex gap-4 flex-wrap">
+              {[
+                { label: 'Days',    value: countdown.days },
+                { label: 'Hours',   value: countdown.hours },
+                { label: 'Minutes', value: countdown.minutes },
+                { label: 'Seconds', value: countdown.seconds },
+              ].map(({ label, value }) => (
+                <div key={label} className="glass px-5 py-4 text-center min-w-[80px]">
+                  <div className="text-3xl font-bold text-yellow-400 tabular-nums">
+                    {String(value).padStart(2, '0')}
                   </div>
-                ))}
-              </div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">{label}</div>
+                </div>
+              ))}
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

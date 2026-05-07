@@ -1,31 +1,113 @@
 import { useState } from 'react';
-import Layout from '../components/common/Layout';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+import Layout from '../components/common/Layout';
+import { useAuth } from './_app';
 
-export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+export default function LoginPage() {
+  const [form, setForm] = useState({ email: '', password: '', remember: false });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const { setUser } = useAuth();
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setUser(data.user);
+        const redirect = (router.query.redirect as string) || (data.user.role === 'ADMIN' ? '/admin' : '/dashboard');
+        router.push(redirect);
+      } else {
+        setError(data.error || 'Login failed');
+      }
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <Layout title="Login | ZaidKnights Chess Club" description="Member and admin login portal for ZaidKnights Chess Club.">
-      <section className="flex min-h-[80vh] items-center justify-center px-6 py-24 sm:px-10">
-        <div className="w-full max-w-xl rounded-[2rem] border border-white/10 bg-black/70 p-10 shadow-glass text-slate-300">
-          <h1 className="text-4xl font-semibold text-white">Member login</h1>
-          <p className="mt-3 text-slate-400">Access your dashboard, tournament registrations, and member benefits.</p>
-          <form className="mt-10 space-y-6" onSubmit={(e) => e.preventDefault()}>
-            <label className="block">
-              <span>Email</span>
-              <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" className="mt-2 w-full rounded-3xl border border-white/10 bg-black/60 px-4 py-3 text-white" />
-            </label>
-            <label className="block">
-              <span>Password</span>
-              <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" className="mt-2 w-full rounded-3xl border border-white/10 bg-black/60 px-4 py-3 text-white" />
-            </label>
-            <button className="w-full rounded-full bg-gold px-6 py-3 text-black transition hover:bg-gold/90">Sign in</button>
-          </form>
-          <p className="mt-6 text-sm text-slate-400">New to the club? <Link href="/register" className="text-gold">Create account</Link></p>
+    <Layout title="Login | Zaid Knights Chess Club">
+      <div className="min-h-[80vh] flex items-center justify-center px-4 py-16 chess-pattern">
+        <div className="w-full max-w-md">
+          {/* Logo */}
+          <div className="text-center mb-8">
+            <span className="text-5xl">♞</span>
+            <h1 className="text-2xl font-bold text-white mt-3">Welcome back</h1>
+            <p className="text-gray-400 text-sm mt-1">Sign in to your Zaid Knights account</p>
+          </div>
+
+          <div className="glass p-8 rounded-2xl">
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-lg mb-5">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="label">Email address</label>
+                <input
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={form.email}
+                  onChange={e => setForm({ ...form, email: e.target.value })}
+                  placeholder="you@example.com"
+                  className="input"
+                />
+              </div>
+
+              <div>
+                <label className="label">Password</label>
+                <input
+                  type="password"
+                  required
+                  autoComplete="current-password"
+                  value={form.password}
+                  onChange={e => setForm({ ...form, password: e.target.value })}
+                  placeholder="••••••••"
+                  className="input"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="remember"
+                  checked={form.remember}
+                  onChange={e => setForm({ ...form, remember: e.target.checked })}
+                  className="w-4 h-4 accent-yellow-500"
+                />
+                <label htmlFor="remember" className="text-sm text-gray-400">Remember me</label>
+              </div>
+
+              <button type="submit" disabled={loading} className="btn-primary w-full py-3 mt-2">
+                {loading ? 'Signing in...' : 'Sign In'}
+              </button>
+            </form>
+
+            <p className="text-center text-gray-500 text-sm mt-6">
+              Don't have an account?{' '}
+              <Link href="/register" className="text-yellow-400 hover:text-yellow-300 font-medium">
+                Join the club
+              </Link>
+            </p>
+          </div>
         </div>
-      </section>
+      </div>
     </Layout>
   );
 }

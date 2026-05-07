@@ -1,29 +1,105 @@
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import Layout from '../components/common/Layout';
 
-const posts = [
-  { title: 'Mastering the London System', excerpt: 'A step-by-step strategy guide for club players.', slug: 'london-system' },
-  { title: 'How to Prepare for Rapid Tournaments', excerpt: 'Practical tips for opening preparation and time management.', slug: 'rapid-tournament' },
-  { title: 'Evaluating Your Game with Post-Match Analysis', excerpt: 'Build a habit of reviewing games and tracking progress.', slug: 'post-match-analysis' }
-];
+interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  category: string;
+  imageUrl?: string;
+  createdAt: string;
+  author: { name: string };
+}
 
-export default function Blog() {
+const CATEGORIES = ['All', 'general', 'tournament', 'tips', 'news', 'coaching'];
+
+export default function BlogPage() {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [category, setCategory] = useState('All');
+
+  useEffect(() => {
+    fetch('/api/posts')
+      .then(r => r.json())
+      .then(data => setPosts(data.posts || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filtered = category === 'All' ? posts : posts.filter(p => p.category === category);
+
   return (
-    <Layout title="Blog | ZaidKnights Chess Club" description="Chess articles, opening guides, training tips, and club news.">
-      <section className="px-6 py-24 sm:px-10">
-        <div className="mx-auto max-w-6xl space-y-8">
-          <div className="rounded-[2rem] border border-white/10 bg-black/70 p-10 shadow-glass text-slate-300">
-            <h1 className="text-5xl font-semibold text-white">Chess insights & news</h1>
-            <p className="mt-4 text-lg">Club-written articles, opening guides, and tactical training posts for every player.</p>
-          </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            {posts.map((post) => (
-              <article key={post.slug} className="glass-card rounded-3xl p-8">
-                <h2 className="text-2xl font-semibold text-white">{post.title}</h2>
-                <p className="mt-4 text-slate-300">{post.excerpt}</p>
-                <button className="mt-6 rounded-full bg-gold px-5 py-3 text-black transition hover:bg-gold/90">Read article</button>
-              </article>
+    <Layout title="Blog | Zaid Knights Chess Club" description="Chess news, tips, and stories from the Zaid Knights community.">
+      {/* Header */}
+      <section className="py-16 border-b border-white/10 chess-pattern">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-5xl font-bold text-white mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
+            Club <span className="gold-gradient">Blog</span>
+          </h1>
+          <p className="text-gray-400">Chess insights, tournament recaps, and tips from our coaches</p>
+        </div>
+      </section>
+
+      <section className="py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Category Filter */}
+          <div className="flex gap-2 flex-wrap mb-10">
+            {CATEGORIES.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setCategory(cat)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all ${
+                  category === cat
+                    ? 'bg-yellow-500 text-black'
+                    : 'glass text-gray-400 hover:text-white'
+                }`}
+              >
+                {cat}
+              </button>
             ))}
           </div>
+
+          {/* Posts Grid */}
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1,2,3].map(i => <div key={i} className="skeleton h-80 rounded-xl" />)}
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-20 glass rounded-xl">
+              <p className="text-5xl mb-4">📝</p>
+              <p className="text-gray-400">No posts yet in this category</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filtered.map(post => (
+                <article key={post.id} className="glass-hover rounded-xl overflow-hidden flex flex-col">
+                  {post.imageUrl && (
+                    <div className="h-48 bg-white/5 overflow-hidden">
+                      <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <div className="p-6 flex flex-col flex-1">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="badge-gold text-xs capitalize">{post.category}</span>
+                      <span className="text-gray-500 text-xs">
+                        {new Date(post.createdAt).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                    </div>
+                    <h2 className="text-white font-bold text-lg mb-2 flex-1">{post.title}</h2>
+                    <p className="text-gray-400 text-sm mb-4 line-clamp-3">{post.excerpt}</p>
+                    <div className="flex items-center justify-between mt-auto">
+                      <span className="text-gray-500 text-xs">By {post.author.name}</span>
+                      <Link href={`/blog/${post.slug}`} className="text-yellow-400 text-sm hover:text-yellow-300 transition-colors">
+                        Read more →
+                      </Link>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </Layout>

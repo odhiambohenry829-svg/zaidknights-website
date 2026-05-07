@@ -1,26 +1,33 @@
 import Layout from '../components/common/Layout';
 import Hero from '../components/sections/Hero';
+import StatsSection from '../components/sections/StatsSection';
 import MembershipTiers from '../components/sections/MembershipTiers';
 import EventHighlights from '../components/sections/EventHighlights';
-import StatsSection from '../components/sections/StatsSection';
+import Link from 'next/link';
 
-export default function Home() {
+export default function HomePage() {
   return (
     <Layout>
       <Hero />
       <StatsSection />
-      <MembershipTiers />
       <EventHighlights />
-      <section className="px-6 pb-24 sm:px-10">
-        <div className="mx-auto max-w-6xl rounded-[2rem] border border-white/10 bg-black/70 p-10 shadow-glass text-slate-300">
-          <h2 className="text-3xl font-semibold text-white">Latest announcements</h2>
-          <div className="mt-8 grid gap-6 md:grid-cols-3">
-            {['Next masterclass on strategy', 'Registration open for July Open', 'New member portal launched'].map((item) => (
-              <div key={item} className="rounded-3xl border border-white/10 bg-white/5 p-6">
-                <p className="text-sm uppercase tracking-[0.2em] text-gold">Update</p>
-                <p className="mt-4 text-base text-slate-200">{item}</p>
-              </div>
-            ))}
+      <MembershipTiers />
+
+      {/* Latest Announcements CTA */}
+      <section className="py-20">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <div className="glass-gold p-12 rounded-2xl">
+            <p className="text-yellow-400 text-sm uppercase tracking-widest mb-3">Ready to play?</p>
+            <h2 className="text-4xl font-bold text-white mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+              Join Zaid Knights Today
+            </h2>
+            <p className="text-gray-400 mb-8">
+              Become part of Nairobi's fastest-growing chess community. Free to start, no experience needed.
+            </p>
+            <div className="flex gap-4 justify-center flex-wrap">
+              <Link href="/register" className="btn-primary">Create Account</Link>
+              <Link href="/about" className="btn-secondary">Learn More</Link>
+            </div>
           </div>
         </div>
       </section>
