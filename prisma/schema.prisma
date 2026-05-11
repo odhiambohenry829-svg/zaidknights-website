@@ -362,6 +362,17 @@ model Announcement {
   createdAt   DateTime @default(now())
 }
 
+// ─── Contact Messages ─────────────────────────────────────────
+
+model ContactMessage {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  message   String
+  status    String   @default("NEW")
+  createdAt DateTime @default(now())
+}
+
 // ─── Audit Logs ───────────────────────────────────────────────
 
 model AuditLog {

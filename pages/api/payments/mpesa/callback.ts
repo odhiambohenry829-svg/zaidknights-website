@@ -51,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           donorName:  donation.donorName,
           amount:     donation.amount,
           category:   donation.category,
-          mpesaCode:  result.mpesaReceiptNo,
+          mpesaCode:  result.mpesaReceiptNo ?? '',
           date:       new Date().toLocaleDateString('en-KE', { day: 'numeric', month: 'long', year: 'numeric' }),
           message:    donation.message ?? undefined,
         });
@@ -84,7 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           amount:     membership.amount,
           startDate:  membership.startDate.toLocaleDateString('en-KE'),
           endDate:    membership.endDate.toLocaleDateString('en-KE'),
-          mpesaCode:  result.mpesaReceiptNo,
+          mpesaCode:  result.mpesaReceiptNo ?? '',
         });
       } catch (emailErr) {
         console.error('Membership receipt email failed:', emailErr);
