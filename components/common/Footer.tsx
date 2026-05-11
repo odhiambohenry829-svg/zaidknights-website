@@ -20,14 +20,16 @@ export default function Footer() {
             {/* Social Links */}
             <div className="flex gap-4 mt-4">
               {[
-                { label: 'Twitter', href: '#', icon: '𝕏' },
-                { label: 'Facebook', href: '#', icon: 'f' },
-                { label: 'Instagram', href: '#', icon: '◎' },
+                { label: 'Twitter', href: 'https://x.com/zaidknights?s=20', icon: '𝕏' },
+                { label: 'Facebook', href: 'https://www.facebook.com/profile.php?id=61575904767623&sk', icon: 'f' },
+                { label: 'Instagram', href: 'https://www.instagram.com/zaidknights?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==', icon: '◎' },
               ].map(s => (
                 <a
                   key={s.label}
                   href={s.href}
                   aria-label={s.label}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-gray-400 hover:bg-yellow-400/20 hover:text-yellow-400 transition-all text-sm font-bold"
                 >
                   {s.icon}

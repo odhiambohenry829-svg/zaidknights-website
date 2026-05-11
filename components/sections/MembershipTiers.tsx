@@ -35,8 +35,8 @@ const tiers = [
     highlight: true,
   },
   {
-    name: 'Master',
-    level: 'MASTER',
+    name: 'Competitive Squad',
+    level: 'COMPETITIVE_SQUAD',
     price: 'KES 5,500',
     priceNote: 'per year',
     description: 'For serious competitors aiming for the top.',
@@ -48,8 +48,8 @@ const tiers = [
       'VIP event seating',
       'Personal game analysis',
     ],
-    cta: 'Go Master',
-    href: '/register?tier=MASTER',
+    cta: 'Join Squad',
+    href: '/register?tier=COMPETITIVE_SQUAD',
     highlight: false,
   },
 ];
