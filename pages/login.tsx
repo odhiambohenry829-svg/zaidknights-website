@@ -5,9 +5,9 @@ import Layout from '../components/common/Layout';
 import { useAuth } from './_app';
 
 export default function LoginPage() {
-  const [form, setForm] = useState({ email: '', password: '', remember: false });
+  const [form,    setForm]    = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error,   setError]   = useState('');
   const { setUser } = useAuth();
   const router = useRouter();
 
@@ -18,15 +18,16 @@ export default function LoginPage() {
 
     try {
       const res = await fetch('/api/auth/login', {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body:    JSON.stringify(form),
       });
       const data = await res.json();
 
       if (res.ok) {
         setUser(data.user);
-        const redirect = (router.query.redirect as string) || (data.user.role === 'ADMIN' ? '/admin' : '/dashboard');
+        // ?redirect= takes priority, then the role-based redirectTo from the API
+        const redirect = (router.query.redirect as string) || data.redirectTo || '/dashboard';
         router.push(redirect);
       } else {
         setError(data.error || 'Login failed');
@@ -42,7 +43,7 @@ export default function LoginPage() {
     <Layout title="Login | Zaid Knights Chess Club">
       <div className="min-h-[80vh] flex items-center justify-center px-4 py-16 chess-pattern">
         <div className="w-full max-w-md">
-          {/* Logo */}
+
           <div className="text-center mb-8">
             <span className="text-5xl">♞</span>
             <h1 className="text-2xl font-bold text-white mt-3">Welcome back</h1>
@@ -83,28 +84,25 @@ export default function LoginPage() {
                 />
               </div>
 
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="remember"
-                  checked={form.remember}
-                  onChange={e => setForm({ ...form, remember: e.target.checked })}
-                  className="w-4 h-4 accent-yellow-500"
-                />
-                <label htmlFor="remember" className="text-sm text-gray-400">Remember me</label>
-              </div>
-
               <button type="submit" disabled={loading} className="btn-primary w-full py-3 mt-2">
-                {loading ? 'Signing in...' : 'Sign In'}
+                {loading ? 'Signing in…' : 'Sign In'}
               </button>
             </form>
 
-            <p className="text-center text-gray-500 text-sm mt-6">
-              Don't have an account?{' '}
-              <Link href="/register" className="text-yellow-400 hover:text-yellow-300 font-medium">
-                Join the club
-              </Link>
-            </p>
+            <div className="mt-6 pt-5 border-t border-white/10 text-center space-y-2">
+              <p className="text-gray-500 text-sm">
+                Don&apos;t have an account?{' '}
+                <Link href="/register" className="text-yellow-400 hover:text-yellow-300 font-medium">
+                  Join the club
+                </Link>
+              </p>
+              <p className="text-gray-600 text-xs">
+                Admin?{' '}
+                <Link href="/admin/login" className="text-gray-500 hover:text-white transition">
+                  Admin portal →
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>
