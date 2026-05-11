@@ -1,5 +1,22 @@
 import Link from 'next/link';
 
+const quickLinks = [
+  { href: '/about',         label: 'About Us' },
+  { href: '/events',        label: 'Events' },
+  { href: '/rankings',      label: 'Rankings' },
+  { href: '/membership',    label: 'Membership' },
+  { href: '/organizations', label: 'Organizations' },
+  { href: '/donate',        label: 'Donate' },
+  { href: '/gallery',       label: 'Gallery' },
+  { href: '/blog',          label: 'Blog' },
+];
+
+const socialLinks = [
+  { label: 'X / Twitter', href: 'https://x.com/zaidknights?s=20',                                                                            icon: '𝕏' },
+  { label: 'Facebook',    href: 'https://www.facebook.com/profile.php?id=61575904767623&sk',                                                  icon: 'f' },
+  { label: 'Instagram',   href: 'https://www.instagram.com/zaidknights?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==',           icon: '◎' },
+];
+
 export default function Footer() {
   return (
     <footer className="border-t border-white/10 bg-[#0A0A0F] mt-16">
@@ -15,22 +32,20 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-gray-400 text-sm leading-relaxed max-w-sm">
-              Nairobi's premier chess club. Building champions, fostering strategic minds, and growing the chess community in Kenya since our founding.
+              Nairobi's premier chess club. Building champions, fostering strategic minds,
+              and growing the chess community in Kenya.
             </p>
+
             {/* Social Links */}
-            <div className="flex gap-4 mt-4">
-              {[
-                { label: 'Twitter', href: 'https://x.com/zaidknights?s=20', icon: '𝕏' },
-                { label: 'Facebook', href: 'https://www.facebook.com/profile.php?id=61575904767623&sk', icon: 'f' },
-                { label: 'Instagram', href: 'https://www.instagram.com/zaidknights?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==', icon: '◎' },
-              ].map(s => (
+            <div className="flex gap-3 mt-5">
+              {socialLinks.map(s => (
                 <a
                   key={s.label}
                   href={s.href}
                   aria-label={s.label}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-gray-400 hover:bg-yellow-400/20 hover:text-yellow-400 transition-all text-sm font-bold"
+                  className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-gray-400 hover:bg-yellow-400/20 hover:text-yellow-400 transition-all text-sm font-bold"
                 >
                   {s.icon}
                 </a>
@@ -42,16 +57,12 @@ export default function Footer() {
           <div>
             <h3 className="text-white font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
-              {[
-                { href: '/about',      label: 'About Us' },
-                { href: '/events',     label: 'Events' },
-                { href: '/rankings',   label: 'Rankings' },
-                { href: '/membership', label: 'Membership' },
-                { href: '/gallery',    label: 'Gallery' },
-                { href: '/blog',       label: 'Blog' },
-              ].map(link => (
+              {quickLinks.map(link => (
                 <li key={link.href}>
-                  <Link href={link.href} className="text-gray-400 hover:text-yellow-400 text-sm transition-colors">
+                  <Link
+                    href={link.href}
+                    className="text-gray-400 hover:text-yellow-400 text-sm transition-colors"
+                  >
                     {link.label}
                   </Link>
                 </li>
@@ -62,7 +73,7 @@ export default function Footer() {
           {/* Contact */}
           <div>
             <h3 className="text-white font-semibold mb-4">Contact</h3>
-            <ul className="space-y-2 text-sm text-gray-400">
+            <ul className="space-y-3 text-sm text-gray-400">
               <li className="flex items-start gap-2">
                 <span className="mt-0.5">📍</span>
                 <span>Nairobi, Kenya</span>
@@ -74,6 +85,12 @@ export default function Footer() {
                 </a>
               </li>
               <li className="flex items-start gap-2">
+                <span className="mt-0.5">📱</span>
+                <a href="https://wa.me/254700000000" className="hover:text-yellow-400 transition-colors">
+                  +254 700 000 000
+                </a>
+              </li>
+              <li className="flex items-start gap-2">
                 <span className="mt-0.5">🌐</span>
                 <span>zaidknights.org</span>
               </li>
@@ -81,10 +98,13 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Bottom bar */}
         <div className="border-t border-white/10 mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-500">
           <p>© {new Date().getFullYear()} Zaid Knights Chess Club. All rights reserved.</p>
-          <div className="flex gap-4">
+          <div className="flex gap-6">
+            <Link href="/about"   className="hover:text-gray-300 transition-colors">About</Link>
             <Link href="/contact" className="hover:text-gray-300 transition-colors">Contact</Link>
+            <Link href="/donate"  className="hover:text-gray-300 transition-colors">Donate</Link>
           </div>
         </div>
       </div>

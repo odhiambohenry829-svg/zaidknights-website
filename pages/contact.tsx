@@ -3,24 +3,37 @@ import Layout from '../components/common/Layout';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
-export default function Contact() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+const socialLinks = [
+  { label: 'X / Twitter', href: 'https://x.com/zaidknights?s=20',                                                                       icon: '𝕏' },
+  { label: 'Facebook',    href: 'https://www.facebook.com/profile.php?id=61575904767623&sk',                                             icon: 'f' },
+  { label: 'Instagram',   href: 'https://www.instagram.com/zaidknights?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==',      icon: '◎' },
+];
+
+const hours = [
+  { day: 'Monday – Friday', time: '4:00 PM – 8:00 PM' },
+  { day: 'Saturday',        time: '9:00 AM – 6:00 PM' },
+  { day: 'Sunday',          time: 'Tournament Days Only' },
+];
+
+export default function ContactPage() {
+  const [name,    setName]    = useState('');
+  const [email,   setEmail]   = useState('');
+  const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
-  const [status, setStatus] = useState<Status>('idle');
-  const [error, setError] = useState('');
+  const [status,  setStatus]  = useState<Status>('idle');
+  const [error,   setError]   = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !email.trim() || !message.trim()) {
-      setError('Please fill in all fields.');
+      setError('Please fill in all required fields.');
       return;
     }
     setStatus('loading');
     setError('');
     try {
       const res = await fetch('/api/contact', {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, message }),
       });
@@ -29,9 +42,7 @@ export default function Contact() {
         throw new Error(data.error || 'Failed to send message.');
       }
       setStatus('success');
-      setName('');
-      setEmail('');
-      setMessage('');
+      setName(''); setEmail(''); setSubject(''); setMessage('');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong.');
       setStatus('error');
@@ -39,86 +50,163 @@ export default function Contact() {
   };
 
   return (
-    <Layout title="Contact | ZaidKnights Chess Club" description="Contact ZaidKnights Chess Club for membership, tournaments, and coaching.">
-      <section className="px-6 py-24 sm:px-10">
-        <div className="mx-auto max-w-6xl grid gap-12 lg:grid-cols-[1.2fr,0.8fr]">
-          <div className="rounded-[2rem] border border-white/10 bg-black/70 p-10 shadow-glass text-slate-300">
-            <h1 className="text-5xl font-semibold text-white">Contact us</h1>
-            <p className="mt-4 text-lg">Send a message, ask about membership, or join our next event.</p>
+    <Layout
+      title="Contact | Zaid Knights Chess Club"
+      description="Contact Zaid Knights Chess Club for membership enquiries, tournament info, and coaching."
+    >
+      {/* Header */}
+      <section className="py-16 border-b border-white/10 chess-pattern">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-5xl font-bold text-white mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
+            Contact <span className="gold-gradient">Us</span>
+          </h1>
+          <p className="text-gray-400">Get in touch — we'd love to hear from you</p>
+        </div>
+      </section>
 
-            {status === 'success' ? (
-              <div className="mt-10 rounded-2xl border border-green-500/30 bg-green-500/10 p-6 text-green-400">
-                <p className="font-semibold text-lg">Message sent!</p>
-                <p className="mt-1 text-sm">We'll get back to you as soon as possible.</p>
-                <button
-                  onClick={() => setStatus('idle')}
-                  className="mt-4 text-sm text-green-300 hover:text-white transition"
-                >
-                  Send another message →
-                </button>
+      <section className="py-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+
+            {/* ── Contact Form ── */}
+            <div className="glass rounded-2xl p-8">
+              <h2 className="text-white font-semibold text-xl mb-6">Send a Message</h2>
+
+              {status === 'success' ? (
+                <div className="text-center py-10">
+                  <div className="text-5xl mb-4">✉️</div>
+                  <h3 className="text-white font-bold text-xl mb-2">Message Sent!</h3>
+                  <p className="text-gray-400 mb-6">We'll get back to you as soon as possible.</p>
+                  <button onClick={() => setStatus('idle')} className="btn-secondary rounded-xl px-6 py-2">
+                    Send another →
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <label className="block">
+                      <span className="label">Name *</span>
+                      <input
+                        className="input mt-1"
+                        placeholder="Your name"
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                        disabled={status === 'loading'}
+                        required
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="label">Email *</span>
+                      <input
+                        type="email"
+                        className="input mt-1"
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        disabled={status === 'loading'}
+                        required
+                      />
+                    </label>
+                  </div>
+
+                  <label className="block">
+                    <span className="label">Subject</span>
+                    <input
+                      className="input mt-1"
+                      placeholder="What is this about?"
+                      value={subject}
+                      onChange={e => setSubject(e.target.value)}
+                      disabled={status === 'loading'}
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="label">Message *</span>
+                    <textarea
+                      rows={5}
+                      className="input mt-1 resize-none"
+                      placeholder="How can we help you?"
+                      value={message}
+                      onChange={e => setMessage(e.target.value)}
+                      disabled={status === 'loading'}
+                      required
+                    />
+                  </label>
+
+                  {error && <p className="text-red-400 text-sm">{error}</p>}
+
+                  <button
+                    type="submit"
+                    disabled={status === 'loading'}
+                    className="w-full btn-primary py-3 rounded-lg disabled:opacity-50"
+                  >
+                    {status === 'loading' ? 'Sending…' : 'Send Message'}
+                  </button>
+                </form>
+              )}
+            </div>
+
+            {/* ── Info Sidebar ── */}
+            <div className="space-y-6">
+
+              {/* Reach us */}
+              <div className="glass rounded-2xl p-6">
+                <h2 className="text-white font-semibold text-xl mb-5">Reach Us</h2>
+                <div className="space-y-4">
+                  {[
+                    { icon: '📍', label: 'Address',  value: 'Nairobi Chess Academy, Langata Road, Nairobi, Kenya', href: undefined },
+                    { icon: '✉️', label: 'Email',    value: 'info@zaidknights.org',  href: 'mailto:info@zaidknights.org' },
+                    { icon: '📱', label: 'WhatsApp', value: '+254 700 000 000',       href: 'https://wa.me/254700000000' },
+                  ].map(item => (
+                    <div key={item.label} className="flex items-start gap-3">
+                      <span className="text-xl mt-0.5 flex-shrink-0">{item.icon}</span>
+                      <div>
+                        <p className="text-gray-500 text-xs uppercase tracking-wide mb-0.5">{item.label}</p>
+                        {item.href ? (
+                          <a href={item.href} className="text-white hover:text-yellow-400 transition-colors text-sm">
+                            {item.value}
+                          </a>
+                        ) : (
+                          <p className="text-white text-sm">{item.value}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="mt-10 space-y-6">
-                <label className="block">
-                  <span>Name</span>
-                  <input
-                    className="mt-2 w-full rounded-3xl border border-white/10 bg-black/60 px-4 py-3 text-white"
-                    placeholder="Your name"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    disabled={status === 'loading'}
-                  />
-                </label>
-                <label className="block">
-                  <span>Email</span>
-                  <input
-                    type="email"
-                    className="mt-2 w-full rounded-3xl border border-white/10 bg-black/60 px-4 py-3 text-white"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    disabled={status === 'loading'}
-                  />
-                </label>
-                <label className="block">
-                  <span>Message</span>
-                  <textarea
-                    rows={5}
-                    className="mt-2 w-full rounded-3xl border border-white/10 bg-black/60 px-4 py-3 text-white"
-                    placeholder="How can we help?"
-                    value={message}
-                    onChange={e => setMessage(e.target.value)}
-                    disabled={status === 'loading'}
-                  />
-                </label>
-                {error && (
-                  <p className="text-red-400 text-sm">{error}</p>
-                )}
-                <button
-                  type="submit"
-                  disabled={status === 'loading'}
-                  className="rounded-full bg-gold px-6 py-3 text-black transition hover:bg-gold/90 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {status === 'loading' ? 'Sending…' : 'Send message'}
-                </button>
-              </form>
-            )}
-          </div>
 
-          <div className="space-y-8 rounded-[2rem] border border-white/10 bg-white/5 p-10 shadow-glass text-slate-300">
-            <div>
-              <h2 className="text-3xl font-semibold text-white">Reach us</h2>
-              <p className="mt-4">Nairobi Chess Academy, Nairobi, Kenya</p>
-            </div>
-            <div className="space-y-4 text-slate-300">
-              <p><span className="font-semibold text-white">Email:</span> hello@zaidknights.com</p>
-              <p><span className="font-semibold text-white">WhatsApp:</span> +254 700 000 000</p>
-              <p><span className="font-semibold text-white">Social:</span> Instagram · TikTok</p>
-            </div>
-            <div className="rounded-3xl bg-black/60 p-6 text-slate-300">
-              <p className="text-sm uppercase tracking-[0.3em] text-gold">Location</p>
-              <p className="mt-4">Nairobi Chess Academy, Langata Road, Nairobi, Kenya</p>
-              <p className="mt-4 text-xs text-slate-500">Google Maps integration is available on the live deployment.</p>
+              {/* Social */}
+              <div className="glass rounded-2xl p-6">
+                <h2 className="text-white font-semibold text-xl mb-4">Follow Us</h2>
+                <div className="flex flex-wrap gap-3">
+                  {socialLinks.map(s => (
+                    <a
+                      key={s.label}
+                      href={s.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={s.label}
+                      className="flex items-center gap-2 px-4 py-2.5 glass rounded-xl text-gray-400 hover:text-yellow-400 hover:border-yellow-500/30 transition-all text-sm font-medium"
+                    >
+                      <span className="font-bold">{s.icon}</span>
+                      {s.label}
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              {/* Club Hours */}
+              <div className="glass rounded-2xl p-6">
+                <h2 className="text-white font-semibold text-xl mb-4">Club Hours</h2>
+                <div className="space-y-3">
+                  {hours.map(row => (
+                    <div key={row.day} className="flex justify-between items-center text-sm border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                      <span className="text-gray-400">{row.day}</span>
+                      <span className="text-white font-medium">{row.time}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>

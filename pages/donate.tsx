@@ -92,7 +92,7 @@ export default function DonatePage() {
       {/* Hero */}
       <section className="py-16 border-b border-white/10 chess-pattern">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-gold text-sm uppercase tracking-widest mb-3">Support the Club</p>
+          <p className="text-yellow-400 text-sm uppercase tracking-widest mb-3">Support the Club</p>
           <h1 className="text-5xl font-bold text-white mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
             Make a <span className="gold-gradient">Donation</span>
           </h1>

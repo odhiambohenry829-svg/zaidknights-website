@@ -7,13 +7,13 @@ const benefits = [
   { icon: '📚', title: 'Coaching',    desc: 'Learn from experienced coaches through structured sessions' },
   { icon: '📊', title: 'Analytics',   desc: 'Track your progress with detailed stats and game analysis' },
   { icon: '🤝', title: 'Community',   desc: 'Connect with passionate chess players across Nairobi' },
-  { icon: '🎽', title: 'Merchandise', desc: 'Master members receive exclusive club jersey and gear' },
+  { icon: '🎽', title: 'Merchandise', desc: 'Competitive Squad members receive exclusive club jersey and gear' },
   { icon: '🌍', title: 'National',    desc: 'Represent Zaid Knights at national-level competitions' },
 ];
 
 export default function MembershipPage() {
   return (
-    <Layout title="Membership | Zaid Knights Chess Club" description="Join Zaid Knights Chess Club. Choose from Beginner (free), Advanced (KES 2,500/yr), or Master (KES 5,500/yr) membership tiers.">
+    <Layout title="Membership | Zaid Knights Chess Club" description="Join Zaid Knights Chess Club. Choose from Beginner (free), Advanced (KES 2,500/yr), or Competitive Squad (KES 5,500/yr) membership tiers.">
       {/* Header */}
       <section className="py-16 border-b border-white/10 chess-pattern">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

@@ -12,9 +12,10 @@ interface RankedMember {
 }
 
 const LEVEL_BADGE: Record<string, string> = {
-  BEGINNER: 'badge-gray',
-  ADVANCED: 'badge-gold',
-  MASTER:   'badge-green',
+  BEGINNER:          'badge-gray',
+  INTERMEDIATE:      'badge-green',
+  ADVANCED:          'badge-gold',
+  COMPETITIVE_SQUAD: 'badge-green',
 };
 
 const MEDAL: Record<number, string> = { 0: '🥇', 1: '🥈', 2: '🥉' };
