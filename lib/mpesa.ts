@@ -5,11 +5,11 @@ const BASE_URL = process.env.MPESA_ENV === 'production'
   ? 'https://api.safaricom.co.ke'
   : 'https://sandbox.safaricom.co.ke';
 
-const CONSUMER_KEY    = process.env.MPESA_CONSUMER_KEY!;
-const CONSUMER_SECRET = process.env.MPESA_CONSUMER_SECRET!;
-const PAYBILL         = process.env.MPESA_PAYBILL!;
-const PASSKEY         = process.env.MPESA_PASSKEY!;
-const CALLBACK_URL    = process.env.MPESA_CALLBACK_URL!;
+const CONSUMER_KEY    = process.env.MPESA_CONSUMER_KEY!.trim();
+const CONSUMER_SECRET = process.env.MPESA_CONSUMER_SECRET!.trim();
+const PAYBILL         = process.env.MPESA_PAYBILL!.trim();
+const PASSKEY         = process.env.MPESA_PASSKEY!.trim();
+const CALLBACK_URL    = process.env.MPESA_CALLBACK_URL!.trim();
 
 function getTimestamp(): string {
   return new Date()
