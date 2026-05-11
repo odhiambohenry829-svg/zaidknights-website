@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === 'POST') {
     const user = getUserFromRequest(req);
-    if (!user) return res.status(401).json({ error: 'Unauthorised' });
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
     const { action, eventId, title, description, location, startDate, endDate, capacity, type } = req.body;
 

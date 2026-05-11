@@ -25,11 +25,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           ...(category && category !== 'All' && { category: category as string }),
         },
         orderBy: { createdAt: 'desc' },
-        include: { author: { select: { name: true } } },
         select: {
           id: true, title: true, slug: true, excerpt: true,
           category: true, imageUrl: true, createdAt: true,
-          author: true,
+          author: { select: { name: true } },
         },
       });
       return res.status(200).json({ posts });

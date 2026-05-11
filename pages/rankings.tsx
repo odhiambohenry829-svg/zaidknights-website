@@ -23,12 +23,13 @@ export default function RankingsPage() {
   const [members, setMembers] = useState<RankedMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetch('/api/members')
       .then(r => r.json())
       .then(data => setMembers(data.members || []))
-      .catch(() => {})
+      .catch(() => setError('Failed to load rankings. Please refresh the page.'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -60,6 +61,13 @@ export default function RankingsPage() {
               className="input max-w-sm"
             />
           </div>
+
+          {/* Error state */}
+          {error && (
+            <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-400 text-sm">
+              {error}
+            </div>
+          )}
 
           {/* Table */}
           {loading ? (

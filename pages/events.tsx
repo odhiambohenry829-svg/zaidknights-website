@@ -23,13 +23,14 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
   const [registering, setRegistering] = useState<string | null>(null);
+  const [error, setError] = useState('');
   const { user } = useAuth();
 
   useEffect(() => {
     fetch('/api/events')
       .then(r => r.json())
       .then(data => setEvents(data.events || []))
-      .catch(() => {})
+      .catch(() => setError('Failed to load events. Please refresh the page.'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -84,6 +85,13 @@ export default function EventsPage() {
               </button>
             ))}
           </div>
+
+          {/* Error state */}
+          {error && (
+            <div className="mb-8 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-400 text-sm">
+              {error}
+            </div>
+          )}
 
           {/* Events Grid */}
           {loading ? (

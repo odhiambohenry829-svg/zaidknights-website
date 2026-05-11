@@ -8,22 +8,59 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// ─── Enums ────────────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  COACH
+  MEMBER
+  GUEST
+}
+
+enum MemberLevel {
+  BEGINNER
+  ADVANCED
+  MASTER
+}
+
+enum MemberStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+enum RegistrationStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+// ─── Models ───────────────────────────────────────────────────
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
   name      String?
   password  String
-  role      Role     @default(USER)
+  role      Role     @default(MEMBER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  posts     Post[]
+  posts         Post[]
+  member        Member?
+  registrations Registration[]
+  results       Result[]
 }
 
 model Post {
   id        String   @id @default(uuid())
   title     String
+  slug      String   @unique
+  excerpt   String?
   content   String?
+  category  String   @default("general")
+  imageUrl  String?
+  tags      String[]
   published Boolean  @default(false)
   authorId  String
 
@@ -33,7 +70,67 @@ model Post {
   updatedAt DateTime @updatedAt
 }
 
-enum Role {
-  USER
-  ADMIN
+model Member {
+  id       String       @id @default(uuid())
+  userId   String       @unique
+  level    MemberLevel  @default(BEGINNER)
+  rating   Int          @default(1200)
+  status   MemberStatus @default(PENDING)
+  joinedAt DateTime     @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  results Result[]
+}
+
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  description String
+  location    String
+  startDate   DateTime
+  endDate     DateTime
+  capacity    Int      @default(32)
+  type        String   @default("tournament")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  registrations Registration[]
+  results       Result[]
+}
+
+model Registration {
+  id      String             @id @default(uuid())
+  userId  String
+  eventId String
+  status  RegistrationStatus @default(CONFIRMED)
+  createdAt DateTime         @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+}
+
+model Result {
+  id      String @id @default(uuid())
+  userId  String
+  eventId String
+  score   Float  @default(0)
+  wins    Int    @default(0)
+  losses  Int    @default(0)
+  draws   Int    @default(0)
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event  Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  member Member? @relation(fields: [userId], references: [userId])
+}
+
+model GalleryItem {
+  id        String   @id @default(uuid())
+  title     String
+  imageUrl  String
+  caption   String?
+  createdAt DateTime @default(now())
 }

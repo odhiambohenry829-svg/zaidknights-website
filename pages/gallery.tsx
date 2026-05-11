@@ -13,12 +13,13 @@ export default function GalleryPage() {
   const [items, setItems] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<GalleryItem | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetch('/api/gallery')
       .then(r => r.json())
       .then(data => setItems(data.items || []))
-      .catch(() => {})
+      .catch(() => setError('Failed to load gallery. Please refresh the page.'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -36,6 +37,12 @@ export default function GalleryPage() {
 
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {error && (
+            <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-400 text-sm">
+              {error}
+            </div>
+          )}
+
           {loading ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {[...Array(8)].map((_, i) => <div key={i} className="skeleton aspect-square rounded-xl" />)}

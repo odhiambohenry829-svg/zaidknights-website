@@ -19,12 +19,13 @@ export default function BlogPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState('All');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetch('/api/posts')
       .then(r => r.json())
       .then(data => setPosts(data.posts || []))
-      .catch(() => {})
+      .catch(() => setError('Failed to load posts. Please refresh the page.'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -60,6 +61,13 @@ export default function BlogPage() {
               </button>
             ))}
           </div>
+
+          {/* Error state */}
+          {error && (
+            <div className="mb-8 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-400 text-sm">
+              {error}
+            </div>
+          )}
 
           {/* Posts Grid */}
           {loading ? (

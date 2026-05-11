@@ -17,6 +17,7 @@ export default function AdminPage() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'members' | 'events'>('overview');
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading) {
@@ -35,13 +36,22 @@ export default function AdminPage() {
   }, [user]);
 
   const handleStatusChange = async (memberId: string, status: string) => {
-    await fetch('/api/members', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ memberId, status }),
-    });
-    // Refresh
-    fetch('/api/admin/stats').then(r => r.json()).then(setStats);
+    setActionError(null);
+    try {
+      const res = await fetch('/api/members', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId, status }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setActionError(data.error || 'Failed to update member status.');
+        return;
+      }
+      fetch('/api/admin/stats').then(r => r.json()).then(setStats).catch(() => {});
+    } catch {
+      setActionError('Network error. Please try again.');
+    }
   };
 
   if (authLoading || !user || user.role !== 'ADMIN') return null;
@@ -56,6 +66,14 @@ export default function AdminPage() {
           </div>
           <span className="badge-gold">Administrator</span>
         </div>
+
+        {/* Action error banner */}
+        {actionError && (
+          <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-400 text-sm flex items-center justify-between">
+            <span>{actionError}</span>
+            <button onClick={() => setActionError(null)} className="ml-4 text-red-300 hover:text-white transition">✕</button>
+          </div>
+        )}
 
         {/* Stats Cards */}
         {loading ? (

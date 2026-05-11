@@ -31,6 +31,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -43,7 +44,7 @@ export default function DashboardPage() {
     fetch('/api/dashboard/stats')
       .then(r => r.json())
       .then(setData)
-      .catch(() => {})
+      .catch(() => setError('Failed to load dashboard data. Please refresh the page.'))
       .finally(() => setLoading(false));
   }, [user]);
 
@@ -59,6 +60,12 @@ export default function DashboardPage() {
           </h1>
           <p className="text-gray-400 mt-1">Here's your chess journey at a glance</p>
         </div>
+
+        {error && (
+          <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-400 text-sm">
+            {error}
+          </div>
+        )}
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

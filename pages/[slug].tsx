@@ -20,13 +20,14 @@ export default function BlogPostPage() {
   const { slug } = router.query;
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!slug) return;
     fetch(`/api/posts?slug=${slug}`)
       .then(r => r.json())
       .then(data => setPost(data.post || null))
-      .catch(() => {})
+      .catch(() => setError('Failed to load post. Please refresh the page.'))
       .finally(() => setLoading(false));
   }, [slug]);
 
@@ -44,12 +45,13 @@ export default function BlogPostPage() {
     );
   }
 
-  if (!post) {
+  if (error || !post) {
     return (
       <Layout>
         <div className="text-center py-32">
           <p className="text-5xl mb-4">📄</p>
-          <h1 className="text-2xl text-white mb-3">Post not found</h1>
+          <h1 className="text-2xl text-white mb-3">{error ? 'Something went wrong' : 'Post not found'}</h1>
+          {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
           <Link href="/blog" className="btn-secondary">← Back to Blog</Link>
         </div>
       </Layout>
