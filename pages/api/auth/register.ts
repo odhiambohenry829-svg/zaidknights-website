@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         role: 'MEMBER',
         member: {
           create: {
-            level: (tier as 'BEGINNER' | 'ADVANCED' | 'MASTER') || 'BEGINNER',
+            level: (['BEGINNER','INTERMEDIATE','ADVANCED','COMPETITIVE_SQUAD'].includes(tier) ? tier : 'BEGINNER') as 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'COMPETITIVE_SQUAD',
             status: 'PENDING',
           },
         },

@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Layout from '../../components/common/Layout';
+import Layout from '../components/common/Layout';
 
 interface Post {
   id: string;
