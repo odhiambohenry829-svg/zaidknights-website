@@ -373,6 +373,14 @@ model ContactMessage {
   createdAt DateTime @default(now())
 }
 
+// ─── Site Settings ────────────────────────────────────────────
+
+model SiteSettings {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
 // ─── Audit Logs ───────────────────────────────────────────────
 
 model AuditLog {

@@ -31,7 +31,11 @@ function useCountdown(target: Date | null) {
 }
 
 export default function Hero() {
-  const [nextEvent, setNextEvent] = useState<NextEvent | null>(null);
+  const [nextEvent,    setNextEvent]    = useState<NextEvent | null>(null);
+  const [heroTitle,    setHeroTitle]    = useState('Master the Game of Kings');
+  const [heroSubtitle, setHeroSubtitle] = useState(
+    'Join Zaid Knights Chess Club — where strategy meets community. Compete in tournaments, climb the rankings, and grow with Kenya\'s most passionate chess players.'
+  );
 
   useEffect(() => {
     fetch('/api/events?limit=1')
@@ -39,6 +43,14 @@ export default function Hero() {
       .then(data => {
         const events: NextEvent[] = data.events || [];
         if (events.length > 0) setNextEvent(events[0]);
+      })
+      .catch(() => {});
+
+    fetch('/api/site-settings')
+      .then(r => r.json())
+      .then(data => {
+        if (data.settings?.heroTitle)    setHeroTitle(data.settings.heroTitle);
+        if (data.settings?.heroSubtitle) setHeroSubtitle(data.settings.heroSubtitle);
       })
       .catch(() => {});
   }, []);
@@ -73,13 +85,11 @@ export default function Hero() {
             className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight"
             style={{ fontFamily: 'Playfair Display, serif' }}
           >
-            Master the{' '}
-            <span className="gold-gradient">Game of Kings</span>
+            <span className="gold-gradient">{heroTitle}</span>
           </h1>
 
           <p className="text-xl text-gray-400 mb-10 leading-relaxed">
-            Join Zaid Knights Chess Club — where strategy meets community. Compete in tournaments,
-            climb the rankings, and grow with Kenya's most passionate chess players.
+            {heroSubtitle}
           </p>
 
           {/* CTA Buttons */}
