@@ -5,6 +5,21 @@ import { sanitizeString, slugify } from '../../lib/validators';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
+    if (req.query.admin === 'true') {
+      const user = getUserFromRequest(req);
+      if (!user || user.role !== 'ADMIN') return res.status(403).json({ error: 'Forbidden' });
+      try {
+        const events = await prisma.event.findMany({
+          orderBy: { startDate: 'desc' },
+          include: { _count: { select: { registrations: true } } },
+        });
+        return res.status(200).json({ events });
+      } catch (err) {
+        console.error('Events admin GET error:', err);
+        return res.status(500).json({ error: 'Failed to fetch events' });
+      }
+    }
+
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
       const events = await prisma.event.findMany({
@@ -71,6 +86,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } catch (err) {
       console.error('Create event error:', err);
       return res.status(500).json({ error: 'Failed to create event' });
+    }
+  }
+
+  if (req.method === 'DELETE') {
+    const user = getUserFromRequest(req);
+    if (!user || user.role !== 'ADMIN') return res.status(403).json({ error: 'Forbidden' });
+
+    const { id } = req.body;
+    if (!id) return res.status(400).json({ error: 'id is required' });
+
+    try {
+      await prisma.event.delete({ where: { id } });
+      return res.status(200).json({ ok: true });
+    } catch (err) {
+      console.error('Delete event error:', err);
+      return res.status(500).json({ error: 'Failed to delete event' });
     }
   }
 

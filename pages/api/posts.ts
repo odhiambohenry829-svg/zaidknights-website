@@ -5,6 +5,26 @@ import { sanitizeString, slugify } from '../../lib/validators';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
+    if (req.query.admin === 'true') {
+      const user = getUserFromRequest(req);
+      if (!user || !['ADMIN', 'COACH'].includes(user.role)) return res.status(403).json({ error: 'Forbidden' });
+      try {
+        const posts = await prisma.post.findMany({
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true, title: true, slug: true, excerpt: true,
+            category: true, imageUrl: true, tags: true,
+            published: true, createdAt: true,
+            author: { select: { name: true } },
+          },
+        });
+        return res.status(200).json({ posts });
+      } catch (err) {
+        console.error('Posts admin GET error:', err);
+        return res.status(500).json({ error: 'Failed to fetch posts' });
+      }
+    }
+
     const { slug, category } = req.query;
 
     try {
@@ -65,6 +85,49 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } catch (err) {
       console.error('Posts POST error:', err);
       return res.status(500).json({ error: 'Failed to create post' });
+    }
+  }
+
+  if (req.method === 'PATCH') {
+    const user = getUserFromRequest(req);
+    if (!user || !['ADMIN', 'COACH'].includes(user.role)) return res.status(403).json({ error: 'Forbidden' });
+
+    const { id, published, title, excerpt, content, category, imageUrl, tags } = req.body;
+    if (!id) return res.status(400).json({ error: 'id is required' });
+
+    try {
+      const post = await prisma.post.update({
+        where: { id },
+        data: {
+          ...(published  !== undefined && { published }),
+          ...(title      !== undefined && { title: sanitizeString(title) }),
+          ...(excerpt    !== undefined && { excerpt: sanitizeString(excerpt) }),
+          ...(content    !== undefined && { content }),
+          ...(category   !== undefined && { category }),
+          ...(imageUrl   !== undefined && { imageUrl }),
+          ...(tags       !== undefined && { tags }),
+        },
+      });
+      return res.status(200).json({ post });
+    } catch (err) {
+      console.error('Posts PATCH error:', err);
+      return res.status(500).json({ error: 'Failed to update post' });
+    }
+  }
+
+  if (req.method === 'DELETE') {
+    const user = getUserFromRequest(req);
+    if (!user || !['ADMIN', 'COACH'].includes(user.role)) return res.status(403).json({ error: 'Forbidden' });
+
+    const { id } = req.body;
+    if (!id) return res.status(400).json({ error: 'id is required' });
+
+    try {
+      await prisma.post.delete({ where: { id } });
+      return res.status(200).json({ ok: true });
+    } catch (err) {
+      console.error('Posts DELETE error:', err);
+      return res.status(500).json({ error: 'Failed to delete post' });
     }
   }
 

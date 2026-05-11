@@ -4,6 +4,25 @@ import { getUserFromRequest } from '../../lib/auth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
+    if (req.query.admin === 'true') {
+      const user = getUserFromRequest(req);
+      if (!user || user.role !== 'ADMIN') return res.status(403).json({ error: 'Forbidden' });
+      try {
+        const members = await prisma.member.findMany({
+          select: {
+            id: true, userId: true, level: true, tier: true,
+            status: true, rating: true, joinedAt: true, autoRenew: true,
+            user: { select: { name: true, email: true } },
+          },
+          orderBy: { joinedAt: 'desc' },
+        });
+        return res.status(200).json({ members });
+      } catch (err) {
+        console.error('Members admin GET error:', err);
+        return res.status(500).json({ error: 'Failed to fetch members' });
+      }
+    }
+
     try {
       const members = await prisma.member.findMany({
         where: { status: 'ACTIVE' },
