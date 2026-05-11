@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../pages/_app';
 
-type NavLink  = { href: string; label: string; children?: never };
-type NavGroup = { label: string; children: NavLink[]; href?: never };
+type NavLink  = { href: string; label: string };
+type NavGroup = { label: string; children: NavLink[] };
 type NavItem  = NavLink | NavGroup;
 
 const navItems: NavItem[] = [
