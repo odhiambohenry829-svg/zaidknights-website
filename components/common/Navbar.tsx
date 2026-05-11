@@ -4,14 +4,16 @@ import { useRouter } from 'next/router';
 import { useAuth } from '../../pages/_app';
 
 const navLinks = [
-  { href: '/',           label: 'Home' },
-  { href: '/about',      label: 'About' },
-  { href: '/events',     label: 'Events' },
-  { href: '/rankings',   label: 'Rankings' },
-  { href: '/membership', label: 'Membership' },
-  { href: '/gallery',    label: 'Gallery' },
-  { href: '/blog',       label: 'Blog' },
-  { href: '/contact',    label: 'Contact' },
+  { href: '/',               label: 'Home' },
+  { href: '/about',          label: 'About' },
+  { href: '/events',         label: 'Events' },
+  { href: '/organizations',  label: 'Organizations' },
+  { href: '/rankings',       label: 'Rankings' },
+  { href: '/membership',     label: 'Membership' },
+  { href: '/gallery',        label: 'Gallery' },
+  { href: '/blog',           label: 'Blog' },
+  { href: '/donate',         label: 'Donate' },
+  { href: '/contact',        label: 'Contact' },
 ];
 
 export default function Navbar() {
