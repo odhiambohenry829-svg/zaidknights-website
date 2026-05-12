@@ -24,21 +24,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
       const members = await prisma.member.findMany({
-        where: { status: 'ACTIVE' },
+        where:   { status: 'ACTIVE' },
         include: {
-          user: { select: { name: true, email: true } },
-          results: { select: { wins: true, losses: true, draws: true } },
+          user:         { select: { name: true, email: true } },
+          results:      { select: { wins: true, losses: true, draws: true, score: true } },
+          ratingHistory: {
+            where:   { createdAt: { gte: thirtyDaysAgo } },
+            orderBy: { createdAt: 'asc' },
+            take:    1,
+            select:  { rating: true },
+          },
         },
         orderBy: { rating: 'desc' },
       });
 
-      // Aggregate results per member
-      const enriched = members.map(m => {
-        const wins   = m.results.reduce((s, r) => s + r.wins, 0);
+      const enriched = members.map((m, idx) => {
+        const wins   = m.results.reduce((s, r) => s + r.wins,   0);
         const losses = m.results.reduce((s, r) => s + r.losses, 0);
-        const draws  = m.results.reduce((s, r) => s + r.draws, 0);
-        return { id: m.id, rating: m.rating, level: m.level, status: m.status, wins, losses, draws, user: m.user };
+        const draws  = m.results.reduce((s, r) => s + r.draws,  0);
+        const total  = wins + losses + draws;
+        const score  = total > 0 ? Math.round(((wins + draws * 0.5) / total) * 100) : 0;
+
+        const oldRating   = m.ratingHistory[0]?.rating ?? m.rating;
+        const ratingDelta = m.rating - oldRating;
+
+        return {
+          id:          m.id,
+          rank:        idx + 1,
+          rating:      m.rating,
+          level:       m.level,
+          status:      m.status,
+          wins,
+          losses,
+          draws,
+          total,
+          score,
+          ratingDelta,
+          user:        m.user,
+        };
       });
 
       return res.status(200).json({ members: enriched });
@@ -59,8 +85,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const member = await prisma.member.update({
         where: { id: memberId },
         data: {
-          ...(status && { status }),
-          ...(level  && { level }),
+          ...(status              && { status }),
+          ...(level               && { level }),
           ...(rating !== undefined && { rating }),
         },
       });

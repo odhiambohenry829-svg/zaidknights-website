@@ -21,11 +21,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      const limit       = req.query.limit   ? parseInt(req.query.limit as string)  : undefined;
+      const past        = req.query.past    === 'true';
+      const type        = req.query.type    as string | undefined;
+      const now         = new Date();
+
       const events = await prisma.event.findMany({
-        take: limit,
-        orderBy: { startDate: 'asc' },
-        where: { startDate: { gte: new Date() } },
+        take:    limit,
+        orderBy: { startDate: past ? 'desc' : 'asc' },
+        where: {
+          startDate: past ? { lt: now } : { gte: now },
+          ...(type && type !== 'all' ? { type } : {}),
+        },
         include: { _count: { select: { registrations: true } } },
       });
       return res.status(200).json({ events });
@@ -41,29 +48,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { action, eventId, title, description, location, startDate, endDate, capacity, type } = req.body;
 
-    // Event registration
     if (action === 'register') {
       if (!eventId) return res.status(400).json({ error: 'eventId is required' });
       try {
         const event = await prisma.event.findUnique({
-          where: { id: eventId },
+          where:   { id: eventId },
           include: { _count: { select: { registrations: true } } },
         });
         if (!event) return res.status(404).json({ error: 'Event not found' });
-        if (event._count.registrations >= event.capacity) return res.status(400).json({ error: 'Event is full' });
-
+        if (event._count.registrations >= event.capacity) {
+          return res.status(400).json({ error: 'Event is full' });
+        }
         const registration = await prisma.registration.create({
           data: { userId: user.id, eventId, status: 'CONFIRMED' },
         });
         return res.status(201).json({ registration });
       } catch (err: unknown) {
-        if ((err as { code?: string })?.code === 'P2002') return res.status(409).json({ error: 'Already registered for this event' });
+        if ((err as { code?: string })?.code === 'P2002') {
+          return res.status(409).json({ error: 'Already registered for this event' });
+        }
         console.error('Registration error:', err);
         return res.status(500).json({ error: 'Failed to register' });
       }
     }
 
-    // Create event (admin only)
     if (user.role !== 'ADMIN') return res.status(403).json({ error: 'Forbidden' });
     if (!title || !description || !location || !startDate || !endDate) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -72,14 +80,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const event = await prisma.event.create({
         data: {
-          title: sanitizeString(title),
-          slug: slugify(title),
+          title:       sanitizeString(title),
+          slug:        slugify(title),
           description: sanitizeString(description),
-          location: sanitizeString(location),
-          startDate: new Date(startDate),
-          endDate: new Date(endDate),
-          capacity: capacity || 32,
-          type: type || 'tournament',
+          location:    sanitizeString(location),
+          startDate:   new Date(startDate),
+          endDate:     new Date(endDate),
+          capacity:    capacity || 32,
+          type:        type    || 'tournament',
         },
       });
       return res.status(201).json({ event });

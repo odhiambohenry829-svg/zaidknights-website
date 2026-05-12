@@ -346,6 +346,7 @@ model GalleryItem {
   title     String
   imageUrl  String
   caption   String?
+  category  String   @default("general")
   createdAt DateTime @default(now())
 }
 
@@ -368,9 +369,17 @@ model ContactMessage {
   id        String   @id @default(uuid())
   name      String
   email     String
+  subject   String?
   message   String
   status    String   @default("NEW")
   createdAt DateTime @default(now())
+}
+
+model NewsletterSubscription {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  subscribedAt DateTime @default(now())
+  active       Boolean  @default(true)
 }
 
 // ─── Site Settings ────────────────────────────────────────────

@@ -1,317 +1,474 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import Layout from '../components/common/Layout';
+import ProgressBar from '../components/ui/ProgressBar';
+import Toast from '../components/ui/Toast';
 import { useAuth } from './_app';
 
-type Step = 'form' | 'payment' | 'pending' | 'success' | 'error';
+type PaymentMethod = 'MPESA' | 'CARD' | 'BANK_TRANSFER';
+type DonorType     = 'INDIVIDUAL' | 'COMPANY' | 'ALUMNI';
+type Category      = 'GENERAL_FUND' | 'TRAINING_EQUIPMENT' | 'TOURNAMENTS' | 'TRAVEL_SUPPORT';
 
-const CATEGORIES = [
-  { value: 'GENERAL_FUND',        label: 'General Fund',        icon: '♟',  desc: 'Support overall club operations' },
-  { value: 'TOURNAMENTS',         label: 'Tournaments',         icon: '🏆', desc: 'Fund tournament prizes & hosting' },
-  { value: 'TRAINING_EQUIPMENT',  label: 'Training Equipment',  icon: '📚', desc: 'Chess sets, clocks, boards' },
-  { value: 'TRAVEL_SUPPORT',      label: 'Travel Support',      icon: '✈️', desc: 'Help members travel to competitions' },
-];
+interface LeaderEntry {
+  rank:  number;
+  name:  string;
+  total: number;
+}
 
-const DONOR_TYPES = [
-  { value: 'INDIVIDUAL', label: 'Individual' },
-  { value: 'COMPANY',    label: 'Company / Organization' },
-  { value: 'ALUMNI',     label: 'Club Alumni' },
-];
+const PRESET_AMOUNTS = [500, 1000, 2500, 5000, 10000];
 
-const AMOUNTS = [500, 1000, 2500, 5000, 10000];
+const CATEGORY_LABELS: Record<Category, string> = {
+  GENERAL_FUND:        'General Fund',
+  TRAINING_EQUIPMENT:  'Training Equipment',
+  TOURNAMENTS:         'Tournament Support',
+  TRAVEL_SUPPORT:      'Travel Support',
+};
+
+const IMPACT_MAP: Record<number, string> = {
+  500:   'Buys a chess set for a junior player',
+  1000:  'Covers a tournament entry fee',
+  2500:  'Sponsors training materials for one month',
+  5000:  'Funds travel to a regional championship',
+  10000: 'Sponsors a full training programme for one term',
+};
 
 export default function DonatePage() {
   const { user } = useAuth();
 
-  const [donorName,   setDonorName]   = useState(user?.name  ?? '');
-  const [donorEmail,  setDonorEmail]  = useState(user?.email ?? '');
-  const [donorType,   setDonorType]   = useState('INDIVIDUAL');
-  const [category,    setCategory]    = useState('GENERAL_FUND');
   const [amount,      setAmount]      = useState<number | ''>('');
-  const [customAmt,   setCustomAmt]   = useState('');
-  const [message,     setMessage]     = useState('');
-  const [dedication,  setDedication]  = useState('');
+  const [custom,      setCustom]      = useState('');
+  const [category,    setCategory]    = useState<Category>('GENERAL_FUND');
+  const [donorType,   setDonorType]   = useState<DonorType>('INDIVIDUAL');
+  const [payment,     setPayment]     = useState<PaymentMethod>('MPESA');
   const [anonymous,   setAnonymous]   = useState(false);
+  const [dedication,  setDedication]  = useState('');
   const [taxReceipt,  setTaxReceipt]  = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [donorName,   setDonorName]   = useState(user?.name ?? '');
+  const [donorEmail,  setDonorEmail]  = useState(user?.email ?? '');
+  const [loading,     setLoading]     = useState(false);
+  const [success,     setSuccess]     = useState<{ id: string; ref: string } | null>(null);
+  const [toast,       setToast]       = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [leaderboard, setLeaderboard] = useState<LeaderEntry[]>([]);
+  const [monthly,     setMonthly]     = useState(0);
 
-  const [step,          setStep]          = useState<Step>('form');
-  const [donationId,    setDonationId]    = useState('');
-  const [txId,          setTxId]          = useState('');
-  const [checkoutReqId, setCheckoutReqId] = useState('');
-  const [error,         setError]         = useState('');
+  useEffect(() => {
+    fetch('/api/donations/leaderboard')
+      .then(r => r.json())
+      .then(d => {
+        setLeaderboard(d.leaderboard ?? []);
+        setMonthly(d.monthlyTotal ?? 0);
+      })
+      .catch(() => {});
+  }, []);
 
-  const finalAmount = amount === '' ? parseFloat(customAmt) : amount;
+  useEffect(() => {
+    if (user) {
+      setDonorName(user.name ?? '');
+      setDonorEmail(user.email ?? '');
+    }
+  }, [user]);
 
-  // Step 1 — create donation record
+  const effectiveAmount = amount !== '' ? amount : (parseFloat(custom) || 0);
+
+  const handlePreset = (v: number) => {
+    setAmount(v);
+    setCustom('');
+  };
+
+  const handleCustom = (v: string) => {
+    setCustom(v);
+    setAmount('');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    if (!donorName || !donorEmail) { setError('Name and email are required.'); return; }
-    if (!finalAmount || finalAmount < 10) { setError('Minimum donation is KES 10.'); return; }
-
-    setStep('payment');
+    if (effectiveAmount < 10) {
+      setToast({ message: 'Minimum donation is KES 10', type: 'error' });
+      return;
+    }
+    setLoading(true);
     try {
       const res = await fetch('/api/donations', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ donorName, donorEmail, donorType, category, amount: finalAmount, message, dedication, anonymous, taxReceipt }),
+        body:    JSON.stringify({
+          donorName:  anonymous ? 'Anonymous' : donorName,
+          donorEmail: anonymous ? 'anon@zaidknights.org' : donorEmail,
+          amount:     effectiveAmount,
+          category,
+          donorType,
+          anonymous,
+          dedication: dedication || undefined,
+          taxReceipt,
+          campaign:   'general',
+        }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      setDonationId(data.donation.id);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to create donation.');
-      setStep('form');
+      if (!res.ok) throw new Error(data.error || 'Donation failed');
+      const ref = `ZK-${data.donation.id.slice(0, 8).toUpperCase()}`;
+      setSuccess({ id: data.donation.id, ref });
+    } catch (e: unknown) {
+      setToast({ message: e instanceof Error ? e.message : 'Donation failed.', type: 'error' });
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Step 2 — initiate MPESA STK Push
-  const handleMpesaPay = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    if (!phoneNumber) { setError('Phone number is required.'); return; }
-
-    try {
-      const res = await fetch('/api/payments/mpesa/initiate', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber, amount: finalAmount, type: 'donation', referenceId: donationId }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      setTxId(data.transactionId);
-      setCheckoutReqId(data.checkoutRequestId);
-      setStep('pending');
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Payment initiation failed.');
-    }
+  const handlePrint = () => {
+    if (!success) return;
+    const w = window.open('', '_blank');
+    if (!w) return;
+    w.document.write(`
+      <html><head><title>Donation Receipt — Zaid Knights</title>
+      <style>body{font-family:Arial,sans-serif;padding:40px;max-width:600px;margin:0 auto}
+      h1{color:#D4AF37}table{width:100%;border-collapse:collapse}
+      td{padding:8px;border-bottom:1px solid #eee}strong{color:#333}</style></head>
+      <body>
+      <h1>♞ Zaid Knights Chess Club</h1>
+      <h2>Donation Receipt</h2>
+      <table>
+        <tr><td>Reference:</td><td><strong>${success.ref}</strong></td></tr>
+        <tr><td>Donor:</td><td>${anonymous ? 'Anonymous' : donorName}</td></tr>
+        <tr><td>Amount:</td><td><strong>KES ${effectiveAmount.toLocaleString()}</strong></td></tr>
+        <tr><td>Category:</td><td>${CATEGORY_LABELS[category]}</td></tr>
+        <tr><td>Date:</td><td>${new Date().toLocaleDateString('en-KE', { dateStyle: 'full' })}</td></tr>
+      </table>
+      <p style="margin-top:40px;color:#666;font-size:13px">
+        Thank you for your generous support of chess in Kenya.<br/>
+        Zaid Knights Chess Club · Nairobi, Kenya · info@zaidknights.org
+      </p>
+      <script>window.print()</script>
+      </body></html>
+    `);
+    w.document.close();
   };
+
+  if (success) {
+    return (
+      <Layout title="Thank You | Zaid Knights Chess Club">
+        <div className="min-h-[70vh] flex items-center justify-center px-4 py-16">
+          <div className="max-w-lg w-full glass p-10 rounded-2xl text-center border border-green-500/30">
+            <div className="text-6xl mb-4">🙏</div>
+            <h1 className="text-3xl font-bold text-white mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
+              Thank you!
+            </h1>
+            <p className="text-gray-400 mb-6">
+              Your donation of <span className="text-yellow-400 font-bold">KES {effectiveAmount.toLocaleString()}</span> has been recorded.
+              Our team will process it and confirm via email.
+            </p>
+            <div className="glass-gold p-4 rounded-xl mb-8">
+              <p className="text-gray-400 text-xs mb-1">Reference Number</p>
+              <p className="text-yellow-400 font-mono font-bold text-xl">{success.ref}</p>
+            </div>
+
+            <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-5 text-sm text-gray-300 space-y-1.5 mb-8 text-left">
+              <p className="text-green-400 font-semibold mb-3">M-Pesa Payment Instructions</p>
+              {payment === 'MPESA' && (
+                <>
+                  <p>1. Go to <strong className="text-white">M-PESA</strong> → Lipa na M-PESA → Pay Bill</p>
+                  <p>2. Business No: <strong className="text-white">522522</strong></p>
+                  <p>3. Account No: <strong className="text-white">{donorEmail}</strong></p>
+                  <p>4. Amount: <strong className="text-yellow-400">KES {effectiveAmount.toLocaleString()}</strong></p>
+                  <p>5. Enter PIN and confirm</p>
+                </>
+              )}
+            </div>
+
+            <div className="flex gap-3 justify-center flex-wrap">
+              <button onClick={handlePrint} className="btn-primary">Download Receipt 🖨</button>
+              <button onClick={() => { setSuccess(null); setAmount(''); setCustom(''); }} className="btn-secondary">
+                Donate Again
+              </button>
+              <Link href="/" className="btn-ghost">Back to Home</Link>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
-    <Layout title="Donate | ZaidKnights Chess Club" description="Support ZaidKnights Chess Club with a donation. Help fund tournaments, training, and player development.">
+    <Layout title="Donate | Zaid Knights Chess Club">
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
       {/* Hero */}
-      <section className="py-16 border-b border-white/10 chess-pattern">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-yellow-400 text-sm uppercase tracking-widest mb-3">Support the Club</p>
-          <h1 className="text-5xl font-bold text-white mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
-            Make a <span className="gold-gradient">Donation</span>
+      <section className="py-20 px-4 chess-pattern">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4" style={{ fontFamily: 'Playfair Display, serif' }}>
+            Support <span className="gold-gradient">Zaid Knights</span>
           </h1>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Your contribution helps us run tournaments, buy equipment, and support talented players across Kenya.
+            Your donation funds chess equipment, tournament entries, and travel support for players
+            across Nairobi. Every shilling matters.
           </p>
         </div>
       </section>
 
-      <section className="py-16">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6">
-
-          {/* ─── Step: Form ─── */}
-          {step === 'form' && (
-            <form onSubmit={handleSubmit} className="space-y-8">
-
-              {/* Donor Type */}
-              <div>
-                <h2 className="text-white font-semibold text-lg mb-4">I am donating as</h2>
-                <div className="flex gap-3 flex-wrap">
-                  {DONOR_TYPES.map(dt => (
-                    <button key={dt.value} type="button"
-                      onClick={() => setDonorType(dt.value)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border ${
-                        donorType === dt.value
-                          ? 'bg-yellow-500/20 border-yellow-500/60 text-yellow-400'
-                          : 'glass border-white/10 text-gray-400 hover:text-white'
-                      }`}
-                    >{dt.label}</button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Donor Info */}
-              <div className="glass rounded-xl p-6 space-y-4">
-                <h2 className="text-white font-semibold">Your Information</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <label className="block">
-                    <span className="label">Name *</span>
-                    <input className="input mt-1" value={donorName} onChange={e => setDonorName(e.target.value)} placeholder="Full name" required />
-                  </label>
-                  <label className="block">
-                    <span className="label">Email *</span>
-                    <input type="email" className="input mt-1" value={donorEmail} onChange={e => setDonorEmail(e.target.value)} placeholder="you@example.com" required />
-                  </label>
-                </div>
-                <div className="flex items-center gap-3">
-                  <input type="checkbox" id="anon" checked={anonymous} onChange={e => setAnonymous(e.target.checked)} className="w-4 h-4 accent-yellow-500" />
-                  <label htmlFor="anon" className="text-gray-300 text-sm cursor-pointer">Donate anonymously (your name won't appear on the leaderboard)</label>
-                </div>
-                <div className="flex items-center gap-3">
-                  <input type="checkbox" id="tax" checked={taxReceipt} onChange={e => setTaxReceipt(e.target.checked)} className="w-4 h-4 accent-yellow-500" />
-                  <label htmlFor="tax" className="text-gray-300 text-sm cursor-pointer">I need a tax receipt (organizations only)</label>
-                </div>
-              </div>
-
-              {/* Category */}
-              <div>
-                <h2 className="text-white font-semibold mb-4">Donation Category</h2>
-                <div className="grid grid-cols-2 gap-3">
-                  {CATEGORIES.map(cat => (
-                    <button key={cat.value} type="button"
-                      onClick={() => setCategory(cat.value)}
-                      className={`text-left p-4 rounded-xl border transition-all ${
-                        category === cat.value
-                          ? 'bg-yellow-500/10 border-yellow-500/50'
-                          : 'glass border-white/10 hover:border-white/20'
+      <div className="max-w-6xl mx-auto px-4 py-14">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+          {/* Donation Form */}
+          <div className="lg:col-span-2">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Amount */}
+              <div className="glass p-6 rounded-xl">
+                <h2 className="text-white font-bold mb-4">Choose Amount (KES)</h2>
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-4">
+                  {PRESET_AMOUNTS.map(v => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => handlePreset(v)}
+                      className={`py-3 rounded-lg text-sm font-bold transition-all border ${
+                        amount === v
+                          ? 'bg-yellow-500 text-black border-yellow-400'
+                          : 'border-white/10 text-gray-300 hover:border-yellow-500/40 hover:text-yellow-400'
                       }`}
                     >
-                      <span className="text-2xl">{cat.icon}</span>
-                      <p className={`font-semibold text-sm mt-1 ${category === cat.value ? 'text-yellow-400' : 'text-white'}`}>{cat.label}</p>
-                      <p className="text-gray-500 text-xs mt-0.5">{cat.desc}</p>
+                      {v.toLocaleString()}
                     </button>
                   ))}
                 </div>
-              </div>
-
-              {/* Amount */}
-              <div>
-                <h2 className="text-white font-semibold mb-4">Amount (KES)</h2>
-                <div className="flex gap-3 flex-wrap mb-4">
-                  {AMOUNTS.map(a => (
-                    <button key={a} type="button"
-                      onClick={() => { setAmount(a); setCustomAmt(''); }}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border ${
-                        amount === a
-                          ? 'bg-yellow-500/20 border-yellow-500/60 text-yellow-400'
-                          : 'glass border-white/10 text-gray-400 hover:text-white'
-                      }`}
-                    >KES {a.toLocaleString()}</button>
-                  ))}
-                  <button type="button"
-                    onClick={() => setAmount('')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border ${
-                      amount === ''
-                        ? 'bg-yellow-500/20 border-yellow-500/60 text-yellow-400'
-                        : 'glass border-white/10 text-gray-400 hover:text-white'
-                    }`}
-                  >Custom</button>
+                <div>
+                  <label className="label">Or enter custom amount</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">KES</span>
+                    <input
+                      type="number"
+                      min="10"
+                      className="input pl-14"
+                      placeholder="0"
+                      value={custom}
+                      onChange={e => handleCustom(e.target.value)}
+                    />
+                  </div>
                 </div>
-                {amount === '' && (
-                  <input
-                    type="number" min="10"
-                    className="input"
-                    value={customAmt}
-                    onChange={e => setCustomAmt(e.target.value)}
-                    placeholder="Enter amount in KES"
-                  />
+                {effectiveAmount > 0 && IMPACT_MAP[effectiveAmount] && (
+                  <p className="mt-3 text-yellow-400/80 text-sm">
+                    ✨ {IMPACT_MAP[effectiveAmount]}
+                  </p>
                 )}
               </div>
 
-              {/* Message */}
-              <div className="glass rounded-xl p-6 space-y-4">
-                <h2 className="text-white font-semibold">Optional Message</h2>
-                <label className="block">
-                  <span className="label">Message to the club</span>
-                  <textarea rows={3} className="input mt-1" value={message} onChange={e => setMessage(e.target.value)} placeholder="Words of encouragement, feedback..." />
-                </label>
-                <label className="block">
-                  <span className="label">Dedication (e.g. "In memory of...")</span>
-                  <input className="input mt-1" value={dedication} onChange={e => setDedication(e.target.value)} placeholder="Optional dedication" />
-                </label>
+              {/* Category */}
+              <div className="glass p-6 rounded-xl">
+                <h2 className="text-white font-bold mb-4">Where should your donation go?</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {(Object.keys(CATEGORY_LABELS) as Category[]).map(cat => (
+                    <label
+                      key={cat}
+                      className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                        category === cat
+                          ? 'border-yellow-500/50 bg-yellow-500/10'
+                          : 'border-white/10 hover:border-white/20'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="category"
+                        checked={category === cat}
+                        onChange={() => setCategory(cat)}
+                        className="accent-yellow-500"
+                      />
+                      <span className="text-white text-sm">{CATEGORY_LABELS[cat]}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
 
-              {error && <p className="text-red-400 text-sm">{error}</p>}
+              {/* Donor Details */}
+              <div className="glass p-6 rounded-xl space-y-4">
+                <h2 className="text-white font-bold">Your Details</h2>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="anon"
+                    checked={anonymous}
+                    onChange={e => setAnonymous(e.target.checked)}
+                    className="accent-yellow-500 w-4 h-4"
+                  />
+                  <label htmlFor="anon" className="text-gray-300 text-sm cursor-pointer">
+                    Make this donation anonymous
+                  </label>
+                </div>
+                {!anonymous && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="label">Full Name *</label>
+                      <input
+                        type="text"
+                        required={!anonymous}
+                        className="input"
+                        value={donorName}
+                        onChange={e => setDonorName(e.target.value)}
+                        placeholder="Your name"
+                      />
+                    </div>
+                    <div>
+                      <label className="label">Email Address *</label>
+                      <input
+                        type="email"
+                        required={!anonymous}
+                        className="input"
+                        value={donorEmail}
+                        onChange={e => setDonorEmail(e.target.value)}
+                        placeholder="your@email.com"
+                      />
+                    </div>
+                  </div>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="label">Donor Type</label>
+                    <select className="input" value={donorType} onChange={e => setDonorType(e.target.value as DonorType)}>
+                      <option value="INDIVIDUAL">Individual</option>
+                      <option value="COMPANY">Company</option>
+                      <option value="ALUMNI">Alumni</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="label">Dedication / Message (optional)</label>
+                  <input
+                    type="text"
+                    className="input"
+                    value={dedication}
+                    onChange={e => setDedication(e.target.value)}
+                    placeholder="In honor of… / In memory of…"
+                  />
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="tax"
+                    checked={taxReceipt}
+                    onChange={e => setTaxReceipt(e.target.checked)}
+                    className="accent-yellow-500 w-4 h-4"
+                  />
+                  <label htmlFor="tax" className="text-gray-300 text-sm cursor-pointer">
+                    I would like a tax receipt
+                  </label>
+                </div>
+              </div>
 
-              <button type="submit" className="w-full btn-primary py-4 text-lg font-semibold rounded-xl">
-                Continue to Payment →
+              {/* Payment Method */}
+              <div className="glass p-6 rounded-xl">
+                <h2 className="text-white font-bold mb-4">Payment Method</h2>
+                <div className="space-y-3">
+                  {(['MPESA', 'CARD', 'BANK_TRANSFER'] as PaymentMethod[]).map(m => (
+                    <label
+                      key={m}
+                      className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all ${
+                        payment === m
+                          ? 'border-yellow-500/50 bg-yellow-500/10'
+                          : 'border-white/10 hover:border-white/20'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="payment"
+                        checked={payment === m}
+                        onChange={() => setPayment(m)}
+                        className="accent-yellow-500"
+                      />
+                      <span className="text-white text-sm font-medium">
+                        {m === 'MPESA' ? '📱 M-Pesa' : m === 'CARD' ? '💳 Card' : '🏦 Bank Transfer'}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+
+                {payment === 'MPESA' && (
+                  <div className="mt-4 bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-sm text-gray-300 space-y-1">
+                    <p className="text-green-400 font-semibold mb-2">M-Pesa Instructions (shown after submitting)</p>
+                    <p>You&apos;ll receive step-by-step M-Pesa instructions with a reference number.</p>
+                  </div>
+                )}
+                {payment === 'CARD' && (
+                  <div className="mt-4 glass p-4 rounded-xl text-gray-400 text-sm">
+                    💳 Card payment coming soon. Please use M-Pesa or Bank Transfer for now.
+                  </div>
+                )}
+                {payment === 'BANK_TRANSFER' && (
+                  <div className="mt-4 glass p-4 rounded-xl text-sm text-gray-300 space-y-1">
+                    <p className="text-white font-semibold mb-2">Bank Details</p>
+                    <p>Bank: <strong>Equity Bank Kenya</strong></p>
+                    <p>Account Name: <strong>Zaid Knights Chess Club</strong></p>
+                    <p>Account No: <strong>0123456789</strong></p>
+                    <p>Branch: <strong>Nairobi Central</strong></p>
+                  </div>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || effectiveAmount < 10}
+                className="btn-primary w-full py-4 text-base"
+              >
+                {loading
+                  ? 'Processing…'
+                  : `Donate KES ${effectiveAmount > 0 ? effectiveAmount.toLocaleString() : '—'} →`}
               </button>
             </form>
-          )}
+          </div>
 
-          {/* ─── Step: MPESA Payment ─── */}
-          {step === 'payment' && (
-            <div className="glass rounded-xl p-8">
-              <h2 className="text-white font-bold text-2xl mb-2">Pay via M-PESA</h2>
-              <p className="text-gray-400 mb-6">Enter your phone number to receive an M-PESA push notification.</p>
+          {/* Impact Sidebar */}
+          <div className="space-y-6">
+            {/* Impact Guide */}
+            <div className="glass p-6 rounded-xl">
+              <h3 className="text-white font-bold mb-4">Your Impact</h3>
+              <div className="space-y-3">
+                {Object.entries(IMPACT_MAP).map(([amt, desc]) => (
+                  <div key={amt} className="flex items-start gap-3">
+                    <span className="text-yellow-400 font-bold text-xs w-16 flex-shrink-0 mt-0.5">
+                      KES {parseInt(amt).toLocaleString()}
+                    </span>
+                    <span className="text-gray-400 text-xs leading-relaxed">{desc}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-              <div className="glass-gold rounded-xl p-4 mb-6">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Donation Amount</span>
-                  <span className="text-yellow-400 font-bold text-lg">KES {finalAmount?.toLocaleString()}</span>
+            {/* This Month */}
+            <div className="glass-gold p-6 rounded-xl text-center">
+              <p className="text-gray-400 text-xs mb-1">Raised This Month</p>
+              <p className="text-3xl font-bold text-yellow-400 mb-1">
+                KES {monthly.toLocaleString()}
+              </p>
+              <ProgressBar value={monthly} max={100000} showPercent />
+              <p className="text-gray-500 text-xs mt-2">Goal: KES 100,000/month</p>
+            </div>
+
+            {/* Leaderboard */}
+            {leaderboard.length > 0 && (
+              <div className="glass p-5 rounded-xl">
+                <h3 className="text-white font-bold mb-4 text-sm">Top Supporters</h3>
+                <div className="space-y-2">
+                  {leaderboard.slice(0, 5).map(d => (
+                    <div key={d.rank} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-bold w-6 ${d.rank <= 3 ? 'text-yellow-400' : 'text-gray-500'}`}>
+                          {d.rank === 1 ? '🥇' : d.rank === 2 ? '🥈' : d.rank === 3 ? '🥉' : `#${d.rank}`}
+                        </span>
+                        <span className="text-gray-300 text-xs truncate max-w-[110px]">{d.name}</span>
+                      </div>
+                      <span className="text-yellow-400 text-xs font-semibold">
+                        KES {d.total.toLocaleString()}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex justify-between text-sm mt-2">
-                  <span className="text-gray-400">Category</span>
-                  <span className="text-white">{CATEGORIES.find(c => c.value === category)?.label}</span>
-                </div>
               </div>
+            )}
 
-              <form onSubmit={handleMpesaPay} className="space-y-4">
-                <label className="block">
-                  <span className="label">M-PESA Phone Number</span>
-                  <input
-                    className="input mt-1"
-                    value={phoneNumber}
-                    onChange={e => setPhoneNumber(e.target.value)}
-                    placeholder="0712345678 or 254712345678"
-                    required
-                  />
-                </label>
-                {error && <p className="text-red-400 text-sm">{error}</p>}
-                <button type="submit" className="w-full btn-primary py-3 font-semibold rounded-xl">
-                  Send M-PESA Push
-                </button>
-                <button type="button" onClick={() => setStep('form')} className="w-full btn-ghost py-3 rounded-xl text-sm">
-                  ← Back
-                </button>
-              </form>
+            <div className="glass p-5 rounded-xl text-center">
+              <p className="text-gray-400 text-xs mb-3">Questions about donating?</p>
+              <Link href="/contact" className="btn-secondary text-sm py-2 w-full block">
+                Contact Us →
+              </Link>
             </div>
-          )}
-
-          {/* ─── Step: Pending ─── */}
-          {step === 'pending' && (
-            <div className="glass rounded-xl p-10 text-center">
-              <div className="text-5xl mb-4 animate-pulse">📱</div>
-              <h2 className="text-white font-bold text-2xl mb-3">Check Your Phone</h2>
-              <p className="text-gray-400 mb-2">An M-PESA payment request has been sent to <strong className="text-white">{phoneNumber}</strong>.</p>
-              <p className="text-gray-500 text-sm mb-8">Enter your M-PESA PIN to complete the donation. This page will confirm once payment is processed.</p>
-              <div className="glass rounded-xl p-4 mb-6 inline-block text-left">
-                <p className="text-gray-500 text-xs uppercase tracking-widest mb-1">Request ID</p>
-                <p className="text-yellow-400 font-mono text-sm">{checkoutReqId}</p>
-              </div>
-              <p className="text-gray-600 text-xs">A receipt will be sent to <strong className="text-gray-400">{donorEmail}</strong> after payment.</p>
-              <div className="mt-8 flex gap-3 justify-center">
-                <button onClick={() => setStep('success')} className="btn-secondary text-sm rounded-xl px-4 py-2">
-                  I've completed payment
-                </button>
-                <button onClick={() => setStep('error')} className="text-red-400 text-sm hover:text-red-300 transition">
-                  Payment failed
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* ─── Step: Success ─── */}
-          {step === 'success' && (
-            <div className="glass rounded-xl p-10 text-center">
-              <div className="text-6xl mb-4">🎉</div>
-              <h2 className="text-white font-bold text-2xl mb-3">Thank You!</h2>
-              <p className="text-gray-400 mb-6">Your donation is being processed. A receipt will be emailed to <strong className="text-white">{donorEmail}</strong> once confirmed.</p>
-              <button onClick={() => window.location.href = '/'} className="btn-primary rounded-xl px-8 py-3">
-                Back to Home
-              </button>
-            </div>
-          )}
-
-          {/* ─── Step: Error ─── */}
-          {step === 'error' && (
-            <div className="glass rounded-xl p-10 text-center">
-              <div className="text-5xl mb-4">❌</div>
-              <h2 className="text-white font-bold text-2xl mb-3">Payment Failed</h2>
-              <p className="text-gray-400 mb-6">Something went wrong with your payment. Please try again or contact us.</p>
-              <button onClick={() => { setStep('payment'); setError(''); }} className="btn-primary rounded-xl px-8 py-3">
-                Try Again
-              </button>
-            </div>
-          )}
+          </div>
         </div>
-      </section>
+      </div>
     </Layout>
   );
 }

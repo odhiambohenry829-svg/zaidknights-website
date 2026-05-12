@@ -6,7 +6,11 @@ import { sanitizeString } from '../../lib/validators';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
+      const { category } = req.query;
       const items = await prisma.galleryItem.findMany({
+        where: category && category !== 'all'
+          ? { category: category as string }
+          : undefined,
         orderBy: { createdAt: 'desc' },
       });
       return res.status(200).json({ items });
@@ -18,17 +22,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === 'POST') {
     const user = getUserFromRequest(req);
-    if (!user || user.role !== 'ADMIN') return res.status(403).json({ error: 'Forbidden' });
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
-    const { title, imageUrl, caption } = req.body;
-    if (!title || !imageUrl) return res.status(400).json({ error: 'title and imageUrl are required' });
+    const { title, imageUrl, caption, category } = req.body;
+    if (!title || !imageUrl) {
+      return res.status(400).json({ error: 'title and imageUrl are required' });
+    }
 
     try {
       const item = await prisma.galleryItem.create({
         data: {
-          title: sanitizeString(title),
+          title:    sanitizeString(title),
           imageUrl,
-          caption: caption ? sanitizeString(caption) : null,
+          caption:  caption  ? sanitizeString(caption)  : null,
+          category: category ? sanitizeString(category) : 'general',
         },
       });
       return res.status(201).json({ item });

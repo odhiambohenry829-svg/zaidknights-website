@@ -5,7 +5,7 @@ import { isValidEmail, sanitizeString, validateRequired } from '../../lib/valida
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { name, email, message } = req.body;
+  const { name, email, subject, message } = req.body;
 
   const missing = validateRequired({ name, email, message });
   if (missing) return res.status(400).json({ error: missing });
@@ -14,8 +14,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const contact = await prisma.contactMessage.create({
       data: {
-        name: sanitizeString(name),
-        email: email.trim().toLowerCase(),
+        name:    sanitizeString(name),
+        email:   email.trim().toLowerCase(),
+        subject: subject ? sanitizeString(subject) : 'General Inquiry',
         message: sanitizeString(message),
       },
     });
