@@ -80,8 +80,9 @@ function saveState(userId: string, state: OnboardingState) {
 
 // ── Payment amounts ───────────────────────────────────────────────────────────
 const TIER_AMOUNT: Record<string, string> = {
-  ADVANCED:          'KES 2,500 / term',
-  COMPETITIVE_SQUAD: 'KES 5,500 / year',
+  INTERMEDIATE:      'KES 1,200 / term',
+  ADVANCED:          'KES 3,000 / term',
+  COMPETITIVE_SQUAD: 'KES 5,000 / term',
 };
 
 const TRAINING_GROUPS = ['Morning', 'Afternoon', 'Weekend'];

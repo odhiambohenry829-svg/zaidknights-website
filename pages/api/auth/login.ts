@@ -7,7 +7,7 @@ function getRedirectTo(role: string): string {
   switch (role) {
     case 'ADMIN':     return '/admin';
     case 'COACH':     return '/dashboard';
-    case 'ORG_ADMIN': return '/organizations/dashboard';
+    case 'ORG_ADMIN': return '/organizations';
     case 'GUEST':     return '/membership';
     default:          return '/dashboard';
   }

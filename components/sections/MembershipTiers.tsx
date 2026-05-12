@@ -5,7 +5,7 @@ const tiers = [
     name: 'Beginner',
     level: 'BEGINNER',
     price: 'Free',
-    priceNote: 'Forever',
+    priceNote: 'forever',
     description: 'Start your chess journey with us.',
     features: [
       'Access to club meetings',
@@ -18,35 +18,51 @@ const tiers = [
     highlight: false,
   },
   {
-    name: 'Advanced',
-    level: 'ADVANCED',
-    price: 'KES 2,500',
-    priceNote: 'per year',
-    description: 'Step up your game with competitive play.',
+    name: 'Intermediate',
+    level: 'INTERMEDIATE',
+    price: 'KES 1,200',
+    priceNote: 'per term',
+    description: 'For players developing their game.',
     features: [
       'Everything in Beginner',
-      'Tournament participation',
-      'ELO rating tracking',
-      'Coaching sessions (2/month)',
-      'Priority event registration',
+      'Priority tournament registration',
+      'Group coaching (2/month)',
+      'ELO ranking on leaderboard',
+      'Event discounts (10%)',
+    ],
+    cta: 'Join Intermediate',
+    href: '/register?tier=INTERMEDIATE',
+    highlight: true,
+  },
+  {
+    name: 'Advanced',
+    level: 'ADVANCED',
+    price: 'KES 3,000',
+    priceNote: 'per term',
+    description: 'Step up your game with competitive play.',
+    features: [
+      'Everything in Intermediate',
+      'Personal coaching (1/month)',
+      'FIDE rating support',
+      'National team consideration',
+      'Event discounts (20%)',
     ],
     cta: 'Join Advanced',
     href: '/register?tier=ADVANCED',
-    highlight: true,
+    highlight: false,
   },
   {
     name: 'Competitive Squad',
     level: 'COMPETITIVE_SQUAD',
-    price: 'KES 5,500',
-    priceNote: 'per year',
+    price: 'KES 5,000',
+    priceNote: 'per term',
     description: 'For serious competitors aiming for the top.',
     features: [
       'Everything in Advanced',
-      'Unlimited coaching sessions',
-      'National tournament eligibility',
-      'Club jersey & merchandise',
-      'VIP event seating',
-      'Personal game analysis',
+      '4× personal coaching/month',
+      'Travel support for nationals',
+      'Sponsored tournament entries',
+      'Full kit & training gear',
     ],
     cta: 'Join Squad',
     href: '/register?tier=COMPETITIVE_SQUAD',
@@ -65,7 +81,7 @@ export default function MembershipTiers() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
           {tiers.map(tier => (
             <div
               key={tier.name}

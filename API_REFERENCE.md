@@ -240,9 +240,9 @@ Returns current user's member profile with last 5 memberships and payment transa
 
 | Plan | Beginner | Intermediate | Advanced | Squad |
 |------|----------|-------------|---------|-------|
-| Monthly | KES 500 | KES 800 | KES 1,200 | KES 2,000 |
-| Term | KES 1,200 | KES 2,000 | KES 3,000 | KES 5,000 |
-| Annual | KES 4,000 | KES 6,500 | KES 10,000 | KES 16,000 |
+| Monthly | Free | KES 400 | KES 1,200 | KES 2,000 |
+| Term | Free | KES 1,200 | KES 3,000 | KES 5,000 |
+| Annual | Free | KES 4,000 | KES 10,000 | KES 16,000 |
 
 ---
 

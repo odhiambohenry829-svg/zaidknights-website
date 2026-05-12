@@ -5,8 +5,8 @@ import { logAudit } from '../../lib/audit';
 
 // Membership pricing (KES)
 export const MEMBERSHIP_PRICES: Record<string, Record<string, number>> = {
-  BEGINNER:          { MONTHLY: 500,  TERM: 1200,  ANNUAL: 4000  },
-  INTERMEDIATE:      { MONTHLY: 800,  TERM: 2000,  ANNUAL: 6500  },
+  BEGINNER:          { MONTHLY: 0,    TERM: 0,     ANNUAL: 0     },
+  INTERMEDIATE:      { MONTHLY: 400,  TERM: 1200,  ANNUAL: 4000  },
   ADVANCED:          { MONTHLY: 1200, TERM: 3000,  ANNUAL: 10000 },
   COMPETITIVE_SQUAD: { MONTHLY: 2000, TERM: 5000,  ANNUAL: 16000 },
 };

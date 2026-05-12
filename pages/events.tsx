@@ -54,7 +54,7 @@ export default function EventsPage() {
   const [selected,    setSelected]    = useState<Event | null>(null);
   const [registering, setRegistering] = useState<string | null>(null);
   const [registered,  setRegistered]  = useState<Set<string>>(new Set());
-  const [toast,       setToast]       = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [toast,       setToast]       = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
@@ -103,7 +103,7 @@ export default function EventsPage() {
       const data = await res.json();
       if (res.status === 409) {
         setRegistered(prev => new Set([...prev, eventId]));
-        setToast({ message: 'You\'re already registered for this event!', type: 'info' as 'success' });
+        setToast({ message: 'You\'re already registered for this event!', type: 'info' });
         return;
       }
       if (!res.ok) throw new Error(data.error || 'Registration failed');

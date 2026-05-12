@@ -7,8 +7,8 @@ import { useAuth } from './_app';
 const TIERS = [
   { value: 'BEGINNER',          label: 'Beginner',          price: 'Free',      desc: 'Perfect to start your journey' },
   { value: 'INTERMEDIATE',      label: 'Intermediate',      price: 'KES 1,200', desc: 'For players developing their game' },
-  { value: 'ADVANCED',          label: 'Advanced',          price: 'KES 2,500', desc: 'For competitive players' },
-  { value: 'COMPETITIVE_SQUAD', label: 'Competitive Squad', price: 'KES 5,500', desc: 'Serious competitors representing the club' },
+  { value: 'ADVANCED',          label: 'Advanced',          price: 'KES 3,000', desc: 'For competitive players' },
+  { value: 'COMPETITIVE_SQUAD', label: 'Competitive Squad', price: 'KES 5,000', desc: 'Serious competitors representing the club' },
 ];
 
 export default function RegisterPage() {

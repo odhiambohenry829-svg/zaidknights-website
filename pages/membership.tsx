@@ -45,7 +45,7 @@ const TIERS = [
   {
     id:       'ADVANCED',
     label:    'Advanced',
-    price:    'KES 2,500',
+    price:    'KES 3,000',
     sub:      'per term',
     color:    'border-blue-500/40',
     badge:    'blue' as const,
@@ -63,8 +63,8 @@ const TIERS = [
   {
     id:       'COMPETITIVE_SQUAD',
     label:    'Competitive Squad',
-    price:    'KES 5,500',
-    sub:      'per year',
+    price:    'KES 5,000',
+    sub:      'per term',
     color:    'border-purple-500/40',
     badge:    'purple' as const,
     popular:  false,
