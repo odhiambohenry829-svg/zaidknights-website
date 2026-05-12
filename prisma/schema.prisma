@@ -103,6 +103,13 @@ enum ParticipationType {
   MEMBERSHIP_AFFILIATION
 }
 
+enum ContactMessageStatus {
+  NEW
+  READ
+  REPLIED
+  ARCHIVED
+}
+
 // ─── Core User ────────────────────────────────────────────────
 
 model User {
@@ -120,6 +127,7 @@ model User {
   results       Result[]
   donations     Donation[]
   auditLogs     AuditLog[]
+  announcements Announcement[]
 }
 
 model Post {
@@ -138,48 +146,58 @@ model Post {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([published, createdAt])
+  @@index([category, published])
 }
 
 // ─── Member Profile ───────────────────────────────────────────
 
 model Member {
-  id             String         @id @default(uuid())
-  userId         String         @unique
-  level          MemberLevel    @default(BEGINNER)
-  tier           MembershipTier @default(BEGINNER)
-  rating         Int            @default(1200)
-  status         MemberStatus   @default(PENDING)
-  joinedAt       DateTime       @default(now())
-  profilePhoto   String?
-  trainingGroup  String?
+  id               String         @id @default(uuid())
+  userId           String         @unique
+  level            MemberLevel    @default(BEGINNER)
+  tier             MembershipTier @default(BEGINNER)
+  rating           Int            @default(1200)
+  status           MemberStatus   @default(PENDING)
+  joinedAt         DateTime       @default(now())
+  profilePhoto     String?
+  trainingGroup    String?
   emergencyContact String?
-  medicalNotes   String?
-  autoRenew      Boolean        @default(false)
+  medicalNotes     String?
+  autoRenew        Boolean        @default(false)
 
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   results       Result[]
   memberships   Membership[]
   attendance    Attendance[]
   ratingHistory ChessRatingHistory[]
+
+  @@index([status, rating])
+  @@index([status])
+  @@index([joinedAt])
 }
 
 // ─── Membership Subscription ──────────────────────────────────
 
 model Membership {
-  id         String         @id @default(uuid())
-  memberId   String
-  plan       MembershipPlan
-  tier       MembershipTier
-  startDate  DateTime
-  endDate    DateTime
-  status     MemberStatus   @default(PENDING_PAYMENT)
-  autoRenew  Boolean        @default(false)
-  amount     Float
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  id        String         @id @default(uuid())
+  memberId  String
+  plan      MembershipPlan
+  tier      MembershipTier
+  startDate DateTime
+  endDate   DateTime
+  status    MemberStatus   @default(PENDING_PAYMENT)
+  autoRenew Boolean        @default(false)
+  amount    Float
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
 
-  member       Member              @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  member       Member               @relation(fields: [memberId], references: [id], onDelete: Cascade)
   transactions PaymentTransaction[]
+
+  @@index([memberId, status])
+  @@index([memberId, createdAt])
 }
 
 // ─── Events & Tournaments ─────────────────────────────────────
@@ -200,6 +218,9 @@ model Event {
   registrations Registration[]
   results       Result[]
   attendance    Attendance[]
+
+  @@index([startDate])
+  @@index([startDate, type])
 }
 
 model Registration {
@@ -213,6 +234,7 @@ model Registration {
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@unique([userId, eventId])
+  @@index([userId, createdAt])
 }
 
 model Result {
@@ -228,20 +250,24 @@ model Result {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   event  Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
   member Member? @relation(fields: [userId], references: [userId], map: "Result_member_userId_fkey")
+
+  @@index([userId, createdAt])
+  @@index([eventId])
 }
 
 model Attendance {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   memberId  String
   eventId   String
-  attended  Boolean  @default(false)
+  attended  Boolean   @default(false)
   checkedAt DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
   event  Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@unique([memberId, eventId])
+  @@index([memberId, attended])
 }
 
 model ChessRatingHistory {
@@ -252,52 +278,63 @@ model ChessRatingHistory {
   createdAt DateTime @default(now())
 
   member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([memberId, createdAt])
 }
 
 // ─── Donations ────────────────────────────────────────────────
 
 model Donation {
-  id          String           @id @default(uuid())
-  userId      String?
-  donorType   DonorType        @default(INDIVIDUAL)
-  donorName   String
-  donorEmail  String
-  anonymous   Boolean          @default(false)
-  amount      Float
-  category    DonationCategory @default(GENERAL_FUND)
-  message     String?
-  dedication  String?
-  taxReceipt  Boolean          @default(false)
-  campaign    String?
-  status      PaymentStatus    @default(PENDING)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id         String           @id @default(uuid())
+  userId     String?
+  donorType  DonorType        @default(INDIVIDUAL)
+  donorName  String
+  donorEmail String
+  anonymous  Boolean          @default(false)
+  amount     Float
+  category   DonationCategory @default(GENERAL_FUND)
+  message    String?
+  dedication String?
+  taxReceipt Boolean          @default(false)
+  campaign   String?
+  status     PaymentStatus    @default(PENDING)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
 
-  user         User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user         User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
   transactions PaymentTransaction[]
+
+  @@index([status])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([status, createdAt])
 }
 
 // ─── Payment Transactions ─────────────────────────────────────
 
 model PaymentTransaction {
-  id              String        @id @default(uuid())
-  donationId      String?
-  membershipId    String?
-  amount          Float
-  method          PaymentMethod @default(MPESA)
-  status          PaymentStatus @default(PENDING)
-  phoneNumber     String?
-  mpesaCode       String?
-  mpesaReceiptNo  String?
+  id                String        @id @default(uuid())
+  donationId        String?
+  membershipId      String?
+  amount            Float
+  method            PaymentMethod @default(MPESA)
+  status            PaymentStatus @default(PENDING)
+  phoneNumber       String?
+  mpesaCode         String?
+  mpesaReceiptNo    String?
   checkoutRequestId String?
   merchantRequestId String?
-  failureReason   String?
-  metadata        String?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  failureReason     String?
+  metadata          String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
   donation   Donation?   @relation(fields: [donationId], references: [id], onDelete: SetNull)
   membership Membership? @relation(fields: [membershipId], references: [id], onDelete: SetNull)
+
+  @@index([donationId])
+  @@index([membershipId])
+  @@index([status])
 }
 
 // ─── Organizations ────────────────────────────────────────────
@@ -316,15 +353,18 @@ model Organization {
   memberCount         Int                @default(0)
   chessInterest       ChessInterest      @default(ACTIVE_INTEREST)
   participationType   ParticipationType  @default(MEMBERSHIP_AFFILIATION)
+  trainingSchedule    String?
   status              OrganizationStatus @default(PENDING)
   assignedCoordinator String?
-  trainingSchedule    String?
   notes               String?
   approvedAt          DateTime?
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 
-  members  OrganizationMember[]
+  members OrganizationMember[]
+
+  @@index([status])
+  @@index([createdAt])
 }
 
 model OrganizationMember {
@@ -337,17 +377,23 @@ model OrganizationMember {
   joinedAt       DateTime @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
 }
 
 // ─── Gallery ──────────────────────────────────────────────────
 
 model GalleryItem {
-  id        String   @id @default(uuid())
-  title     String
-  imageUrl  String
-  caption   String?
-  category  String   @default("general")
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid())
+  title       String
+  imageUrl    String
+  caption     String?
+  category    String   @default("general")
+  uploadedBy  String?
+  createdAt   DateTime @default(now())
+
+  @@index([category])
+  @@index([category, createdAt])
 }
 
 // ─── Communication ────────────────────────────────────────────
@@ -361,18 +407,26 @@ model Announcement {
   expiresAt   DateTime?
   authorId    String?
   createdAt   DateTime @default(now())
+
+  author User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([pinned, publishedAt])
+  @@index([expiresAt])
 }
 
 // ─── Contact Messages ─────────────────────────────────────────
 
 model ContactMessage {
-  id        String   @id @default(uuid())
+  id        String               @id @default(uuid())
   name      String
   email     String
   subject   String?
   message   String
-  status    String   @default("NEW")
-  createdAt DateTime @default(now())
+  status    ContactMessageStatus @default(NEW)
+  createdAt DateTime             @default(now())
+
+  @@index([status])
+  @@index([createdAt])
 }
 
 model NewsletterSubscription {
@@ -380,6 +434,8 @@ model NewsletterSubscription {
   email        String   @unique
   subscribedAt DateTime @default(now())
   active       Boolean  @default(true)
+
+  @@index([active])
 }
 
 // ─── Site Settings ────────────────────────────────────────────
@@ -393,16 +449,20 @@ model SiteSettings {
 // ─── Audit Logs ───────────────────────────────────────────────
 
 model AuditLog {
-  id         String   @id @default(uuid())
-  userId     String?
-  action     String
-  entity     String
-  entityId   String?
-  oldValue   String?
-  newValue   String?
-  ipAddress  String?
-  userAgent  String?
-  createdAt  DateTime @default(now())
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  oldValue  String?
+  newValue  String?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([entity, entityId])
+  @@index([createdAt])
 }

@@ -1,6 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { ContactMessageStatus } from '@prisma/client';
 import prisma from '../../../lib/prisma';
 import { getUserFromRequest } from '../../../lib/auth';
+
+const VALID_STATUSES = Object.values(ContactMessageStatus);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const user = getUserFromRequest(req);
@@ -21,10 +24,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === 'PATCH') {
     const { id, status } = req.body;
     if (!id || !status) return res.status(400).json({ error: 'id and status are required.' });
+    if (!VALID_STATUSES.includes(status)) {
+      return res.status(400).json({ error: `status must be one of: ${VALID_STATUSES.join(', ')}` });
+    }
     try {
       const message = await prisma.contactMessage.update({
         where: { id },
-        data:  { status },
+        data:  { status: status as ContactMessageStatus },
       });
       return res.status(200).json({ message });
     } catch (err) {

@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const {
       name, type, registrationNumber, location, county,
       contactPerson, contactRole, email, phone,
-      memberCount, chessInterest, participationType, notes,
+      memberCount, chessInterest, participationType, trainingSchedule, notes,
     } = req.body;
 
     const required = { name, type, location, contactPerson, email, phone };
@@ -50,8 +50,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           email:              email.toLowerCase().trim(),
           phone:              phone.trim(),
           memberCount:        parseInt(memberCount) || 0,
-          chessInterest:      chessInterest      ?? 'ACTIVE_INTEREST',
-          participationType:  participationType  ?? 'MEMBERSHIP_AFFILIATION',
+          chessInterest:      chessInterest     ?? 'ACTIVE_INTEREST',
+          participationType:  participationType ?? 'MEMBERSHIP_AFFILIATION',
+          trainingSchedule:   trainingSchedule  ? sanitizeString(trainingSchedule) : undefined,
           notes:              notes ? sanitizeString(notes) : undefined,
           status:             'PENDING',
         },

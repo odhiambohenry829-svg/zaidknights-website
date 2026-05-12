@@ -32,10 +32,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const item = await prisma.galleryItem.create({
         data: {
-          title:    sanitizeString(title),
+          title:      sanitizeString(title),
           imageUrl,
-          caption:  caption  ? sanitizeString(caption)  : null,
-          category: category ? sanitizeString(category) : 'general',
+          caption:    caption  ? sanitizeString(caption)  : null,
+          category:   category ? sanitizeString(category) : 'general',
+          uploadedBy: user.id,
         },
       });
       return res.status(201).json({ item });
