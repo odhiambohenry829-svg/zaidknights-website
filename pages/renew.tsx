@@ -75,7 +75,7 @@ export default function RenewPage() {
   const [submitting, setSubmitting] = useState(false);
   const [success,    setSuccess]    = useState<{ membership: { endDate: string }; amount: number } | null>(null);
   const [toast,      setToast]      = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-  const [histModal,  setHistModal]  = useState<(typeof member)['memberships'][0] | null>(null);
+  const [histModal,  setHistModal]  = useState<MemberData['memberships'][0] | null>(null);
 
   const tier = (router.query.tier as string) || member?.tier || 'BEGINNER';
 
