@@ -113,13 +113,16 @@ enum ContactMessageStatus {
 // ─── Core User ────────────────────────────────────────────────
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  password  String
-  role      Role     @default(MEMBER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                   String    @id @default(uuid())
+  email                String    @unique
+  name                 String?
+  password             String
+  role                 Role      @default(MEMBER)
+  googleId             String?   @unique
+  passwordResetToken   String?
+  passwordResetExpiry  DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   posts         Post[]
   member        Member?
@@ -165,6 +168,7 @@ model Member {
   trainingGroup    String?
   emergencyContact String?
   medicalNotes     String?
+  chessComUsername String?
   autoRenew        Boolean        @default(false)
 
   user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)

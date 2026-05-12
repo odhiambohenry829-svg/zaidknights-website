@@ -5,6 +5,7 @@ import Layout from '../components/common/Layout';
 import ProtectedRoute from '../components/common/ProtectedRoute';
 import Toast from '../components/ui/Toast';
 import Modal from '../components/ui/Modal';
+import MpesaPrompt from '../components/payment/MpesaPrompt';
 import { useAuth } from './_app';
 
 type Plan   = 'MONTHLY' | 'TERM' | 'ANNUAL';
@@ -74,7 +75,8 @@ export default function RenewPage() {
   const [autoRenew,  setAutoRenew]  = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [success,    setSuccess]    = useState<{ membership: { endDate: string }; amount: number } | null>(null);
-  const [toast,      setToast]      = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [mpesaState, setMpesaState] = useState<{ membershipId: string; amount: number; data: typeof success } | null>(null);
+  const [toast,      setToast]      = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [histModal,  setHistModal]  = useState<MemberData['memberships'][0] | null>(null);
 
   const tier = (router.query.tier as string) || member?.tier || 'BEGINNER';
@@ -103,7 +105,11 @@ export default function RenewPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Payment failed');
-      setSuccess(data);
+      if (method === 'MPESA' && data.amount > 0) {
+        setMpesaState({ membershipId: data.membership.id, amount: data.amount, data });
+      } else {
+        setSuccess(data);
+      }
     } catch (e: unknown) {
       setToast({ message: e instanceof Error ? e.message : 'Payment failed.', type: 'error' });
     } finally {
@@ -119,24 +125,23 @@ export default function RenewPage() {
           <div className="min-h-[70vh] flex items-center justify-center px-4 py-16">
             <div className="max-w-lg w-full glass p-10 rounded-2xl text-center border border-green-500/30">
               <div className="text-6xl mb-4">🎉</div>
-              <h1 className="text-3xl font-bold text-white mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
-                Membership Renewed!
-              </h1>
+              <h1 className="text-3xl font-bold text-white mb-3 font-playfair">Membership Active!</h1>
               <p className="text-gray-400 mb-6">
-                Your <span className="text-yellow-400 font-semibold">{PLAN_INFO[plan].label}</span> plan is active.
+                Your <span className="text-yellow-400 font-semibold">{PLAN_INFO[plan].label}</span> plan is confirmed.
                 Valid until <span className="text-green-400 font-semibold">{expiry}</span>.
               </p>
-              {method === 'MPESA' && (
-                <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-5 text-sm text-gray-300 space-y-1.5 mb-8 text-left">
-                  <p className="text-green-400 font-semibold mb-2">Complete M-Pesa Payment</p>
-                  <p>1. Go to M-PESA → Lipa na M-PESA → Pay Bill</p>
-                  <p>2. Business No: <strong className="text-white">880100</strong></p>
-                  <p>3. Account No: <strong className="text-white">124498</strong></p>
-                  <p>4. Amount: <strong className="text-yellow-400">KES {success.amount.toLocaleString()}</strong></p>
+              {method === 'BANK_TRANSFER' && (
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-5 text-sm text-gray-300 space-y-2 mb-6 text-left">
+                  <p className="text-blue-300 font-semibold mb-1">Complete Bank Transfer</p>
+                  <div className="flex justify-between"><span className="text-gray-500">Bank</span><strong>Equity Bank Kenya</strong></div>
+                  <div className="flex justify-between"><span className="text-gray-500">Account Name</span><strong>Zaid Knights Chess Club</strong></div>
+                  <div className="flex justify-between"><span className="text-gray-500">Account No</span><strong className="text-yellow-400 font-mono">1006394827</strong></div>
+                  <div className="flex justify-between"><span className="text-gray-500">Amount</span><strong className="text-yellow-400">KES {success.amount.toLocaleString()}</strong></div>
                 </div>
               )}
-              <div className="flex gap-3 justify-center">
-                <Link href="/dashboard" className="btn-primary">Back to Dashboard →</Link>
+              <div className="flex gap-3 justify-center flex-wrap">
+                <Link href="/dashboard" className="btn-primary">Go to Dashboard →</Link>
+                <Link href="/events" className="btn-secondary">Browse Events</Link>
               </div>
             </div>
           </div>
@@ -146,6 +151,23 @@ export default function RenewPage() {
   }
 
   return (
+    <>
+      {mpesaState && (
+        <MpesaPrompt
+          amount={mpesaState.amount}
+          type="membership"
+          referenceId={mpesaState.membershipId}
+          onSuccess={() => {
+            const snap = mpesaState;
+            setMpesaState(null);
+            setSuccess(snap.data);
+          }}
+          onCancel={() => {
+            setMpesaState(null);
+            setToast({ message: 'Membership created. Complete M-Pesa payment when ready.', type: 'info' });
+          }}
+        />
+      )}
     <ProtectedRoute allowedRoles={['MEMBER', 'COACH', 'GUEST', 'ADMIN', 'ORG_ADMIN']}>
       <Layout title="Renew Membership | Zaid Knights Chess Club">
         {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
@@ -256,27 +278,23 @@ export default function RenewPage() {
                 </div>
 
                 {method === 'MPESA' && (
-                  <div className="mt-4 bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-sm text-gray-300 space-y-1.5">
-                    <p className="text-green-400 font-semibold mb-2">M-Pesa Step-by-Step</p>
-                    <p>1. Go to <strong className="text-white">M-PESA</strong> → Lipa na M-PESA → Pay Bill</p>
-                    <p>2. Business No: <strong className="text-white">880100</strong></p>
-                    <p>3. Account No: <strong className="text-white">124498</strong></p>
-                    <p>4. Amount: <strong className="text-yellow-400">KES {amount.toLocaleString()}</strong></p>
-                    <p>5. Enter PIN and confirm</p>
+                  <div className="mt-4 bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-sm text-gray-300">
+                    <p className="text-green-400 font-semibold mb-1">📱 M-Pesa STK Push</p>
+                    <p>After confirming, you&apos;ll receive a payment prompt on your Safaricom phone. Just enter your PIN to complete.</p>
                   </div>
                 )}
                 {method === 'CARD' && (
                   <div className="mt-4 glass p-4 rounded-xl text-gray-400 text-sm">
-                    💳 Card payment is coming soon. Use M-Pesa or Bank Transfer.
+                    💳 Card payment is coming soon. Please use M-Pesa or Bank Transfer.
                   </div>
                 )}
                 {method === 'BANK_TRANSFER' && (
-                  <div className="mt-4 glass p-4 rounded-xl text-sm text-gray-300 space-y-1">
-                    <p className="text-white font-semibold mb-2">Bank Details</p>
-                    <p>Bank: <strong>Equity Bank Kenya</strong></p>
-                    <p>Account: <strong>Zaid Knights Chess Club</strong></p>
-                    <p>Acc No: <strong>1006394827</strong></p>
-                    <p>Branch: <strong>Nairobi Central</strong></p>
+                  <div className="mt-4 glass p-4 rounded-xl text-sm text-gray-300 space-y-2">
+                    <p className="text-white font-semibold mb-1">🏦 Bank Details</p>
+                    <div className="flex justify-between text-xs"><span className="text-gray-500">Bank</span><strong>Equity Bank Kenya</strong></div>
+                    <div className="flex justify-between text-xs"><span className="text-gray-500">Account Name</span><strong>Zaid Knights Chess Club</strong></div>
+                    <div className="flex justify-between text-xs"><span className="text-gray-500">Account No</span><strong className="text-yellow-400 font-mono">1006394827</strong></div>
+                    <div className="flex justify-between text-xs"><span className="text-gray-500">Amount</span><strong className="text-yellow-400">KES {amount.toLocaleString()}</strong></div>
                   </div>
                 )}
 
@@ -399,5 +417,6 @@ export default function RenewPage() {
         </Modal>
       </Layout>
     </ProtectedRoute>
+    </>
   );
 }

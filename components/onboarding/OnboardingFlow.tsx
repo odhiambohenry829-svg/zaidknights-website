@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import OnboardingStep from './OnboardingStep';
+import MpesaPrompt from '../payment/MpesaPrompt';
 
 interface UpcomingEvent {
   id:       string;
@@ -91,13 +92,15 @@ const TRAINING_GROUPS = ['Morning', 'Afternoon', 'Weekend'];
 export default function OnboardingFlow({
   userId, userName, memberTier, upcomingEvents, onComplete,
 }: OnboardingFlowProps) {
-  const requiresPayment = ['ADVANCED', 'COMPETITIVE_SQUAD'].includes(memberTier);
+  const requiresPayment = ['INTERMEDIATE', 'ADVANCED', 'COMPETITIVE_SQUAD'].includes(memberTier);
   const totalSteps      = requiresPayment ? 4 : 3;
 
   const [state,      setState]      = useState<OnboardingState>(() => loadState(userId));
   const [activeStep, setActiveStep] = useState(1);
   const [done,       setDone]       = useState(false);
   const [showConf,   setShowConf]   = useState(false);
+  const [mpesaOpen,  setMpesaOpen]  = useState(false);
+  const [membershipId, setMembershipId] = useState('');
 
   // Profile form
   const [profilePhoto,     setProfilePhoto]     = useState('');
@@ -364,13 +367,6 @@ export default function OnboardingFlow({
                 <span className="text-yellow-400 font-bold">{TIER_AMOUNT[memberTier] ?? 'Contact admin'}</span>
               </div>
             </div>
-            <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 text-sm text-gray-300 space-y-1">
-              <p className="text-green-400 font-semibold mb-2">M-PESA Payment Instructions</p>
-              <p>1. Go to <strong className="text-white">M-PESA</strong> → Lipa na M-PESA → Pay Bill</p>
-              <p>2. Business No: <strong className="text-white">880100</strong></p>
-              <p>3. Account No: <strong className="text-white">124498</strong></p>
-              <p>4. Amount: <strong className="text-yellow-400">{TIER_AMOUNT[memberTier]}</strong></p>
-            </div>
             <div className="flex gap-3">
               <Link
                 href="/renew"
@@ -379,6 +375,7 @@ export default function OnboardingFlow({
                 Pay via M-PESA →
               </Link>
               <button
+                type="button"
                 onClick={() => markStep(4, true)}
                 className="border border-white/20 text-gray-400 hover:text-white px-4 py-2.5 rounded-lg text-sm transition-all"
               >
@@ -387,6 +384,17 @@ export default function OnboardingFlow({
             </div>
           </div>
         </OnboardingStep>
+      )}
+
+      {/* M-Pesa prompt overlay (for inline payment in onboarding) */}
+      {mpesaOpen && membershipId && (
+        <MpesaPrompt
+          amount={parseInt((TIER_AMOUNT[memberTier] ?? '0').replace(/\D/g, ''), 10)}
+          type="membership"
+          referenceId={membershipId}
+          onSuccess={() => { setMpesaOpen(false); markStep(4); }}
+          onCancel={() => setMpesaOpen(false)}
+        />
       )}
     </div>
   );

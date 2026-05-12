@@ -9,7 +9,7 @@ type Tier = typeof VALID_TIERS[number];
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { name, email, password, tier } = req.body;
+  const { name, email, password, tier, chessComUsername } = req.body;
 
   const missing = validateRequired({ name, email, password });
   if (missing) return res.status(400).json({ error: missing });
@@ -37,9 +37,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         role:     'MEMBER',
         member: {
           create: {
-            level:  safeTier,
-            tier:   safeTier,
-            status: 'PENDING',
+            level:           safeTier,
+            tier:            safeTier,
+            status:          'PENDING',
+            chessComUsername: chessComUsername ? String(chessComUsername).trim().toLowerCase() : undefined,
           },
         },
       },

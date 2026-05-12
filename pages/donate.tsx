@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Layout from '../components/common/Layout';
 import ProgressBar from '../components/ui/ProgressBar';
 import Toast from '../components/ui/Toast';
+import MpesaPrompt from '../components/payment/MpesaPrompt';
 import { useAuth } from './_app';
 
 type PaymentMethod = 'MPESA' | 'CARD' | 'BANK_TRANSFER';
@@ -47,7 +48,8 @@ export default function DonatePage() {
   const [donorEmail,  setDonorEmail]  = useState(user?.email ?? '');
   const [loading,     setLoading]     = useState(false);
   const [success,     setSuccess]     = useState<{ id: string; ref: string } | null>(null);
-  const [toast,       setToast]       = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [mpesaState,  setMpesaState]  = useState<{ donationId: string; amount: number; ref: string } | null>(null);
+  const [toast,       setToast]       = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderEntry[]>([]);
   const [monthly,     setMonthly]     = useState(0);
 
@@ -106,7 +108,11 @@ export default function DonatePage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Donation failed');
       const ref = `ZK-${data.donation.id.slice(0, 8).toUpperCase()}`;
-      setSuccess({ id: data.donation.id, ref });
+      if (payment === 'MPESA') {
+        setMpesaState({ donationId: data.donation.id, amount: effectiveAmount, ref });
+      } else {
+        setSuccess({ id: data.donation.id, ref });
+      }
     } catch (e: unknown) {
       setToast({ message: e instanceof Error ? e.message : 'Donation failed.', type: 'error' });
     } finally {
@@ -149,37 +155,34 @@ export default function DonatePage() {
         <div className="min-h-[70vh] flex items-center justify-center px-4 py-16">
           <div className="max-w-lg w-full glass p-10 rounded-2xl text-center border border-green-500/30">
             <div className="text-6xl mb-4">🙏</div>
-            <h1 className="text-3xl font-bold text-white mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
-              Thank you!
-            </h1>
+            <h1 className="text-3xl font-bold text-white mb-3 font-playfair">Thank you!</h1>
             <p className="text-gray-400 mb-6">
-              Your donation of <span className="text-yellow-400 font-bold">KES {effectiveAmount.toLocaleString()}</span> has been recorded.
-              Our team will process it and confirm via email.
+              Your donation of{' '}
+              <span className="text-yellow-400 font-bold">KES {effectiveAmount.toLocaleString()}</span>{' '}
+              {payment === 'MPESA' ? 'has been confirmed.' : 'has been recorded. Complete your payment to finalise.'}
             </p>
-            <div className="glass-gold p-4 rounded-xl mb-8">
+
+            <div className="glass-gold p-4 rounded-xl mb-6">
               <p className="text-gray-400 text-xs mb-1">Reference Number</p>
               <p className="text-yellow-400 font-mono font-bold text-xl">{success.ref}</p>
             </div>
 
-            <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-5 text-sm text-gray-300 space-y-1.5 mb-8 text-left">
-              <p className="text-green-400 font-semibold mb-3">M-Pesa Payment Instructions</p>
-              {payment === 'MPESA' && (
-                <>
-                  <p>1. Go to <strong className="text-white">M-PESA</strong> → Lipa na M-PESA → Pay Bill</p>
-                  <p>2. Business No: <strong className="text-white">880100</strong></p>
-                  <p>3. Account No: <strong className="text-white">124498</strong></p>
-                  <p>4. Amount: <strong className="text-yellow-400">KES {effectiveAmount.toLocaleString()}</strong></p>
-                  <p>5. Enter PIN and confirm</p>
-                </>
-              )}
-            </div>
+            {payment === 'BANK_TRANSFER' && (
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-5 text-sm text-gray-300 space-y-2 mb-6 text-left">
+                <p className="text-blue-300 font-semibold mb-2">Complete Bank Transfer</p>
+                <div className="flex justify-between"><span className="text-gray-500">Bank</span><strong>Equity Bank Kenya</strong></div>
+                <div className="flex justify-between"><span className="text-gray-500">Account Name</span><strong>Zaid Knights Chess Club</strong></div>
+                <div className="flex justify-between"><span className="text-gray-500">Account No</span><strong className="text-yellow-400 font-mono">1006394827</strong></div>
+                <div className="flex justify-between"><span className="text-gray-500">Reference</span><strong>{success.ref}</strong></div>
+              </div>
+            )}
 
             <div className="flex gap-3 justify-center flex-wrap">
-              <button onClick={handlePrint} className="btn-primary">Download Receipt 🖨</button>
-              <button onClick={() => { setSuccess(null); setAmount(''); setCustom(''); }} className="btn-secondary">
+              <button type="button" onClick={handlePrint} className="btn-primary">Download Receipt 🖨</button>
+              <button type="button" onClick={() => { setSuccess(null); setAmount(''); setCustom(''); }} className="btn-secondary">
                 Donate Again
               </button>
-              <Link href="/" className="btn-ghost">Back to Home</Link>
+              <Link href="/" className="btn-secondary">Back to Home</Link>
             </div>
           </div>
         </div>
@@ -188,6 +191,23 @@ export default function DonatePage() {
   }
 
   return (
+    <>
+      {mpesaState && (
+        <MpesaPrompt
+          amount={mpesaState.amount}
+          type="donation"
+          referenceId={mpesaState.donationId}
+          onSuccess={() => {
+            const snap = mpesaState;
+            setMpesaState(null);
+            setSuccess({ id: snap.donationId, ref: snap.ref });
+          }}
+          onCancel={() => {
+            setMpesaState(null);
+            setToast({ message: 'Donation recorded. Complete M-Pesa payment when ready.', type: 'info' });
+          }}
+        />
+      )}
     <Layout title="Donate | Zaid Knights Chess Club">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
@@ -318,8 +338,8 @@ export default function DonatePage() {
                 )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="label">Donor Type</label>
-                    <select className="input" value={donorType} onChange={e => setDonorType(e.target.value as DonorType)}>
+                    <label htmlFor="donorType" className="label">Donor Type</label>
+                    <select id="donorType" aria-label="Donor type" className="input" value={donorType} onChange={e => setDonorType(e.target.value as DonorType)}>
                       <option value="INDIVIDUAL">Individual</option>
                       <option value="COMPANY">Company</option>
                       <option value="ALUMNI">Alumni</option>
@@ -378,9 +398,9 @@ export default function DonatePage() {
                 </div>
 
                 {payment === 'MPESA' && (
-                  <div className="mt-4 bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-sm text-gray-300 space-y-1">
-                    <p className="text-green-400 font-semibold mb-2">M-Pesa Instructions (shown after submitting)</p>
-                    <p>You&apos;ll receive step-by-step M-Pesa instructions with a reference number.</p>
+                  <div className="mt-4 bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-sm text-gray-300">
+                    <p className="text-green-400 font-semibold mb-1">📱 M-Pesa STK Push</p>
+                    <p>After clicking Donate you&apos;ll receive a payment prompt directly on your Safaricom phone. Just enter your PIN.</p>
                   </div>
                 )}
                 {payment === 'CARD' && (
@@ -389,12 +409,12 @@ export default function DonatePage() {
                   </div>
                 )}
                 {payment === 'BANK_TRANSFER' && (
-                  <div className="mt-4 glass p-4 rounded-xl text-sm text-gray-300 space-y-1">
-                    <p className="text-white font-semibold mb-2">Bank Details</p>
-                    <p>Bank: <strong>Equity Bank Kenya</strong></p>
-                    <p>Account Name: <strong>Zaid Knights Chess Club</strong></p>
-                    <p>Account No: <strong>1006394827</strong></p>
-                    <p>Branch: <strong>Nairobi Central</strong></p>
+                  <div className="mt-4 glass p-4 rounded-xl text-sm text-gray-300 space-y-2">
+                    <p className="text-white font-semibold mb-1">🏦 Bank Details</p>
+                    <div className="flex justify-between text-xs"><span className="text-gray-500">Bank</span><strong>Equity Bank Kenya</strong></div>
+                    <div className="flex justify-between text-xs"><span className="text-gray-500">Account Name</span><strong>Zaid Knights Chess Club</strong></div>
+                    <div className="flex justify-between text-xs"><span className="text-gray-500">Account No</span><strong className="text-yellow-400 font-mono">1006394827</strong></div>
+                    <div className="flex justify-between text-xs"><span className="text-gray-500">Branch</span><strong>Nairobi Central</strong></div>
                   </div>
                 )}
               </div>
@@ -470,5 +490,6 @@ export default function DonatePage() {
         </div>
       </div>
     </Layout>
+    </>
   );
 }

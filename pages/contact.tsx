@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import Layout from '../components/common/Layout';
-import Toast from '../components/ui/Toast';
 import Accordion from '../components/ui/Accordion';
 import type { AccordionItem } from '../components/ui/Accordion';
 
@@ -27,14 +26,15 @@ export default function ContactPage() {
   const [form, setForm] = useState({
     name: '', email: '', subject: SUBJECTS[0], message: '',
   });
-  const [status, setStatus] = useState<Status>('idle');
-  const [toast,  setToast]  = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [status,   setStatus]   = useState<Status>('idle');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('loading');
+    setErrorMsg('');
     try {
-      const res = await fetch('/api/contact', {
+      const res  = await fetch('/api/contact', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify(form),
@@ -43,18 +43,14 @@ export default function ContactPage() {
       if (!res.ok) throw new Error(data.error || 'Failed to send message');
       setStatus('success');
       setForm({ name: '', email: '', subject: SUBJECTS[0], message: '' });
-      setToast({ message: "Message sent! We'll reply within 24 hours.", type: 'success' });
     } catch (e: unknown) {
       setStatus('error');
-      setToast({ message: e instanceof Error ? e.message : 'Failed to send message.', type: 'error' });
-    } finally {
-      setStatus('idle');
+      setErrorMsg(e instanceof Error ? e.message : 'Failed to send message. Please try again.');
     }
   };
 
   return (
     <Layout title="Contact | Zaid Knights Chess Club">
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       {/* Hero */}
       <section className="py-20 px-4 chess-pattern">
@@ -73,63 +69,96 @@ export default function ContactPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           {/* Contact Form */}
           <div className="glass p-8 rounded-2xl">
-            <h2 className="text-xl font-bold text-white mb-6" style={{ fontFamily: 'Playfair Display, serif' }}>
-              Send a Message
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="label">Your Name *</label>
-                  <input
-                    type="text"
-                    required
-                    className="input"
-                    placeholder="Full name"
-                    value={form.name}
-                    onChange={e => setForm({ ...form, name: e.target.value })}
-                  />
+            {status === 'success' ? (
+              <div className="text-center py-6 space-y-5">
+                <div className="text-6xl">✉️</div>
+                <h2 className="text-xl font-bold text-white">Message Sent!</h2>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  Thanks for reaching out. We&apos;ll reply to your email within 24 hours.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => { setStatus('idle'); setErrorMsg(''); }}
+                    className="btn-secondary flex-1 py-2.5 text-sm"
+                  >
+                    Send Another Message
+                  </button>
+                  <a href="/" className="btn-primary flex-1 py-2.5 text-sm text-center">
+                    Back to Home
+                  </a>
                 </div>
-                <div>
-                  <label className="label">Email Address *</label>
-                  <input
-                    type="email"
-                    required
-                    className="input"
-                    placeholder="you@example.com"
-                    value={form.email}
-                    onChange={e => setForm({ ...form, email: e.target.value })}
-                  />
+                <div className="pt-2 flex justify-center gap-6">
+                  <a href="/events" className="text-yellow-400 hover:text-yellow-300 text-sm transition">Browse Events →</a>
+                  <a href="/membership" className="text-yellow-400 hover:text-yellow-300 text-sm transition">Membership →</a>
                 </div>
               </div>
-              <div>
-                <label className="label">Subject</label>
-                <select
-                  className="input"
-                  value={form.subject}
-                  onChange={e => setForm({ ...form, subject: e.target.value })}
-                >
-                  {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="label">Message *</label>
-                <textarea
-                  required
-                  rows={5}
-                  className="input resize-none"
-                  placeholder="How can we help you?"
-                  value={form.message}
-                  onChange={e => setForm({ ...form, message: e.target.value })}
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={status === 'loading'}
-                className="btn-primary w-full"
-              >
-                {status === 'loading' ? 'Sending…' : 'Send Message →'}
-              </button>
-            </form>
+            ) : (
+              <>
+                <h2 className="text-xl font-bold text-white mb-6 font-playfair">Send a Message</h2>
+                {errorMsg && (
+                  <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-lg mb-5">
+                    {errorMsg}
+                  </div>
+                )}
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="label">Your Name *</label>
+                      <input
+                        type="text"
+                        required
+                        className="input"
+                        placeholder="Full name"
+                        value={form.name}
+                        onChange={e => setForm({ ...form, name: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="label">Email Address *</label>
+                      <input
+                        type="email"
+                        required
+                        className="input"
+                        placeholder="you@example.com"
+                        value={form.email}
+                        onChange={e => setForm({ ...form, email: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="subject" className="label">Subject</label>
+                    <select
+                      id="subject"
+                      aria-label="Message subject"
+                      className="input"
+                      value={form.subject}
+                      onChange={e => setForm({ ...form, subject: e.target.value })}
+                    >
+                      {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="label">Message *</label>
+                    <textarea
+                      required
+                      rows={5}
+                      className="input resize-none"
+                      placeholder="How can we help you?"
+                      value={form.message}
+                      onChange={e => setForm({ ...form, message: e.target.value })}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={status === 'loading'}
+                    className="btn-primary w-full"
+                  >
+                    {status === 'loading' ? 'Sending…' : 'Send Message →'}
+                  </button>
+                </form>
+              </>
+            )}
           </div>
 
           {/* Info Cards */}
