@@ -175,7 +175,7 @@ export default function EventsPage() {
   return (
     <Layout title="Events | Zaid Knights Chess Club">
       {toast && (
-        <Toast message={toast.message} type={toast.type === 'info' ? 'success' : toast.type} onClose={() => setToast(null)} />
+        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
       )}
 
       {/* Hero */}
