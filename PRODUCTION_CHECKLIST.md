@@ -1,378 +1,151 @@
-# ZaidKnights Chess Club - Production Readiness Checklist
-
-## Overview
-This checklist ensures ZaidKnights Chess Club website is fully production-ready before launch.
+# Zaid Knights Chess Club — Production Readiness Checklist
 
 ---
 
-## 1. Core Infrastructure ✅
+## 1. Infrastructure
 
-- [x] **Project Setup**
-  - [x] Next.js 14 configured
-  - [x] TypeScript enabled
-  - [x] Tailwind CSS configured
-  - [x] Framer Motion animations integrated
-  - [x] PostCSS/Autoprefixer configured
-
-- [x] **Database**
-  - [x] PostgreSQL schema created (Prisma)
-  - [x] All tables defined (Users, Members, Events, etc.)
-  - [x] Relationships configured
-  - [x] Enums for roles, levels, statuses
-
-- [x] **Version Control**
-  - [x] .gitignore configured
-  - [x] Git initialized and ready for GitHub
+- [x] Next.js 14 (Pages Router) configured
+- [x] TypeScript strict mode enabled
+- [x] Tailwind CSS 3 configured with custom tokens
+- [x] PostCSS / Autoprefixer configured
+- [x] Vercel deployment config (`vercel.json`) with security headers and 30s function timeout
+- [x] `.gitignore` excludes `.env`, `.env.local`, logs, build artifacts
 
 ---
 
-## 2. Frontend Pages ✅
+## 2. Database
 
-- [x] **Public Pages**
-  - [x] Home page (`/`)
-  - [x] About page (`/about`)
-  - [x] Membership page (`/membership`)
-  - [x] Events page (`/events`)
-  - [x] Rankings page (`/rankings`)
-  - [x] Gallery page (`/gallery`)
-  - [x] Blog page (`/blog`)
-  - [x] Contact page (`/contact`)
-
-- [x] **Authentication Pages**
-  - [x] Login page (`/login`)
-  - [x] Register page (`/register`)
-
-- [x] **Dashboard Pages**
-  - [x] Member dashboard (`/dashboard`)
-  - [x] Admin dashboard (`/admin`)
-
-- [x] **Layout Components**
-  - [x] Navbar with navigation
-  - [x] Footer with contact info
-  - [x] Layout wrapper with SEO
+- [x] Prisma 5 schema with 19 models
+- [x] All enums defined (Role, MemberLevel, MemberStatus, etc.)
+- [x] Foreign key relations correct (including Announcement → User)
+- [x] `@@index` directives on all hot query columns
+- [x] `ContactMessageStatus` enum (NEW / READ / REPLIED / ARCHIVED)
+- [x] Connection pooling via Supabase pgbouncer (`DATABASE_URL?pgbouncer=true`)
+- [x] `DIRECT_URL` set for Prisma migrations
 
 ---
 
-## 3. UI/Design System ✅
+## 3. Pages (18 routes)
 
-- [x] **Branding**
-  - [x] Brand colors defined (Black #0B0B0B, White #FFFFFF, Gold #D4AF37, Forest Green #0F3D2E)
-  - [x] Glassmorphism design applied
-  - [x] Responsive design (mobile-first)
-  - [x] Dark theme implemented
-
-- [x] **Components**
-  - [x] Button component
-  - [x] Card component with glass styling
-  - [x] Form inputs with focus states
-  - [x] Navigation with hover effects
-  - [x] Hero section with Framer Motion
-  - [x] Section components
-
-- [x] **Typography**
-  - [x] Inter font integrated
-  - [x] Font weights defined
-  - [x] Color scheme defined
-  - [x] Spacing system consistent
-
----
-
-## 4. Backend API ✅
-
-- [x] **Authentication Routes**
-  - [x] `/api/auth/register` - User registration with password hashing
-  - [x] `/api/auth/login` - JWT token generation, secure cookies
-  - [x] `/api/auth/logout` - Token clearing
-
-- [x] **Content Routes**
-  - [x] `/api/events` - GET/POST events
-  - [x] `/api/members` - GET members list
-  - [x] `/api/posts` - GET published blog posts
-  - [x] `/api/gallery` - GET gallery items
-  - [x] `/api/contact` - POST contact form submissions
-
-- [x] **Dashboard Routes**
-  - [x] `/api/dashboard/stats` - GET dashboard statistics
-
-- [x] **Input Validation**
-  - [x] Email validation
-  - [x] String sanitization
-  - [x] Required field checking
-  - [x] Type validation
+- [x] `/` Home
+- [x] `/about` About
+- [x] `/events` Events + registration
+- [x] `/rankings` ELO leaderboard
+- [x] `/gallery` Photo gallery + upload
+- [x] `/blog` Blog list
+- [x] `/blog/[slug]` Single post
+- [x] `/donate` Donation + M-Pesa + leaderboard
+- [x] `/membership` Tier comparison + FAQ
+- [x] `/contact` Contact form + FAQ accordion
+- [x] `/organizations` Multi-step org registration
+- [x] `/organizations/register` Simplified org form
+- [x] `/login` Member login
+- [x] `/register` Member sign-up + onboarding
+- [x] `/renew` Membership renewal (protected)
+- [x] `/dashboard` Member dashboard (5 states)
+- [x] `/admin` Admin dashboard
+- [x] `/admin/setup` First-run admin creation
 
 ---
 
-## 5. Security ✅
+## 4. API Routes (35 endpoints)
 
-- [x] **Authentication**
-  - [x] bcryptjs for password hashing
-  - [x] JWT token generation and verification
-  - [x] Secure cookie configuration (HttpOnly, Secure, SameSite)
-
-- [x] **Input Security**
-  - [x] Input sanitization helpers
-  - [x] Email validation
-  - [x] Type checking
-
-- [x] **Environment Variables**
-  - [x] .env.example provided
-  - [x] Database URL configuration
-  - [x] JWT_SECRET securable
-  - [x] Admin email configurable
-
-**Production Requirements (Pre-Launch):**
-- [ ] Implement rate limiting middleware
-- [ ] Add CORS headers if needed
-- [ ] Implement admin route protection
-- [ ] Set up error logging (Sentry/Bugsnag)
-- [ ] Enable HTTPS enforcement (Vercel default)
-- [ ] Configure Content Security Policy headers
-- [ ] Implement session management
-- [ ] Add request validation middleware
+- [x] Auth: register, login, logout, me
+- [x] Events: list/filter, register for event, create (admin), delete (admin)
+- [x] Members: ranked list, update (admin)
+- [x] Posts: list/paginate, slug, create, update, delete
+- [x] Gallery: list, upload (auth), delete (admin)
+- [x] Contact: submit form
+- [x] Newsletter: subscribe (upsert)
+- [x] Donations: submit, list (own/admin), leaderboard
+- [x] Memberships: create/renew, history
+- [x] Organizations: register, list, single (with PATCH)
+- [x] Announcements: list active, create (admin/coach), delete (admin)
+- [x] Dashboard: full member stats
+- [x] Admin: stats, settings, messages (CRUD)
+- [x] Profile: read/update
+- [x] Member profile (extended) + onboarding steps
+- [x] Payments: M-Pesa initiate + Safaricom callback webhook
+- [x] Site settings: public hero text
 
 ---
 
-## 6. SEO & Performance ✅
+## 5. Security
 
-- [x] **SEO**
-  - [x] Meta tags on all pages
-  - [x] Open Graph tags
-  - [x] robots.txt configured
-  - [x] sitemap.xml included
-  - [x] Clean URL structure
-  - [x] Descriptive page titles
-  - [x] Meaningful descriptions
-
-- [x] **Performance**
-  - [x] Next.js image optimization ready
-  - [x] Code splitting automatic
-  - [x] CSS purging via Tailwind
-  - [x] Lazy loading support
-
-**Optimization Opportunities:**
-- [ ] Configure Next.js Image component
-- [ ] Enable caching headers
-- [ ] Minify assets
-- [ ] Implement service worker (PWA)
-- [ ] Add Google Analytics
-- [ ] Monitor Lighthouse scores
+- [x] Passwords hashed with bcryptjs (10 rounds)
+- [x] JWT tokens signed, 7-day expiry, httpOnly cookie
+- [x] Cookie: HttpOnly, Secure, SameSite=Lax
+- [x] All admin routes require ADMIN role (403 if not)
+- [x] Input sanitized via `sanitizeString()` + `validateEmail()`
+- [x] Prisma ORM — no raw SQL in user data paths
+- [x] HTTP security headers set in `vercel.json` (HSTS, X-Frame-Options, CSP basics, etc.)
+- [x] Environment variables — no secrets in code
+- [ ] Rate limiting on `/api/auth/*` (recommended for production)
+- [ ] Sentry / error tracking service
 
 ---
 
-## 7. Database & ORM ✅
+## 6. Features implemented
 
-- [x] **Prisma ORM**
-  - [x] Client generation configured
-  - [x] Schema validation
-  - [x] Type-safe queries
-
-- [x] **Data Models**
-  - [x] User model with roles
-  - [x] Member model with levels
-  - [x] Event model with registrations
-  - [x] Result tracking
-  - [x] Blog posts
-  - [x] Gallery items
-
-**Pre-Launch Tasks:**
-- [ ] Seed initial admin user
-- [ ] Test all database operations
-- [ ] Configure backups (Supabase/Neon)
-- [ ] Set up monitoring
-
----
-
-## 8. Deployment Configuration ✅
-
-- [x] **Package Management**
-  - [x] package.json with all dependencies
-  - [x] Dev and production dependencies separated
-  - [x] Scripts configured (dev, build, start, lint)
-
-- [x] **Configuration**
-  - [x] tsconfig.json for TypeScript
-  - [x] next.config.mjs for Next.js
-  - [x] tailwind.config.js for Tailwind
-  - [x] postcss.config.js for PostCSS
-
-- [x] **Documentation**
-  - [x] README.md with project overview
-  - [x] DEPLOYMENT_GUIDE.md with step-by-step instructions
-  - [x] Production checklist (this file)
+- [x] JWT authentication + RBAC
+- [x] Member registration + onboarding flow
+- [x] Membership plans (Monthly / Term / Annual × 4 tiers)
+- [x] M-Pesa STK push payments for memberships and donations
+- [x] Transactional email via Resend (receipts, confirmations)
+- [x] Event management + capacity-checked registration
+- [x] ELO leaderboard with 30-day delta
+- [x] Blog with pagination, categories, slugs
+- [x] Masonry photo gallery + upload
+- [x] Donation tracking with anonymous option + leaderboard
+- [x] Organization registration (multi-step + approval flow)
+- [x] Announcements with pinning + expiry
+- [x] Contact form with status tracking (admin inbox)
+- [x] Newsletter subscription (upsert, reactivation)
+- [x] Member dashboard (5 status states + renewal banner)
+- [x] Full admin dashboard (members, events, posts, gallery, messages, settings)
+- [x] Site settings (hero text, contact info, social links) — editable from admin
 
 ---
 
-## 9. Domain & Hosting ✅
+## 7. Performance
 
-**Recommended Hosting:**
-- [x] Frontend: Vercel (serverless deployment)
-- [x] Database: Supabase or Neon (managed PostgreSQL)
-- [x] DNS: Cloudflare or Vercel DNS
-
-**Domain Recommendations:**
-- Primary: `zaidknights.com`
-- Alternative 1: `zaidknightschess.com`
-- Alternative 2: `zaidknights.org`
-- Alternative 3: `zaidknights.co.ke` (Kenya focus)
-
-**Pre-Launch Tasks:**
-- [ ] Purchase domain (Namecheap/GoDaddy)
-- [ ] Configure nameservers
-- [ ] Set up DNS records
-- [ ] Enable SSL certificate
-- [ ] Test domain access
+- [x] Next.js automatic code splitting
+- [x] Tailwind CSS purge (unused styles removed at build)
+- [x] Supabase pgbouncer connection pooling
+- [x] Database indexes on all hot query paths
+- [x] Vercel Edge CDN for static assets
+- [ ] Next.js `<Image>` component on user-uploaded photo URLs
+- [ ] Lighthouse audit — target 90+ on all categories
 
 ---
 
-## 10. Feature Completeness ✅
+## 8. SEO
 
-### Implemented Features
-- [x] Home page with hero and announcements
-- [x] Member registration and login
-- [x] Membership tier system (Beginner, Advanced, Master)
-- [x] Events listing and registration
-- [x] Rankings/leaderboard
-- [x] Gallery section
-- [x] Blog/news posts
-- [x] Contact form
-- [x] Member dashboard
-- [x] Admin dashboard
-- [x] Responsive design
-- [x] Dark theme with gold accents
-
-### Future Enhancements
-- [ ] Payment integration (Stripe / M-Pesa)
-- [ ] Email notifications
-- [ ] WhatsApp bot integration
-- [ ] Live game broadcast
-- [ ] Chess puzzle AI
-- [ ] Push notifications
-- [ ] Mobile app API
-- [ ] Video tutorials
-- [ ] Advanced analytics
+- [x] `<title>` and `<meta description>` on every page (via Layout)
+- [x] Open Graph tags
+- [x] `public/robots.txt`
+- [x] `public/sitemap.xml`
+- [ ] Submit sitemap to Google Search Console
+- [ ] Verify structured data with Rich Results Test
 
 ---
 
-## 11. Testing Checklist
+## 9. Pre-launch tasks
 
-**Pre-Launch Testing:**
-- [ ] Test all page loads in Chrome, Firefox, Safari, Edge
-- [ ] Test mobile responsiveness (iPhone, Android)
-- [ ] Test all forms (registration, login, contact)
-- [ ] Test API endpoints with Postman/cURL
-- [ ] Test database operations
-- [ ] Test authentication flow
-- [ ] Test error handling (404, 500, etc.)
-- [ ] Verify SEO meta tags
-- [ ] Check CSS and animation performance
-- [ ] Load testing with k6 or LoadImpact
+- [ ] Set all production environment variables in Vercel
+- [ ] Seed first ADMIN user via `/admin/setup`
+- [ ] Verify M-Pesa callback URL is publicly reachable
+- [ ] Verify Resend domain/sender is verified
+- [ ] Set up uptime monitoring (UptimeRobot or Better Uptime)
+- [ ] Connect Vercel project to custom domain
+- [ ] Configure Cloudflare Full (strict) SSL
+- [ ] Test full registration → payment → dashboard flow in production
 
 ---
 
-## 12. Monitoring & Analytics
-
-**Pre-Launch Setup:**
-- [ ] Vercel analytics dashboard
-- [ ] Google Search Console
-- [ ] Google Analytics 4
-- [ ] Error tracking (Sentry/Bugsnag)
-- [ ] Uptime monitoring (UptimeRobot)
-- [ ] Database monitoring (Supabase/Neon dashboard)
-
----
-
-## 13. Launch Preparation
-
-### Week Before Launch
-- [ ] Final testing of all features
-- [ ] Verify all environment variables set correctly
-- [ ] Database backup plan in place
-- [ ] Contact information verified
-- [ ] Social media handles ready
-- [ ] Logo/branding assets prepared
-- [ ] Email templates created
-
-### Launch Day
-- [ ] Deploy to production
-- [ ] Test production environment
-- [ ] Enable monitoring/analytics
-- [ ] Announce on social media
-- [ ] Monitor error logs
-- [ ] Respond to initial feedback
-
-### Week After Launch
-- [ ] Monitor user feedback
-- [ ] Check analytics
-- [ ] Address any issues
-- [ ] Optimize based on user behavior
-- [ ] Social media engagement
-
----
-
-## 14. Documentation
-
-- [x] **Project Documentation**
-  - [x] README.md
-  - [x] DEPLOYMENT_GUIDE.md
-  - [x] This checklist
-
-- [ ] **API Documentation** (Recommended)
-  - [ ] Swagger/OpenAPI specs
-  - [ ] Endpoint documentation
-
-- [ ] **User Documentation** (Recommended)
-  - [ ] FAQ page
-  - [ ] Help/support section
-  - [ ] Member guidelines
-
----
-
-## 15. Financial & Legal
+## 10. Legal / compliance
 
 - [ ] Privacy Policy page
 - [ ] Terms of Service page
-- [ ] Cookie consent banner
-- [ ] GDPR compliance (if applicable)
-- [ ] Payment terms (if future payments)
-- [ ] Refund policy (if memberships paid)
-
----
-
-## Summary
-
-**Status: READY FOR DEPLOYMENT**
-
-This ZaidKnights Chess Club platform is production-ready with:
-- ✅ Complete Next.js/React frontend
-- ✅ Full REST API backend
-- ✅ PostgreSQL database with Prisma ORM
-- ✅ Authentication system (JWT + bcrypt)
-- ✅ Responsive design with Tailwind CSS
-- ✅ SEO optimization
-- ✅ Admin dashboard
-- ✅ Member portal
-- ✅ Detailed deployment guide
-
-**Next Steps:**
-1. Follow DEPLOYMENT_GUIDE.md for step-by-step deployment
-2. Register domain (zaidknights.com recommended)
-3. Set up Supabase/Neon PostgreSQL
-4. Deploy frontend to Vercel
-5. Configure DNS with Cloudflare
-6. Test all features in production
-7. Set up monitoring and analytics
-8. Launch and promote!
-
----
-
-## Contact & Support
-
-For deployment questions or issues:
-- Review DEPLOYMENT_GUIDE.md
-- Check Next.js, Vercel, and Supabase documentation
-- Test locally with `npm run dev` before deploying
-- Monitor Vercel logs for errors
-
-**Built with:** Next.js, React, TypeScript, Tailwind CSS, Prisma, PostgreSQL
-**Deployed on:** Vercel (Frontend) + Supabase/Neon (Database)
-**Estimated Setup Time:** 2-3 hours (database + domain + deployment)
+- [ ] Cookie consent banner (for EU visitors)
+- [ ] GDPR/PDPA data handling review

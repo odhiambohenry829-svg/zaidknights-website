@@ -1,375 +1,168 @@
-# ZaidKnights Chess Club - Deployment & Domain Setup Guide
+# Zaid Knights Chess Club — Deployment Guide
 
-## Table of Contents
-1. [Domain Registration & Selection](#domain-selection)
-2. [Infrastructure Setup](#infrastructure-setup)
-3. [Database Configuration](#database-setup)
-4. [Frontend Deployment](#frontend-deployment)
-5. [DNS & SSL Configuration](#dns--ssl)
-6. [Environment Variables](#environment-variables)
-7. [Post-Deployment Verification](#verification)
-8. [Production Security Checklist](#production-checklist)
+## Overview
+
+The platform auto-deploys to Vercel on every push to `main`. This guide covers the one-time setup: database, environment variables, domain, and DNS.
 
 ---
 
-## Domain Selection
-
-### Recommended Domains
-The following domains are in priority order for ZaidKnights Chess Club:
-
-| Domain | TLD | Pros | Status |
-|--------|-----|------|--------|
-| `zaidknights.com` | .com | Strong brand, credible, memorable | Check availability via Namecheap/GoDaddy |
-| `zaidknightschess.com` | .com | Descriptive, SEO-friendly | Alternative |
-| `zaidknightsclub.com` | .com | Clear purpose statement | Alternative |
-| `zkchess.com` | .com | Short, brandable | Alternative |
-| `zaidknightsacademy.com` | .com | Emphasizes training aspect | Alternative |
-| `zaidknights.org` | .org | Nonprofit-friendly, trustworthy | If .com unavailable |
-| `zaidknights.co.ke` | .ke | Kenya-specific, local identity | Strong local branding |
-| `zkchess.chess` | .chess | Modern, niche-specific | Future-proof |
-
-### Domain Registration Steps
-
-1. **Select Registrar** (Recommended):
-   - Namecheap: https://namecheap.com
-   - GoDaddy: https://godaddy.com
-   - Domain.com: https://domain.com
-   - Afriregister (Kenya-based): https://afriregister.com
-
-2. **Search & Check Availability**:
-   - Use Whois lookup or registrar tools.
-   - Check trademark conflicts to avoid legal issues.
-
-3. **Purchase Domain**:
-   - Register for 3+ years for stability and trust signals.
-   - Enable WHOIS privacy (optional).
-   - Auto-renew recommended.
-
-4. **Configure Nameservers**:
-   - Once purchased, you'll configure DNS.
-   - Use Cloudflare nameservers (recommended) or Vercel DNS.
-
----
-
-## Infrastructure Setup
-
-### Option A: Vercel + Supabase (Recommended)
-**Best for**: Fast setup, scalability, modern stack.
+## Infrastructure
 
 ```
-Frontend: Vercel
-Backend/Database: Supabase (managed PostgreSQL)
-CDN: Vercel Edge Network
-SSL: Automatic
-```
-
-#### Steps:
-1. Create Vercel account: https://vercel.com
-2. Create Supabase account: https://supabase.com
-3. Create PostgreSQL database in Supabase.
-4. Copy connection string (DATABASE_URL).
-
-### Option B: Vercel + Neon (PostgreSQL)
-**Best for**: Lightweight, serverless Postgres.
-
-```
-Frontend: Vercel
-Database: Neon (serverless Postgres)
-CDN: Vercel Edge Network
-```
-
-#### Steps:
-1. Create Neon account: https://neon.tech
-2. Create database and copy connection string.
-
-### Option C: Self-Hosted (Advanced)
-**Best for**: Full control, existing infrastructure.
-
-```
-Frontend: Vercel or custom VPS
-Backend: Node.js on Render/Railway/VPS
-Database: PostgreSQL (self-managed or managed service)
-DNS: Cloudflare
+Frontend + API:  Vercel (serverless, auto-deploy)
+Database:        Supabase PostgreSQL
+DNS / WAF:       Cloudflare
+Email:           Resend
+Payments:        Safaricom Daraja (M-Pesa)
 ```
 
 ---
 
-## Database Setup
+## Step 1: Supabase database
 
-### 1. Supabase PostgreSQL Setup
-
-1. Sign up: https://supabase.com
-2. Create a new project (select region nearest to Africa/Nairobi).
-3. Go to `Database > Connection Strings`.
-4. Copy the PostgreSQL connection string:
-   ```
-   postgresql://USER:PASSWORD@HOST:5432/zaidknights
-   ```
-5. Save as `DATABASE_URL` in `.env` file locally.
-
-### 2. Neon PostgreSQL Setup
-
-1. Sign up: https://neon.tech
-2. Create a database project.
-3. Copy the connection string.
-4. Set `DATABASE_URL` in environment.
-
-### 3. Initialize Prisma Schema
-
-```bash
-# In project root
-npm install
-npx prisma generate
-npx prisma db push
-```
-
-This creates tables based on `prisma/schema.prisma`.
-
-### 4. Seed Database (Optional)
-
-Create `prisma/seed.ts`:
-```typescript
-import { prisma } from '../lib/prisma';
-
-async function main() {
-  const admin = await prisma.user.create({
-    data: {
-      name: 'Admin User',
-      email: 'admin@zaidknights.com',
-      password: 'hashed_password_here',
-      role: 'ADMIN'
-    }
-  });
-  console.log('Seed complete:', admin);
-}
-
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
-```
-
-Run:
-```bash
-npx prisma db seed
-```
+1. Create a project at [supabase.com](https://supabase.com) — pick the Africa (Johannesburg) region.
+2. Go to **Settings → Database → Connection string**.
+3. Copy two URLs:
+   - **Transaction (pooled)** → `DATABASE_URL` (add `?pgbouncer=true`)
+   - **Direct** → `DIRECT_URL`
+4. The schema is managed via Prisma migrations in `prisma/migrations/`. Vercel runs `prisma generate && next build` — no manual `db push` needed after initial setup.
 
 ---
 
-## Frontend Deployment
+## Step 2: Vercel project
 
-### Vercel Deployment
-
-1. **Push to GitHub**:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial ZaidKnights commit"
-   git remote add origin https://github.com/your-username/zaidknights-website.git
-   git push -u origin main
-   ```
-
-2. **Connect Vercel**:
-   - Visit https://vercel.com/new
-   - Select "Import Git Repository"
-   - Choose your GitHub repository
-
-3. **Configure Build**:
-   - Framework: `Next.js`
-   - Build Command: `npm run build`
-   - Output Directory: `.next`
-   - Install Command: `npm install`
-
-4. **Set Environment Variables** in Vercel dashboard:
-   ```
-   DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/zaidknights
-   JWT_SECRET=your_secure_random_secret_here
-   NEXT_PUBLIC_SITE_URL=https://zaidknights.com
-   ADMIN_EMAIL=admin@zaidknights.com
-   ```
-
-5. **Deploy**:
-   - Vercel automatically builds and deploys.
-   - You'll receive a live URL (e.g., `zaidknights.vercel.app`)
+1. Push the repository to GitHub.
+2. Go to [vercel.com/new](https://vercel.com/new), import the repo.
+3. Framework: **Next.js** (auto-detected).
+4. Build command: `prisma generate && next build`
+5. Install command: `npm install`
+6. Root directory: *(leave empty)*
 
 ---
 
-## DNS & SSL
+## Step 3: Environment variables
 
-### Using Cloudflare (Recommended)
+Set these in **Vercel → Project → Settings → Environment Variables** (all environments):
 
-1. **Create Cloudflare Account**: https://cloudflare.com
-2. **Add Site**:
-   - Enter your domain (e.g., `zaidknights.com`)
-   - Cloudflare scans your DNS records
-3. **Update Nameservers** at your registrar:
-   - Replace registrar nameservers with Cloudflare:
-     - `alice.ns.cloudflare.com`
-     - `bob.ns.cloudflare.com`
-   - Wait 24-48 hours for propagation
+```
+# Database
+DATABASE_URL        postgresql://USER:PASS@HOST:5432/zaidknights?pgbouncer=true
+DIRECT_URL          postgresql://USER:PASS@HOST:5432/zaidknights
 
-4. **Configure DNS in Cloudflare**:
-   - **DNS > Records**
-   - Add A record or CNAME:
-     - **If using Vercel**: CNAME `zaidknights.com` → `cname.vercel-dns.com`
-     - **Alternative**: Use Vercel's assigned IP (Vercel provides specific records)
+# Auth
+JWT_SECRET          <64-char random secret>
+ADMIN_EMAIL         admin@zaidknights.org
 
-5. **SSL/TLS Setup**:
-   - Go to **SSL/TLS** in Cloudflare
-   - Set to "Full (strict)" for Vercel
-   - Vercel automatically provisions Let's Encrypt certificate
+# Site
+NEXT_PUBLIC_SITE_URL  https://zaidknights.org
 
-6. **Optimize Performance**:
-   - Enable Caching under **Caching**
-   - Set auto-renew for security
+# M-Pesa
+MPESA_ENV               production
+MPESA_CONSUMER_KEY      <from Safaricom Daraja>
+MPESA_CONSUMER_SECRET   <from Safaricom Daraja>
+MPESA_PAYBILL           <your paybill number>
+MPESA_PASSKEY           <from Safaricom Daraja>
+MPESA_CALLBACK_URL      https://zaidknights.org/api/payments/mpesa/callback
 
-### Using Vercel DNS
-
-1. In Vercel project settings: **Domains**
-2. Add your domain
-3. Vercel provides DNS records to add at your registrar
-4. Add records at registrar
-5. Vercel automatically manages SSL via Let's Encrypt
-
-### Using Namecheap DNS
-
-1. Login to Namecheap
-2. **Domain List > Manage Domain**
-3. **Nameserver Switching**:
-   - Choose Cloudflare or Vercel
-   - Add provided nameservers
-4. **Custom DNS** (if not using nameserver switching):
-   - Add A/CNAME records pointing to Vercel
-
----
-
-## Environment Variables
-
-### Local Development
-
-Create `.env.local`:
-```env
-DATABASE_URL=postgresql://USER:PASSWORD@localhost:5432/zaidknights
-JWT_SECRET=dev_secret_change_in_production
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-ADMIN_EMAIL=admin@zaidknights.com
+# Email
+RESEND_API_KEY      re_<your key>
+EMAIL_FROM          ZaidKnights <noreply@zaidknights.org>
 ```
 
-### Production (Vercel)
-
-Set in **Vercel Dashboard > Settings > Environment Variables**:
-```
-DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/zaidknights
-JWT_SECRET=<generate-strong-random-secret>
-NEXT_PUBLIC_SITE_URL=https://zaidknights.com
-ADMIN_EMAIL=admin@zaidknights.com
-```
-
-Generate secure JWT_SECRET:
+Generate `JWT_SECRET`:
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 ---
 
-## Post-Deployment Verification
+## Step 4: Domain
 
-### 1. Test Deployment
-- Visit your domain: https://zaidknights.com
-- Verify pages load correctly
+1. Register `zaidknights.org` (or your chosen domain).
+2. In **Vercel → Project → Domains**, add `zaidknights.org` and `www.zaidknights.org`.
+3. Vercel provides CNAME/A records — add them at your registrar or in Cloudflare.
 
-### 2. Check SSL Certificate
-- Visit https://zaidknights.com (confirm lock icon)
-- Run SSL test: https://www.ssllabs.com/ssltest/
+### Cloudflare (recommended)
 
-### 3. Test API Endpoints
+1. Add site at [cloudflare.com](https://cloudflare.com), update registrar nameservers.
+2. Add CNAME: `@` → `cname.vercel-dns.com` (proxied).
+3. SSL/TLS: set to **Full (strict)**.
+4. Vercel auto-provisions Let's Encrypt certificate.
+
+---
+
+## Step 5: Initial admin user
+
+After first deploy, visit `https://zaidknights.org/admin/setup` to create the first ADMIN account. The setup route is disabled after first use.
+
+---
+
+## Step 6: Verify deployment
+
 ```bash
-# Test registration
-curl -X POST https://zaidknights.com/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Test","email":"test@test.com","password":"password123"}'
+# SSL
+curl -I https://zaidknights.org
 
-# Test login
-curl -X POST https://zaidknights.com/api/auth/login \
+# Auth
+curl -X POST https://zaidknights.org/api/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@test.com","password":"password123"}'
+  -d '{"name":"Test","email":"test@example.com","password":"TestPass123"}'
+
+# Events
+curl https://zaidknights.org/api/events
+
+# Admin stats (requires ADMIN cookie)
+curl https://zaidknights.org/api/admin/stats
 ```
 
-### 4. Database Connection
+Check:
+- `/robots.txt` is reachable
+- `/sitemap.xml` is reachable
+- All security headers present (X-Frame-Options, HSTS, etc.)
+
+---
+
+## Step 7: Submit to Google Search Console
+
+1. Go to [search.google.com/search-console](https://search.google.com/search-console).
+2. Add property `https://zaidknights.org`.
+3. Verify via DNS TXT record (Cloudflare makes this easy).
+4. Submit `https://zaidknights.org/sitemap.xml`.
+
+---
+
+## Ongoing maintenance
+
+**After schema changes:**
 ```bash
-# In Vercel terminal/logs, check for successful Prisma client generation
-vercel logs <your-project-url>
+# Apply migration to Supabase via MCP or CLI
+npx supabase db push   # or use Supabase MCP apply_migration
+```
+Vercel re-runs `prisma generate` on every deploy so the client stays in sync.
+
+**Dependency updates:**
+```bash
+npm outdated
+npm update
+npm run type-check && npm run build   # verify before push
 ```
 
-### 5. SEO Verification
-- Check `robots.txt`: https://zaidknights.com/robots.txt
-- Check `sitemap.xml`: https://zaidknights.com/sitemap.xml
-- Submit to Google Search Console: https://search.google.com/search-console
-
-### 6. Performance Testing
-- Run Lighthouse: https://pagespeed.web.dev/
-- Target: >90 for Performance, SEO, Accessibility
+**Monitor:**
+- Vercel dashboard → Functions tab for API errors and durations
+- Supabase dashboard → Logs for slow queries
+- Resend dashboard for email delivery status
 
 ---
 
-## Production Security Checklist
+## Security headers (already configured)
 
-- [ ] Change `JWT_SECRET` to strong random value
-- [ ] Set `DATABASE_URL` with production credentials
-- [ ] Enable HTTPS (automatic with Vercel)
-- [ ] Configure CORS headers if needed
-- [ ] Implement rate limiting on API routes
-- [ ] Add admin auth middleware to protected routes
-- [ ] Hash all user passwords (bcryptjs configured)
-- [ ] Enable Cloudflare DDoS protection
-- [ ] Set up uptime monitoring (UptimeRobot, Pingdom)
-- [ ] Enable database backups (Supabase/Neon auto-backup)
-- [ ] Restrict API routes to authenticated users
-- [ ] Use secure cookies (HttpOnly, Secure, SameSite)
-- [ ] Monitor error logs and set up alerts
-- [ ] Implement contact form spam protection
+`vercel.json` sets these on all routes:
 
----
-
-## Ongoing Maintenance
-
-### Weekly
-- Monitor error logs
-- Check uptime status
-- Review member registrations
-
-### Monthly
-- Update dependencies: `npm outdated`
-- Backup database
-- Review analytics (add Google Analytics)
-
-### Quarterly
-- Security audit
-- Performance optimization
-- User feedback review
-
----
-
-## Support & Resources
-
-- **Vercel Docs**: https://vercel.com/docs
-- **Supabase Docs**: https://supabase.com/docs
-- **Prisma Docs**: https://www.prisma.io/docs
-- **Next.js Docs**: https://nextjs.org/docs
-- **Cloudflare Docs**: https://developers.cloudflare.com/
-- **Namecheap Help**: https://www.namecheap.com/support
-
----
-
-## Quick Deploy Checklist
-
-1. ✅ Database created and connected
-2. ✅ Environment variables set
-3. ✅ GitHub repository created
-4. ✅ Vercel project linked
-5. ✅ Domain purchased and nameservers updated
-6. ✅ DNS records configured
-7. ✅ SSL certificate installed
-8. ✅ Email newsletter setup (future)
-9. ✅ Analytics installed (future)
-10. ✅ Admin user created in database
+| Header | Value |
+|--------|-------|
+| X-Content-Type-Options | nosniff |
+| X-Frame-Options | DENY |
+| X-XSS-Protection | 1; mode=block |
+| Referrer-Policy | strict-origin-when-cross-origin |
+| Permissions-Policy | camera=(), microphone=(), geolocation=() |
+| Strict-Transport-Security | max-age=63072000; includeSubDomains; preload |

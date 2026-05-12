@@ -1,42 +1,43 @@
-# ZaidKnights Chess Club - System Architecture
+# Zaid Knights Chess Club — System Architecture
 
 ## Overview
 
-ZaidKnights Chess Club is a full-stack web platform built with modern, scalable technologies designed for production deployment.
+Zaid Knights Chess Club is a full-stack web platform built with modern, production-grade technologies.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        Client Browser                        │
-│                  (Chrome, Firefox, Safari, Edge)            │
-└────────────────────────┬──────────────────────────────────┘
-                         │
-                   HTTPS / TLS 1.3
-                         │
+┌──────────────────────────────────────────────────────────┐
+│                      Client Browser                       │
+└────────────────────────┬─────────────────────────────────┘
+                         │ HTTPS / TLS 1.3
          ┌───────────────┴───────────────┐
          │                               │
     ┌────▼─────┐              ┌──────────▼──────┐
     │  Vercel  │              │   Cloudflare    │
-    │ (CDN)    │              │   (DNS/WAF)     │
+    │  CDN     │              │   DNS / WAF     │
     └────┬─────┘              └──────────┬──────┘
-         │                               │
          └───────────────┬───────────────┘
                          │
          ┌───────────────▼──────────────┐
-         │   Next.js Application       │
+         │   Next.js 14 Application     │
          │   (Vercel Serverless)        │
-         │   ├─ API Routes              │
-         │   ├─ Server Components       │
-         │   └─ Static Generation       │
+         │   ├─ Pages (SSR/Static)      │
+         │   └─ API Routes              │
          └───────────┬──────────────────┘
-                     │
+                     │  Prisma 5 ORM (pgbouncer)
          ┌───────────▼──────────────────┐
-         │   PostgreSQL Database         │
-         │   (Supabase / Neon)          │
+         │   Supabase PostgreSQL        │
          │   ├─ Users & Auth            │
          │   ├─ Members & Rankings      │
-         │   ├─ Events & Tournaments    │
+         │   ├─ Events & Registrations  │
          │   ├─ Posts & Gallery         │
-         │   └─ Contact Submissions     │
+         │   ├─ Donations & Payments    │
+         │   └─ Organizations & Orgs    │
+         └──────────────────────────────┘
+                     │
+         ┌───────────▼──────────────────┐
+         │   External Services          │
+         │   ├─ Safaricom Daraja (M-Pesa)│
+         │   └─ Resend (Email)          │
          └──────────────────────────────┘
 ```
 
@@ -47,39 +48,35 @@ ZaidKnights Chess Club is a full-stack web platform built with modern, scalable 
 ### Frontend
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| **Framework** | Next.js 14 | React meta-framework with SSR/SSG |
-| **UI Library** | React 18 | Component library and state management |
-| **Styling** | Tailwind CSS 3 | Utility-first CSS framework |
-| **Animations** | Framer Motion 11 | Smooth animations (hero, transitions) |
-| **Language** | TypeScript | Type-safe JavaScript |
-| **Form Handling** | Built-in | Native HTML + React hooks |
-| **SEO** | Next.js Head | Meta tags, Open Graph, sitemap |
+| Framework | Next.js 14 (Pages Router) | SSR, static generation, API routes |
+| UI | React 18 | Component model, state management |
+| Styling | Tailwind CSS 3 | Utility-first CSS, glassmorphism theme |
+| Language | TypeScript (strict) | Type safety across frontend and backend |
+| Auth state | React Context (`AuthContext`) | Global user session |
 
 ### Backend
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| **Runtime** | Node.js | JavaScript execution environment |
-| **Framework** | Next.js API Routes | Serverless function API |
-| **ORM** | Prisma 5 | Type-safe database client |
-| **Authentication** | JWT + bcryptjs | Token-based auth + password hashing |
-| **Validation** | Custom validators | Input sanitization and validation |
-| **HTTP** | REST | RESTful API design |
+| Runtime | Node.js ≥ 20 | JavaScript execution |
+| API | Next.js API Routes | Serverless REST endpoints |
+| ORM | Prisma 5 | Type-safe database client |
+| Auth | JWT + bcryptjs | Token auth, password hashing |
+| Payments | Safaricom Daraja | M-Pesa STK Push |
+| Email | Resend | Transactional emails |
 
 ### Database
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| **Type** | PostgreSQL | Relational database |
-| **Provider** | Supabase or Neon | Managed PostgreSQL hosting |
-| **Backup** | Provider-managed | Automatic daily backups |
-| **Monitoring** | Provider dashboard | Real-time metrics and alerts |
+| Engine | PostgreSQL | Relational database |
+| Provider | Supabase | Managed PostgreSQL + connection pooling |
+| Client | Prisma 5 | Migrations, type-safe queries |
 
 ### Deployment
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| **Hosting** | Vercel | Serverless deployment + CDN |
-| **DNS** | Cloudflare | Domain management + security |
-| **SSL** | Let's Encrypt | HTTPS encryption |
-| **Monitoring** | Vercel + Provider | Error tracking and uptime |
+| Hosting | Vercel | Serverless deployment, edge CDN |
+| DNS | Cloudflare | Domain management, DDoS protection |
+| SSL | Let's Encrypt (auto) | HTTPS |
 
 ---
 
@@ -87,388 +84,234 @@ ZaidKnights Chess Club is a full-stack web platform built with modern, scalable 
 
 ```
 zaidknights_website/
-├── pages/                          # Next.js page routes
-│   ├── _app.tsx                    # App wrapper
-│   ├── _document.tsx              # HTML document wrapper
-│   ├── index.tsx                  # Home page
-│   ├── about.tsx                  # About page
-│   ├── membership.tsx             # Membership tier page
-│   ├── events.tsx                 # Events listing
-│   ├── rankings.tsx               # Rankings leaderboard
-│   ├── gallery.tsx                # Photo gallery
-│   ├── blog.tsx                   # Blog posts
-│   ├── contact.tsx                # Contact form
-│   ├── login.tsx                  # Member login
-│   ├── register.tsx               # Registration
-│   ├── dashboard.tsx              # Member dashboard
-│   ├── admin.tsx                  # Admin dashboard
-│   └── api/                        # API routes
+├── pages/
+│   ├── _app.tsx                     # App wrapper — AuthContext, global layout
+│   ├── _document.tsx                # HTML document shell
+│   ├── [slug].tsx                   # Redirect /[slug] → /blog/[slug]
+│   ├── index.tsx                    # Home — hero, stats, events, tiers
+│   ├── about.tsx                    # About — history, leadership, timeline
+│   ├── blog.tsx                     # Blog list — pagination, category filter
+│   ├── blog/[slug].tsx              # Single post + related articles
+│   ├── contact.tsx                  # Contact form, FAQ accordion
+│   ├── dashboard.tsx                # Member dashboard (5 states)
+│   ├── donate.tsx                   # Donation form, M-Pesa, leaderboard
+│   ├── events.tsx                   # Events listing + registration
+│   ├── gallery.tsx                  # Masonry gallery + lightbox + upload
+│   ├── login.tsx                    # Member login
+│   ├── membership.tsx               # Tier comparison, FAQ, pricing
+│   ├── organizations/
+│   │   ├── index.tsx                # Multi-step org registration
+│   │   └── register.tsx             # Simplified org registration
+│   ├── rankings.tsx                 # ELO leaderboard
+│   ├── register.tsx                 # Member sign-up + onboarding flow
+│   ├── renew.tsx                    # Membership renewal (protected)
+│   ├── admin/
+│   │   ├── index.tsx                # Admin dashboard
+│   │   ├── login.tsx                # Admin login
+│   │   └── setup.tsx                # Initial admin setup
+│   └── api/
 │       ├── auth/
-│       │   ├── register.ts        # User registration
-│       │   ├── login.ts           # User login
-│       │   └── logout.ts          # User logout
-│       ├── events.ts              # GET/POST events
-│       ├── members.ts             # GET members
-│       ├── posts.ts               # GET blog posts
-│       ├── gallery.ts             # GET gallery items
-│       ├── contact.ts             # POST contact form
-│       └── dashboard/
-│           └── stats.ts           # Dashboard statistics
+│       │   ├── register.ts          # POST — create user + member
+│       │   ├── login.ts             # POST — JWT cookie
+│       │   ├── logout.ts            # GET — clear cookie
+│       │   └── me.ts                # GET — current user
+│       ├── admin/
+│       │   ├── messages.ts          # GET/PATCH/DELETE contact messages
+│       │   ├── settings.ts          # GET/PATCH site settings
+│       │   ├── setup.ts             # POST — seed admin user
+│       │   └── stats.ts             # GET — admin overview stats
+│       ├── dashboard/
+│       │   └── stats.ts             # GET — member dashboard data
+│       ├── donations/
+│       │   ├── index.ts             # GET/POST donations
+│       │   └── leaderboard.ts       # GET — top donors
+│       ├── member/
+│       │   ├── onboarding.ts        # POST — save onboarding steps
+│       │   └── profile.ts           # GET/PATCH extended profile
+│       ├── organizations/
+│       │   ├── index.ts             # GET/POST organizations
+│       │   └── [id].ts              # GET/PATCH single org
+│       ├── payments/mpesa/
+│       │   ├── initiate.ts          # POST — STK push
+│       │   └── callback.ts          # POST — Safaricom webhook
+│       ├── announcements.ts         # GET/POST/DELETE announcements
+│       ├── contact.ts               # POST — contact form
+│       ├── events.ts                # GET/POST/DELETE events
+│       ├── gallery.ts               # GET/POST/DELETE gallery
+│       ├── members.ts               # GET/PATCH members
+│       ├── memberships.ts           # GET/POST memberships
+│       ├── newsletter.ts            # POST — subscribe
+│       ├── posts.ts                 # GET/POST/PATCH/DELETE posts
+│       ├── profile.ts               # GET/PATCH member profile
+│       └── site-settings.ts         # GET — public settings
 │
-├── components/                     # React components
+├── components/
 │   ├── common/
-│   │   ├── Layout.tsx             # Main layout wrapper
-│   │   ├── Navbar.tsx             # Top navigation
-│   │   └── Footer.tsx             # Footer
-│   ├── ui/
-│   │   ├── Button.tsx             # Button component
-│   │   └── Card.tsx               # Glass card component
-│   └── sections/
-│       ├── Hero.tsx               # Hero section
-│       ├── MembershipTiers.tsx    # Membership options
-│       ├── EventHighlights.tsx    # Featured events
-│       └── StatsSection.tsx       # Statistics display
+│   │   ├── Layout.tsx               # Page wrapper with SEO head
+│   │   ├── Navbar.tsx               # Responsive navigation
+│   │   ├── Footer.tsx               # Contact info, social links
+│   │   └── ProtectedRoute.tsx       # Auth guard component
+│   ├── dashboard/
+│   │   ├── EventCountdown.tsx       # Countdown to next event
+│   │   ├── MemberStats.tsx          # Rating, wins/losses display
+│   │   ├── RenewalBanner.tsx        # Membership expiry alert
+│   │   └── StatusBanner.tsx         # Membership status indicator
+│   ├── onboarding/
+│   │   ├── OnboardingFlow.tsx       # Multi-step onboarding container
+│   │   └── OnboardingStep.tsx       # Individual step component
+│   ├── sections/
+│   │   ├── Hero.tsx                 # Home hero with countdown card
+│   │   ├── MembershipTiers.tsx      # Tier pricing cards
+│   │   ├── EventHighlights.tsx      # Featured events grid
+│   │   └── StatsSection.tsx         # Club stats counters
+│   └── ui/
+│       ├── Accordion.tsx            # FAQ accordion
+│       ├── Badge.tsx                # Status/level badge
+│       ├── Button.tsx               # Primary/secondary buttons
+│       ├── Card.tsx                 # Glass card container
+│       ├── Countdown.tsx            # Timer component
+│       ├── EmptyState.tsx           # Empty list placeholder
+│       ├── Modal.tsx                # Dialog overlay
+│       ├── ProgressBar.tsx          # Progress indicator
+│       ├── SkeletonCard.tsx         # Loading skeleton
+│       └── Toast.tsx                # Notification toast
 │
-├── lib/                            # Backend utilities
-│   ├── prisma.ts                  # Prisma client singleton
-│   ├── auth.ts                    # JWT and password utilities
-│   └── validators.ts              # Input validation helpers
+├── lib/
+│   ├── audit.ts                     # AuditLog helper
+│   ├── auth.ts                      # JWT sign/verify, getUserFromRequest
+│   ├── email.ts                     # Resend email helpers
+│   ├── mpesa.ts                     # Daraja API client
+│   ├── prisma.ts                    # Prisma client singleton
+│   └── validators.ts                # Input sanitization/validation
 │
-├── prisma/                         # Database schema
-│   └── schema.prisma              # All data models
+├── prisma/
+│   ├── schema.prisma                # All models, enums, indexes
+│   └── migrations/                  # Migration history
 │
-├── styles/                         # Global styles
-│   └── globals.css                # Tailwind + custom styles
+├── styles/
+│   └── globals.css                  # Tailwind base + glassmorphism tokens
 │
-├── public/                         # Static assets
-│   ├── robots.txt                 # SEO robots file
-│   └── sitemap.xml                # XML sitemap
+├── public/
+│   ├── robots.txt
+│   └── sitemap.xml
 │
-├── package.json                    # Dependencies
-├── tsconfig.json                  # TypeScript config
-├── next.config.mjs                # Next.js config
-├── tailwind.config.js             # Tailwind config
-├── postcss.config.js              # PostCSS config
-├── .env.example                   # Environment template
-├── README.md                       # Project overview
-├── API_REFERENCE.md               # API documentation
-├── DEPLOYMENT_GUIDE.md            # Deployment steps
-└── PRODUCTION_CHECKLIST.md        # Pre-launch checklist
+├── next.config.mjs
+├── tailwind.config.js
+├── postcss.config.js
+├── tsconfig.json
+├── package.json
+├── vercel.json
+└── .env.example
 ```
 
 ---
 
 ## Data Flow
 
-### User Registration Flow
-```
-1. User fills registration form (/register)
-2. Frontend sends POST to /api/auth/register
-3. Backend validates input (email, password)
-4. Backend hashes password with bcryptjs
-5. Backend creates User in PostgreSQL
-6. Backend creates Member record (PENDING status)
-7. Response sent to frontend
-8. User redirected to login
-```
-
-### User Login Flow
-```
-1. User enters email/password (/login)
-2. Frontend sends POST to /api/auth/login
-3. Backend retrieves user from database
-4. Backend verifies password with bcryptjs
-5. Backend generates JWT token (expires 7 days)
-6. Backend sets secure HTTP-only cookie
-7. Frontend redirected to member dashboard
-8. Subsequent requests include JWT token
-```
-
-### Event Registration Flow
-```
-1. User browses events (/events)
-2. User clicks "Register" button
-3. Frontend sends POST to /api/events/[id]/register
-4. Backend verifies user authentication
-5. Backend creates Registration record (PENDING)
-6. Admin approves registration in /admin
-7. Registration status changes to CONFIRMED
-8. User sees confirmed status in /dashboard
-```
-
-### Admin Content Publishing
-```
-1. Admin logs in with ADMIN role
-2. Admin creates post/event in admin dashboard
-3. Frontend sends POST to /api/posts or /api/events
-4. Backend stores in PostgreSQL
-5. Content appears on public pages
-6. Posts marked as published show on /blog
-```
-
----
-
-## Database Schema
-
-### Core Tables
-
-**Users**
-```sql
-- id (Primary Key)
-- name (String)
-- email (Unique, String)
-- password (Hashed, String)
-- role (ADMIN | COACH | MEMBER | GUEST)
-- createdAt, updatedAt (DateTime)
-```
-
-**Members**
-```sql
-- id (Primary Key)
-- userId (Foreign Key → Users)
-- level (BEGINNER | ADVANCED | MASTER)
-- rating (Integer, default 1200)
-- status (PENDING | ACTIVE | SUSPENDED)
-- joinedAt (DateTime)
-```
-
-**Events**
-```sql
-- id (Primary Key)
-- title, slug, description, location (String)
-- startDate, endDate (DateTime)
-- capacity (Integer)
-- createdAt, updatedAt (DateTime)
-```
-
-**Registrations**
-```sql
-- id (Primary Key)
-- userId (Foreign Key → Users)
-- eventId (Foreign Key → Events)
-- status (PENDING | CONFIRMED | CANCELLED)
-- createdAt (DateTime)
-- Unique constraint: [userId, eventId]
-```
-
-**Results**
-```sql
-- id (Primary Key)
-- eventId (Foreign Key → Events)
-- userId (Foreign Key → Users)
-- score, wins, losses, draws (Numeric)
-- createdAt (DateTime)
-```
-
-**Posts**
-```sql
-- id (Primary Key)
-- title, slug, excerpt, content (String)
-- authorId (Foreign Key → Users)
-- published (Boolean)
-- createdAt, updatedAt (DateTime)
-```
-
-**GalleryItems**
-```sql
-- id (Primary Key)
-- title, imageUrl, caption (String)
-- createdAt (DateTime)
-```
-
----
-
-## API Architecture
-
-### Request/Response Pattern
-
-**Request:**
-```http
-POST /api/auth/register HTTP/1.1
-Host: zaidknights.com
-Content-Type: application/json
-
-{
-  "name": "Amina Mwangi",
-  "email": "amina@example.com",
-  "password": "secure123"
-}
-```
-
-**Response:**
-```http
-HTTP/1.1 201 Created
-Content-Type: application/json
-
-{
-  "message": "Registration complete.",
-  "user": {
-    "id": "clxyz123",
-    "name": "Amina Mwangi",
-    "email": "amina@example.com"
-  }
-}
-```
-
 ### Authentication
+```
+1. POST /api/auth/login → bcrypt.compare password
+2. Sign JWT (7-day expiry) with JWT_SECRET
+3. Set httpOnly cookie named `token`
+4. Every protected API call: getUserFromRequest() decodes cookie
+5. Role check: ADMIN / COACH / MEMBER / GUEST / ORG_ADMIN
+```
 
-**Flow:**
-1. User logs in → receives JWT token
-2. Token stored in HTTP-only cookie
-3. Cookie automatically sent with requests
-4. Backend verifies token on protected routes
-5. Token expires after 7 days
+### M-Pesa Payment
+```
+1. POST /api/payments/mpesa/initiate
+   → Daraja OAuth → STK push to user's phone
+2. User enters PIN on phone
+3. Safaricom calls POST /api/payments/mpesa/callback
+4. Callback updates Donation/Membership status → COMPLETED
+5. Resend email sends receipt
+```
 
-**Security:**
-- Passwords never stored in plain text
-- Tokens signed with `JWT_SECRET`
-- Cookies set to HttpOnly, Secure, SameSite=Lax
+### Content Publishing
+```
+Admin creates post/event via /admin → POST /api/posts or /api/events
+→ stored in PostgreSQL with published=true
+→ appears on public /blog or /events pages
+```
 
 ---
 
-## Performance Optimization
+## Database Schema (summary)
 
-### Frontend
-- **Code Splitting:** Next.js automatic per-page bundles
-- **Image Optimization:** Next.js Image component ready
-- **CSS Purging:** Tailwind removes unused styles
-- **Lazy Loading:** Components load on demand
-- **Caching:** Vercel edge cache headers
+### Models (19 total)
+`User` · `Member` · `Membership` · `Event` · `Registration` · `Result` · `Attendance` · `ChessRatingHistory` · `Donation` · `PaymentTransaction` · `Organization` · `OrganizationMember` · `GalleryItem` · `Post` · `Announcement` · `ContactMessage` · `NewsletterSubscription` · `SiteSettings` · `AuditLog`
 
-### Backend
-- **Database Indexing:** Prisma optimized queries
-- **Connection Pooling:** Supabase/Neon manages
-- **Response Compression:** Gzip via Vercel
-- **API Caching:** HTTP cache headers set
+### Key Enums
+| Enum | Values |
+|------|--------|
+| `Role` | ADMIN · COACH · MEMBER · GUEST · ORG_ADMIN |
+| `MemberLevel` | BEGINNER · INTERMEDIATE · ADVANCED · COMPETITIVE_SQUAD |
+| `MemberStatus` | PENDING · ACTIVE · EXPIRED · SUSPENDED · PENDING_PAYMENT |
+| `MembershipPlan` | MONTHLY · TERM · ANNUAL |
+| `MembershipTier` | BEGINNER · INTERMEDIATE · ADVANCED · COMPETITIVE_SQUAD |
+| `DonationCategory` | GENERAL_FUND · TRAINING_EQUIPMENT · TOURNAMENTS · TRAVEL_SUPPORT |
+| `PaymentStatus` | PENDING · COMPLETED · FAILED · REFUNDED |
+| `OrganizationType` | SCHOOL · COMPANY · ACADEMY · CLUB |
+| `ContactMessageStatus` | NEW · READ · REPLIED · ARCHIVED |
 
-### Network
-- **CDN:** Vercel global edge network
-- **DNS:** Cloudflare DNS optimization
-- **SSL:** TLS 1.3 encryption
+### Indexes
+All hot query paths are indexed: member status+rating, post published+date, event startDate, donation status+createdAt, etc. See `prisma/schema.prisma` for the full `@@index` list.
 
 ---
 
 ## Security Architecture
 
-### Layers
-
-**1. Network Level**
-- HTTPS enforced (TLS 1.3)
-- Cloudflare DDoS protection
-- WAF rules enabled
-
-**2. Application Level**
-- Input validation on all routes
-- SQL injection prevention (Prisma ORM)
-- XSS prevention (React escaping)
-- CORS headers configured
-- Rate limiting (recommended)
-
-**3. Authentication Level**
-- Password hashing with bcryptjs (10 salt rounds)
-- JWT tokens with expiration
-- Secure cookies (HttpOnly, Secure, SameSite)
-- Role-based access control (ADMIN/COACH/MEMBER/GUEST)
-
-**4. Database Level**
-- Encrypted connections (SSL)
-- Automatic backups
-- Access control via provider
-- No credentials in code
+| Layer | Controls |
+|-------|---------|
+| Network | HTTPS enforced, Cloudflare DDoS, HSTS (63072000s) |
+| HTTP Headers | X-Frame-Options: DENY, X-Content-Type-Options: nosniff, X-XSS-Protection, Referrer-Policy, Permissions-Policy |
+| Auth | bcryptjs (10 rounds), JWT + httpOnly cookie, SameSite=Lax |
+| RBAC | Role checked on every admin/coach route |
+| Input | sanitizeString() + validateEmail() on all API bodies |
+| ORM | Prisma parameterized queries — no raw SQL in user paths |
 
 ---
 
-## Scaling Strategy
+## Performance
 
-### Current State (1000-10,000 users)
-- Vercel serverless handles traffic
-- Supabase/Neon with auto-scaling
-- No special configuration needed
-
-### Future State (10,000+ users)
-- **Caching:** Add Redis for sessions
-- **Database:** Upgrade PostgreSQL tier
-- **API:** Consider separate Node.js backend
-- **Storage:** Add S3/CDN for image uploads
-- **Queue:** Add Bull/RabbitMQ for email tasks
-- **Analytics:** Implement real-time analytics
-
----
-
-## Monitoring & Logging
-
-### Vercel Analytics
-- Page load performance
-- Core Web Vitals
-- Error rate monitoring
-- Deployment history
-
-### Database Monitoring (Supabase/Neon)
-- Query performance
-- Connection pool status
-- Storage usage
-- Backup status
-
-### Recommended Additions
-- Error tracking: Sentry or Bugsnag
-- Uptime monitoring: UptimeRobot
-- Security scanning: OWASP ZAP
-- Performance testing: k6 or LoadImpact
+- **Connection pooling**: Supabase pgbouncer via `?pgbouncer=true` in DATABASE_URL
+- **Code splitting**: Next.js automatic per-page bundles
+- **CSS**: Tailwind purges unused styles at build time
+- **API timeout**: All serverless functions capped at 30s (vercel.json)
 
 ---
 
 ## Development Workflow
 
-1. **Local Development**
-   ```bash
-   npm install
-   npm run dev
-   # Test at http://localhost:3000
-   ```
+```bash
+# 1. Install
+npm install
 
-2. **Database Changes**
-   ```bash
-   # Modify prisma/schema.prisma
-   npx prisma generate
-   npx prisma db push
-   ```
+# 2. Configure
+cp .env.example .env
+# fill DATABASE_URL, DIRECT_URL, JWT_SECRET …
 
-3. **API Testing**
-   ```bash
-   curl -X GET http://localhost:3000/api/events
-   ```
+# 3. Generate Prisma client
+npx prisma generate
 
-4. **Build & Deploy**
-   ```bash
-   npm run build
-   git push origin main
-   # Vercel auto-deploys
-   ```
+# 4. Start dev server
+npm run dev
+
+# 5. Type check
+npm run type-check
+```
+
+Schema changes go through Supabase MCP `apply_migration` for remote DB, or `npx prisma db push` for local.
 
 ---
 
-## Cost Estimation
+## Cost (estimated monthly)
 
-| Service | Tier | Cost/Month |
-|---------|------|-----------|
-| **Vercel** | Pro (recommended) | $20 |
-| **Supabase** | Free/Pro | $0-25 |
-| **Cloudflare** | Pro | $20 |
-| **Domain** | .com (annual) | ~$1-2/month |
-| **Total** | Production Ready | $41-47/month |
-
----
-
-## Conclusion
-
-This architecture provides:
-- ✅ Scalable infrastructure
-- ✅ Type-safe full-stack TypeScript
-- ✅ Modern UI with animations
-- ✅ Secure authentication
-- ✅ RESTful API design
-- ✅ Production-ready deployment
-- ✅ SEO optimized
-- ✅ Responsive mobile-first design
-
-The system is ready for launch and can scale to serve thousands of members.
+| Service | Tier | Cost |
+|---------|------|------|
+| Vercel | Pro | $20 |
+| Supabase | Free / Pro | $0–25 |
+| Cloudflare | Free / Pro | $0–20 |
+| Resend | Free / Pro | $0–20 |
+| Domain (.org) | Annual | ~$1–2 |
+| **Total** | | **$21–67** |

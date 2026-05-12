@@ -1,111 +1,174 @@
-# ZaidKnights Chess Club
+# Zaid Knights Chess Club
 
-A production-ready web platform for ZaidKnights Chess Club built with Next.js, Tailwind CSS, Prisma, and PostgreSQL.
+Production-ready web platform for Zaid Knights Chess Club — Nairobi's premier chess club.
+Built with Next.js 14 (Pages Router), Tailwind CSS, Prisma 5, and Supabase PostgreSQL.
 
-## Project Structure
+**Contact:** +254 726 027 960 · info@zaidknights.org
 
-- `pages/` - Next.js page routes for public site, auth, member dashboard, and admin dashboard.
-- `pages/api/` - REST API endpoints for authentication, events, posts, gallery, members, contact, and dashboard stats.
-- `components/` - Reusable UI components, layouts, and homepage sections.
-- `lib/` - Backend utilities for Prisma, JWT auth, and input validation.
-- `prisma/schema.prisma` - PostgreSQL schema for users, members, events, registrations, results, posts, and gallery.
-- `styles/globals.css` - Tailwind global styling and glassmorphism theme.
+---
+
+## Pages
+
+| Route | Description |
+|-------|-------------|
+| `/` | Home — hero, stats, events, membership tiers |
+| `/about` | About us, timeline, leadership, achievements |
+| `/events` | Tournament & training listings, event registration |
+| `/blog` | Blog with category filter, pagination, newsletter |
+| `/blog/[slug]` | Full post with share buttons and related articles |
+| `/gallery` | Masonry photo gallery with lightbox and upload |
+| `/rankings` | ELO leaderboard with sortable table and player profiles |
+| `/membership` | Tier comparison, plan pricing, FAQ |
+| `/donate` | Donation form with M-Pesa, leaderboard, impact stats |
+| `/contact` | Contact form, FAQ accordion |
+| `/organizations` | Multi-step org registration form |
+| `/organizations/register` | Simplified single-page org form |
+| `/renew` | Membership renewal (protected) |
+| `/register` | Member sign-up with onboarding flow |
+| `/login` | Member login |
+| `/dashboard` | 5-state member dashboard |
+| `/admin` | Admin dashboard (members, events, posts, gallery, messages, settings) |
+
+---
+
+## API Routes
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| POST | `/api/auth/register` | Create user + member profile |
+| POST | `/api/auth/login` | Login, sets `token` cookie |
+| GET | `/api/auth/logout` | Clears cookie |
+| GET | `/api/auth/me` | Current user from cookie |
+| GET | `/api/events` | Upcoming events (`?type=`, `?past=true`, `?limit=`) |
+| POST | `/api/events` | Register for event (`action: "register"`) or create (admin) |
+| DELETE | `/api/events` | Delete event (admin) |
+| GET | `/api/members` | Active members with ELO ranking and stats |
+| PATCH | `/api/members` | Update member (admin) |
+| GET | `/api/posts` | Published posts (`?page=`, `?limit=`, `?category=`, `?slug=`) |
+| POST | `/api/posts` | Create post (admin/coach) |
+| PATCH | `/api/posts` | Update post (admin/coach) |
+| DELETE | `/api/posts` | Delete post (admin/coach) |
+| GET | `/api/gallery` | Gallery items (`?category=`) |
+| POST | `/api/gallery` | Upload photo (any authenticated user) |
+| DELETE | `/api/gallery` | Delete photo (admin) |
+| POST | `/api/contact` | Submit contact form |
+| POST | `/api/newsletter` | Subscribe to newsletter |
+| GET | `/api/memberships` | Current user's membership + history |
+| POST | `/api/memberships` | Create/renew membership |
+| GET | `/api/donations` | Donations list (admin: all, user: own) |
+| POST | `/api/donations` | Submit donation |
+| GET | `/api/donations/leaderboard` | Top donors + monthly total |
+| GET | `/api/organizations` | Approved orgs (public) or all (admin) |
+| POST | `/api/organizations` | Register organization |
+| GET | `/api/announcements` | Active announcements |
+| POST | `/api/announcements` | Create announcement (admin/coach) |
+| DELETE | `/api/announcements` | Delete announcement (admin) |
+| GET | `/api/dashboard/stats` | Current user's full dashboard data |
+| GET | `/api/admin/stats` | Admin overview stats |
+| GET/PATCH | `/api/admin/settings` | Site settings (hero text, contact info) |
+| GET/PATCH/DELETE | `/api/admin/messages` | Contact message management |
+| GET | `/api/site-settings` | Public site settings (hero title, subtitle) |
+| GET/PATCH | `/api/profile` | Member profile read/update |
+| GET/PATCH | `/api/member/profile` | Extended member profile |
+| POST | `/api/member/onboarding` | Save onboarding step progress |
+| POST | `/api/payments/mpesa/initiate` | Start M-Pesa STK push |
+| POST | `/api/payments/mpesa/callback` | Receive M-Pesa payment result |
+
+---
+
+## Components
+
+### UI
+`Badge` · `Countdown` · `EmptyState` · `Modal` · `ProgressBar` · `SkeletonCard` · `Toast` · `Accordion` · `Button` · `Card`
+
+### Common
+`Layout` · `Navbar` · `Footer` · `ProtectedRoute`
+
+### Sections (Home)
+`Hero` · `StatsSection` · `EventHighlights` · `MembershipTiers`
+
+### Dashboard
+`StatusBanner` · `RenewalBanner` · `EventCountdown` · `MemberStats`
+
+### Onboarding
+`OnboardingFlow` · `OnboardingStep`
+
+---
 
 ## Database Schema
 
-Core tables in `prisma/schema.prisma`:
-- `User` (id, name, email, password, role, timestamps)
-- `Member` (userId, level, rating, status, joinedAt)
-- `Event` (title, slug, description, location, startDate, endDate, capacity)
-- `Registration` (userId, eventId, status)
-- `Result` (eventId, userId, score, wins, losses, draws)
-- `Post` (blog/news articles)
-- `GalleryItem` (images and captions)
+Managed with Prisma 5 + Supabase PostgreSQL.
 
-Enums:
-- `Role` - ADMIN, COACH, MEMBER, GUEST
-- `MembershipLevel` - BEGINNER, ADVANCED, MASTER
-- `MemberStatus` - PENDING, ACTIVE, SUSPENDED
-- `RegistrationStatus` - PENDING, CONFIRMED, CANCELLED
+### Models
+`User` · `Member` · `Membership` · `Event` · `Registration` · `Result` · `Attendance` · `ChessRatingHistory` · `Donation` · `PaymentTransaction` · `Organization` · `OrganizationMember` · `GalleryItem` · `Post` · `Announcement` · `ContactMessage` · `NewsletterSubscription` · `SiteSettings` · `AuditLog`
+
+### Key Enums
+- `Role` — ADMIN · COACH · MEMBER · GUEST · ORG_ADMIN
+- `MemberLevel` — BEGINNER · INTERMEDIATE · ADVANCED · COMPETITIVE_SQUAD
+- `MemberStatus` — PENDING · ACTIVE · EXPIRED · SUSPENDED · PENDING_PAYMENT
+- `MembershipPlan` — MONTHLY · TERM · ANNUAL
+- `MembershipTier` — BEGINNER · INTERMEDIATE · ADVANCED · COMPETITIVE_SQUAD
+- `DonationCategory` — GENERAL_FUND · TRAINING_EQUIPMENT · TOURNAMENTS · TRAVEL_SUPPORT
+- `PaymentStatus` — PENDING · COMPLETED · FAILED · REFUNDED
+- `OrganizationType` — SCHOOL · COMPANY · ACADEMY · CLUB
+- `ContactMessageStatus` — NEW · READ · REPLIED · ARCHIVED
+
+---
 
 ## Install & Run
 
-1. Copy `.env.example` to `.env` and configure values.
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Generate Prisma client:
-   ```bash
-   npx prisma generate
-   ```
-4. Run database migrations after configuring `DATABASE_URL`:
-   ```bash
-   npx prisma db push
-   ```
-5. Start development server:
-   ```bash
-   npm run dev
-   ```
+```bash
+# 1. Install dependencies
+npm install
 
-## Deployment Guide
+# 2. Copy environment template
+cp .env.example .env
 
-### 1. GitHub Push
-- Initialize Git and push repository to GitHub.
+# 3. Fill in DATABASE_URL, DIRECT_URL, JWT_SECRET, etc.
 
-### 2. Frontend Deployment
-- Deploy to Vercel.
-- Set environment variables in Vercel: `DATABASE_URL`, `JWT_SECRET`, `NEXT_PUBLIC_SITE_URL`, `ADMIN_EMAIL`.
-- Build command: `npm run build`
-- Output directory: `.next`
+# 4. Generate Prisma client
+npx prisma generate
 
-### 3. Backend / Database
-- Host PostgreSQL on Supabase or Neon.
-- Connect `DATABASE_URL` from provider.
-- Use Prisma migration/push to initialize schema.
+# 5. Start development server
+npm run dev
+```
 
-### 4. Domain Setup
-- Preferred domains:
-  - `zaidknights.com`
-  - `zaidknightschess.com`
-  - `zaidknightsclub.com`
-  - `zkchess.com`
-  - `zaidknightsacademy.com`
-- Alternative domain options:
-  - `.org` for club identity, e.g. `zaidknights.org`
-  - `.ke` for Kenya focus, e.g. `zaidknights.co.ke`
-  - `.chess` for modern branding, e.g. `zkchess.chess`
+Open [http://localhost:3000](http://localhost:3000).
 
-### 5. DNS & SSL
-- Use Cloudflare or Namecheap DNS.
-- Point A / CNAME records to Vercel.
-- Enable SSL via Vercel automatic HTTPS.
-- For other hosts, use Let's Encrypt or provider-managed certificates.
+---
 
-### 6. Environment Variables
-- `DATABASE_URL`
-- `JWT_SECRET`
-- `NEXT_PUBLIC_SITE_URL`
-- `ADMIN_EMAIL`
+## Deployment
 
-## Production Readiness
+Auto-deploys to Vercel on push to `main`.
 
-### Security
-- Passwords hashed with bcrypt.
-- JWT authentication with secure cookies.
-- Admin and dashboard routes should be protected with auth middleware in production.
-- Input validation for API payloads.
+### Required Environment Variables (Vercel)
+```
+DATABASE_URL
+DIRECT_URL
+JWT_SECRET
+ADMIN_EMAIL
+NEXT_PUBLIC_SITE_URL
+MPESA_ENV / MPESA_CONSUMER_KEY / MPESA_CONSUMER_SECRET / MPESA_PAYBILL / MPESA_PASSKEY / MPESA_CALLBACK_URL
+RESEND_API_KEY / EMAIL_FROM
+```
 
-### SEO & Performance
-- Uses meta tags and Open Graph metadata.
-- `robots.txt` and `sitemap.xml` included.
-- Tailwind-driven responsive design.
-- Framer Motion used for animated hero transitions.
+### Build command
+```bash
+prisma generate && next build
+```
 
-## Next Improvements
+---
 
-- Add real payment integration (Stripe or M-Pesa).
-- Implement live bracket management.
-- Add email newsletter and WhatsApp notification system.
-- Add AI puzzle generator and live chess board integration.
-- Harden server-side route protection and rate limiting.
+## Tech Stack
+
+| | |
+|--|--|
+| Framework | Next.js 14 (Pages Router) |
+| Language | TypeScript (strict) |
+| Styling | Tailwind CSS 3 + glassmorphism design system |
+| ORM | Prisma 5 |
+| Database | Supabase PostgreSQL |
+| Auth | JWT + bcryptjs, httpOnly cookies |
+| Payments | Safaricom Daraja M-Pesa STK Push |
+| Email | Resend |
+| Deployment | Vercel |

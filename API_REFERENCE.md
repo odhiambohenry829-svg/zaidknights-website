@@ -1,387 +1,383 @@
-# ZaidKnights Chess Club - API Reference
+# Zaid Knights Chess Club — API Reference
 
-All endpoints follow REST conventions. Base URL: `https://zaidknights.com/api`
-
----
-
-## Authentication Endpoints
-
-### Register User
-**POST** `/auth/register`
-
-Request body:
-```json
-{
-  "name": "Amina Mwangi",
-  "email": "amina@example.com",
-  "password": "securePassword123"
-}
-```
-
-Response (201 Created):
-```json
-{
-  "message": "Registration complete.",
-  "user": {
-    "id": "clxyz123",
-    "name": "Amina Mwangi",
-    "email": "amina@example.com"
-  }
-}
-```
-
-Errors:
-- `400` - Missing/invalid input
-- `409` - Email already in use
-
----
-
-### Login User
-**POST** `/auth/login`
-
-Request body:
-```json
-{
-  "email": "amina@example.com",
-  "password": "securePassword123"
-}
-```
-
-Response (200 OK):
-```json
-{
-  "message": "Logged in successfully.",
-  "user": {
-    "id": "clxyz123",
-    "name": "Amina Mwangi",
-    "email": "amina@example.com",
-    "role": "MEMBER"
-  }
-}
-```
-
-Sets secure HTTP-only cookie: `zk_token`
-
-Errors:
-- `400` - Invalid input
-- `401` - Invalid credentials
-
----
-
-### Logout
-**GET** `/auth/logout`
-
-Response (200 OK):
-```json
-{
-  "message": "Logged out."
-}
-```
-
-Clears authentication cookie.
-
----
-
-## Events Endpoints
-
-### Get All Events
-**GET** `/events`
-
-Response (200 OK):
-```json
-[
-  {
-    "id": "event_001",
-    "title": "Nairobi Rapid Open",
-    "slug": "nairobi-rapid-open",
-    "description": "A 3-day rapid tournament for all levels.",
-    "location": "Chess Academy Nairobi",
-    "startDate": "2026-05-25T09:00:00Z",
-    "endDate": "2026-05-27T18:00:00Z",
-    "capacity": 64,
-    "createdAt": "2026-04-01T10:00:00Z",
-    "updatedAt": "2026-04-01T10:00:00Z"
-  }
-]
-```
-
----
-
-### Create Event (Admin Only)
-**POST** `/events`
-
-Request body:
-```json
-{
-  "title": "Youth Championship",
-  "slug": "youth-championship",
-  "description": "For players under 18.",
-  "location": "Nairobi Chess Academy",
-  "startDate": "2026-06-15T09:00:00Z",
-  "endDate": "2026-06-17T18:00:00Z",
-  "capacity": 32
-}
-```
-
-Response (201 Created):
-```json
-{
-  "id": "event_002",
-  "title": "Youth Championship",
-  ...
-}
-```
-
-Errors:
-- `400` - Missing required fields
-- `401` - Unauthorized
-
----
-
-## Members Endpoints
-
-### Get All Members
-**GET** `/members`
-
-Response (200 OK):
-```json
-[
-  {
-    "id": "member_001",
-    "user": {
-      "id": "user_001",
-      "name": "Amina Mwangi",
-      "email": "amina@example.com"
-    },
-    "level": "MASTER",
-    "rating": 1920,
-    "status": "ACTIVE",
-    "joinedAt": "2025-01-15T10:00:00Z"
-  }
-]
-```
-
----
-
-## Posts Endpoints
-
-### Get All Published Posts
-**GET** `/posts`
-
-Response (200 OK):
-```json
-[
-  {
-    "id": "post_001",
-    "title": "Mastering the London System",
-    "slug": "london-system",
-    "excerpt": "A step-by-step strategy guide...",
-    "content": "Full article content...",
-    "published": true,
-    "createdAt": "2026-04-01T10:00:00Z"
-  }
-]
-```
-
----
-
-## Gallery Endpoints
-
-### Get Gallery Items
-**GET** `/gallery`
-
-Response (200 OK):
-```json
-[
-  {
-    "id": "gallery_001",
-    "title": "Champions Ceremony",
-    "imageUrl": "https://cdn.example.com/photo1.jpg",
-    "caption": "2025 awards night",
-    "createdAt": "2026-04-01T10:00:00Z"
-  }
-]
-```
-
----
-
-## Contact Endpoints
-
-### Submit Contact Form
-**POST** `/contact`
-
-Request body:
-```json
-{
-  "name": "John Ochieng",
-  "email": "john@example.com",
-  "message": "I'm interested in joining the club!"
-}
-```
-
-Response (201 Created):
-```json
-{
-  "message": "Message sent. We will follow up shortly."
-}
-```
-
-Errors:
-- `400` - Invalid input
-- `500` - Database error
-
----
-
-## Dashboard Endpoints
-
-### Get Dashboard Statistics (Admin/Authenticated)
-**GET** `/dashboard/stats`
-
-Response (200 OK):
-```json
-{
-  "members": 280,
-  "events": 24,
-  "posts": 12
-}
-```
-
----
-
-## Error Responses
-
-### 400 Bad Request
-```json
-{
-  "message": "Invalid form submission."
-}
-```
-
-### 401 Unauthorized
-```json
-{
-  "message": "Invalid credentials."
-}
-```
-
-### 405 Method Not Allowed
-```json
-{
-  "message": "Method not allowed"
-}
-```
-
-### 409 Conflict
-```json
-{
-  "message": "Email already in use."
-}
-```
-
-### 500 Server Error
-```json
-{
-  "message": "Internal server error"
-}
-```
-
----
-
-## Rate Limiting
-
-**Current Status:** Not implemented  
-**Recommended for Production:** 100 requests per minute per IP
+All endpoints are under `/api`. Auth uses an httpOnly cookie named `token` (7-day JWT).
 
 ---
 
 ## Authentication
 
-All protected endpoints require a valid `zk_token` in:
-1. HTTP-only cookie (preferred, automatic after login)
-2. Authorization header: `Authorization: Bearer <token>`
+### POST `/api/auth/register`
+Create a new user and member profile.
 
-Token validity: 7 days
+**Body**
+```json
+{ "name": "Amina Mwangi", "email": "amina@example.com", "password": "Secure123" }
+```
+**Response 201**
+```json
+{ "user": { "id": "...", "name": "Amina Mwangi", "email": "amina@example.com", "role": "MEMBER" } }
+```
+Errors: `400` missing fields / weak password · `409` email already used
 
 ---
 
-## Data Types
+### POST `/api/auth/login`
+Authenticate and set `token` cookie.
 
-### User Roles
-- `ADMIN` - Full system access
-- `COACH` - Can manage events and members
-- `MEMBER` - Member account
-- `GUEST` - No account (public access)
-
-### Membership Levels
-- `BEGINNER` - New members
-- `ADVANCED` - Active competitors
-- `MASTER` - Elite members
-
-### Member Status
-- `PENDING` - Awaiting approval
-- `ACTIVE` - Approved member
-- `SUSPENDED` - Temporarily inactive
-
-### Registration Status
-- `PENDING` - Applied
-- `CONFIRMED` - Accepted
-- `CANCELLED` - Withdrawn
-
----
-
-## Example Usage (cURL)
-
-### Register
-```bash
-curl -X POST https://zaidknights.com/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Amina Mwangi",
-    "email": "amina@example.com",
-    "password": "securePassword123"
-  }'
+**Body**
+```json
+{ "email": "amina@example.com", "password": "Secure123" }
 ```
-
-### Login
-```bash
-curl -X POST https://zaidknights.com/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "amina@example.com",
-    "password": "securePassword123"
-  }' \
-  -c cookies.txt
-```
-
-### Get Events
-```bash
-curl -X GET https://zaidknights.com/api/events
-```
-
-### Submit Contact
-```bash
-curl -X POST https://zaidknights.com/api/contact \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "John Ochieng",
-    "email": "john@example.com",
-    "message": "Interested in coaching!"
-  }'
+**Response 200**
+```json
+{ "user": { "id": "...", "name": "Amina Mwangi", "email": "amina@example.com", "role": "MEMBER" } }
 ```
 
 ---
 
-## Versioning
-
-Current API Version: `1.0`  
-Last Updated: April 29, 2026
+### GET `/api/auth/logout`
+Clears the `token` cookie.
+```json
+{ "message": "Logged out." }
+```
 
 ---
 
-## Support
+### GET `/api/auth/me`
+Returns the user decoded from the current cookie.
+```json
+{ "user": { "id": "...", "name": "...", "email": "...", "role": "MEMBER" } }
+```
 
-For API questions or issues:
-- Review examples in this document
-- Check test cases in `/pages/api/`
-- Review Prisma ORM documentation
-- Monitor server logs for detailed errors
+---
+
+## Events
+
+### GET `/api/events`
+| Query param | Type | Description |
+|-------------|------|-------------|
+| `past` | `true` | Return past events instead of upcoming |
+| `type` | string | Filter by event type (tournament, training, blitz, rapid, classical) |
+| `limit` | number | Max results |
+| `admin` | `true` | Return all events, sorted by startDate desc (ADMIN only) |
+
+**Response 200**
+```json
+{
+  "events": [
+    {
+      "id": "...", "title": "Nairobi Rapid Open", "slug": "nairobi-rapid-open",
+      "description": "...", "location": "Chess Academy Nairobi",
+      "startDate": "2026-06-01T09:00:00Z", "endDate": "2026-06-03T18:00:00Z",
+      "capacity": 64, "type": "tournament",
+      "_count": { "registrations": 32 }
+    }
+  ]
+}
+```
+
+### POST `/api/events` — Register for an event
+**Body**
+```json
+{ "action": "register", "eventId": "evt_123" }
+```
+Errors: `400` event full · `401` not logged in · `409` already registered
+
+### POST `/api/events` — Create event (ADMIN)
+**Body**
+```json
+{
+  "title": "Youth Championship", "description": "...", "location": "Nairobi",
+  "startDate": "2026-07-15T09:00:00Z", "endDate": "2026-07-17T18:00:00Z",
+  "capacity": 32, "type": "tournament"
+}
+```
+
+### DELETE `/api/events`
+**Body** `{ "id": "evt_123" }` — ADMIN only
+
+---
+
+## Members / Rankings
+
+### GET `/api/members`
+Returns active members ranked by ELO with 30-day rating delta.
+
+**Response 200**
+```json
+{
+  "members": [
+    {
+      "id": "...", "rank": 1, "rating": 1920, "level": "ADVANCED",
+      "status": "ACTIVE", "wins": 12, "losses": 3, "draws": 5,
+      "total": 20, "score": 72, "ratingDelta": 45,
+      "user": { "name": "Amina Mwangi", "email": "amina@example.com" }
+    }
+  ]
+}
+```
+
+Add `?admin=true` (ADMIN only) to return all members (any status) with joinedAt/tier.
+
+### PATCH `/api/members` — Update member (ADMIN)
+**Body** `{ "memberId": "...", "status": "ACTIVE", "level": "ADVANCED", "rating": 1850 }`
+
+---
+
+## Posts (Blog)
+
+### GET `/api/posts`
+| Query param | Default | Description |
+|-------------|---------|-------------|
+| `page` | 1 | Page number |
+| `limit` | 6 | Posts per page |
+| `category` | all | Filter category |
+| `slug` | — | Return single post + related |
+
+**Response 200 (list)**
+```json
+{
+  "posts": [...],
+  "total": 24, "page": 1, "pages": 4, "hasNext": true, "hasPrev": false
+}
+```
+
+**Response 200 (slug)**
+```json
+{ "post": { ...fullPost }, "related": [...3posts] }
+```
+
+### POST `/api/posts` — Create (ADMIN / COACH)
+**Body** `{ "title", "excerpt", "content", "category", "imageUrl", "tags", "published" }`
+
+### PATCH `/api/posts` — Update (ADMIN / COACH)
+**Body** `{ "id", ...fields to update }`
+
+### DELETE `/api/posts` — Delete (ADMIN / COACH)
+**Body** `{ "id" }`
+
+---
+
+## Gallery
+
+### GET `/api/gallery`
+| Query param | Description |
+|-------------|-------------|
+| `category` | Filter: all · tournaments · training · events · team · general |
+
+**Response 200** `{ "items": [{ "id", "title", "imageUrl", "caption", "category", "uploadedBy", "createdAt" }] }`
+
+### POST `/api/gallery` — Upload photo (any authenticated user)
+**Body** `{ "title": "Champions Ceremony", "imageUrl": "https://...", "caption": "...", "category": "tournaments" }`
+
+### DELETE `/api/gallery` — Delete (ADMIN)
+**Body** `{ "id" }`
+
+---
+
+## Contact & Newsletter
+
+### POST `/api/contact`
+**Body**
+```json
+{
+  "name": "John Ochieng", "email": "john@example.com",
+  "subject": "Membership", "message": "I'd like to join the club."
+}
+```
+`subject` values: General Inquiry · Membership · Tournament · Partnership · Donation · Junior Programme
+
+**Response 201** `{ "ok": true, "id": "..." }`
+
+---
+
+### POST `/api/newsletter`
+**Body** `{ "email": "fan@example.com" }`
+
+**Response 200** `{ "ok": true, "message": "Subscribed successfully!" }`
+
+Upserts — re-subscribing a deactivated email reactivates it.
+
+---
+
+## Donations
+
+### GET `/api/donations`
+- ADMIN: all donations with M-Pesa receipt numbers
+- Authenticated user: own donations only
+
+### POST `/api/donations`
+**Body**
+```json
+{
+  "donorName": "Wanjiku Njoroge", "donorEmail": "wanjiku@example.com",
+  "amount": 1000, "category": "GENERAL_FUND",
+  "donorType": "INDIVIDUAL", "anonymous": false,
+  "message": "Keep up the great work!", "dedication": "In memory of...",
+  "taxReceipt": false, "campaign": null
+}
+```
+`category`: GENERAL_FUND · TRAINING_EQUIPMENT · TOURNAMENTS · TRAVEL_SUPPORT
+
+### GET `/api/donations/leaderboard`
+**Response 200**
+```json
+{
+  "leaderboard": [{ "rank": 1, "name": "Wanjiku Njoroge", "total": 15000 }],
+  "monthlyTotal": 42500
+}
+```
+
+---
+
+## Memberships
+
+### GET `/api/memberships`
+Returns current user's member profile with last 5 memberships and payment transactions.
+
+### POST `/api/memberships` — Create / Renew
+**Body** `{ "plan": "ANNUAL", "tier": "ADVANCED", "autoRenew": false }`
+
+| Plan | Beginner | Intermediate | Advanced | Squad |
+|------|----------|-------------|---------|-------|
+| Monthly | KES 500 | KES 800 | KES 1,200 | KES 2,000 |
+| Term | KES 1,200 | KES 2,000 | KES 3,000 | KES 5,000 |
+| Annual | KES 4,000 | KES 6,500 | KES 10,000 | KES 16,000 |
+
+---
+
+## Organizations
+
+### GET `/api/organizations`
+- Public: approved organizations only
+- ADMIN: all organizations
+
+### POST `/api/organizations`
+**Body**
+```json
+{
+  "name": "Nairobi Academy", "type": "SCHOOL",
+  "registrationNumber": "ORG/2024/001",
+  "location": "Westlands, Nairobi", "county": "Nairobi",
+  "contactPerson": "Jane Doe", "contactRole": "Head of Sports",
+  "email": "sport@nairobiacademy.ac.ke", "phone": "+254712345678",
+  "memberCount": 120, "chessInterest": "ACTIVE_INTEREST",
+  "participationType": "MEMBERSHIP_AFFILIATION",
+  "trainingSchedule": "Saturdays 10am–12pm", "notes": "..."
+}
+```
+`type`: SCHOOL · COMPANY · ACADEMY · CLUB  
+`chessInterest`: BEGINNER_INTEREST · ACTIVE_INTEREST · COMPETITIVE_INTEREST  
+`participationType`: TRAINING_PARTNERSHIP · TOURNAMENT_ENTRY · MEMBERSHIP_AFFILIATION
+
+Errors: `409` email already registered
+
+---
+
+## Announcements
+
+### GET `/api/announcements`
+Returns active (non-expired) announcements, pinned first.
+
+### POST `/api/announcements` — Create (ADMIN / COACH)
+**Body** `{ "title": "...", "body": "...", "pinned": false, "expiresAt": "2026-12-31T00:00:00Z" }`
+
+### DELETE `/api/announcements?id=...` — Delete (ADMIN)
+
+---
+
+## Dashboard
+
+### GET `/api/dashboard/stats`
+Requires authentication. Returns:
+```json
+{
+  "member": { "level", "tier", "rating", "status", "joinedAt", "profilePhoto",
+              "trainingGroup", "emergencyContact", "autoRenew", "memberships": [...] },
+  "registrations": [...],
+  "results": [...],
+  "upcomingEvents": [...],
+  "rankingPosition": 12,
+  "attendedCount": 8,
+  "attendanceTotal": 10
+}
+```
+
+---
+
+## Admin
+
+### GET `/api/admin/stats` — ADMIN only
+```json
+{
+  "totalMembers": 280, "pendingMembers": 14, "activeMembers": 220,
+  "totalEvents": 24, "totalPosts": 36,
+  "totalDonations": 150, "pendingDonations": 8, "completedDonations": 128,
+  "totalOrgs": 12, "pendingOrgs": 3,
+  "revenueTotal": 485000
+}
+```
+
+### GET `/api/admin/settings` — ADMIN only
+Returns key-value map: `heroTitle`, `heroSubtitle`, `aboutIntro`, `clubAddress`, `clubPhone`, `clubEmail`, `clubWhatsApp`, `socialX`, `socialFacebook`, `socialInstagram`
+
+### PATCH `/api/admin/settings` — ADMIN only
+**Body** `{ "heroTitle": "Master the Game of Kings" }`
+
+### GET `/api/admin/messages` — ADMIN only
+Returns all contact messages.
+
+### PATCH `/api/admin/messages` — ADMIN only
+**Body** `{ "id": "...", "status": "READ" }`  
+`status`: NEW · READ · REPLIED · ARCHIVED
+
+### DELETE `/api/admin/messages` — ADMIN only
+**Body** `{ "id": "..." }`
+
+---
+
+## Payments (M-Pesa)
+
+### POST `/api/payments/mpesa/initiate`
+Requires authentication. Triggers an STK push to the user's phone.
+**Body** `{ "phoneNumber": "+254712345678", "amount": 1000, "type": "donation"|"membership", "referenceId": "..." }`
+
+### POST `/api/payments/mpesa/callback`
+Safaricom webhook — do not call directly.
+
+---
+
+## Profile
+
+### GET `/api/profile` — Authenticated
+Full member profile with rating history, memberships, attendance, results.
+
+### PATCH `/api/profile` — Authenticated
+**Body** `{ "profilePhoto": "https://...", "trainingGroup": "Alpha", "emergencyContact": "+254...", "medicalNotes": "...", "autoRenew": true }`
+
+---
+
+## Site Settings
+
+### GET `/api/site-settings` — Public
+Returns public-facing settings (heroTitle, heroSubtitle).
+
+---
+
+## Error Format
+
+All errors return `{ "error": "Human-readable message" }` with the appropriate HTTP status code.
+
+| Status | Meaning |
+|--------|---------|
+| 400 | Bad request / missing fields |
+| 401 | Not authenticated |
+| 403 | Authenticated but insufficient role |
+| 404 | Resource not found |
+| 405 | Method not allowed |
+| 409 | Conflict (duplicate) |
+| 500 | Server / database error |
+
+---
+
+*API Version: 2.0 · Last Updated: May 2026*

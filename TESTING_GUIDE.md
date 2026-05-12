@@ -1,637 +1,338 @@
-# ZaidKnights Chess Club - Testing & QA Guide
+# Zaid Knights Chess Club — Testing Guide
 
-## Pre-Launch Testing Checklist
-
-Complete all tests before deploying to production.
+Manual QA checklist and curl test commands. Run these before deploying a new version.
 
 ---
 
-## 1. Unit & Integration Tests
+## 1. Authentication
 
-### Frontend Component Tests
-
-- [ ] **Navbar Navigation**
-  - [ ] All links navigate correctly
-  - [ ] Mobile menu toggle works
-  - [ ] Active link highlighting
-  - [ ] Logo links to home
-
-- [ ] **Button Components**
-  - [ ] Buttons display correctly
-  - [ ] Hover states work
-  - [ ] Click events fire
-  - [ ] Disabled state works
-
-- [ ] **Form Inputs**
-  - [ ] Text input accepts text
-  - [ ] Email input validates format
-  - [ ] Password input masks text
-  - [ ] Select dropdown opens/closes
-  - [ ] Form submission works
-
-### Backend API Tests
-
-#### Authentication Routes
-
-**POST /api/auth/register**
+### Register
 ```bash
 curl -X POST http://localhost:3000/api/auth/register \
   -H "Content-Type: application/json" \
-  -d '{
-    "name":"Test User",
-    "email":"test@example.com",
-    "password":"TestPass123"
-  }'
-
-# Expected: 201 Created with user data
+  -d '{"name":"Test User","email":"test@example.com","password":"TestPass123"}'
+# Expected: 201 { user: { id, name, email, role } }
 ```
 
-- [ ] Valid registration succeeds
-- [ ] Duplicate email returns 409
-- [ ] Missing fields returns 400
-- [ ] Invalid email returns 400
-- [ ] User created in database
-- [ ] Password is hashed
+- [ ] Valid registration → 201
+- [ ] Duplicate email → 409
+- [ ] Missing name/email/password → 400
+- [ ] Weak password (< 8 chars) → 400
+- [ ] Password stored hashed in DB (not plain text)
 
-**POST /api/auth/login**
+### Login
 ```bash
 curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{
-    "email":"test@example.com",
-    "password":"TestPass123"
-  }' \
-  -v
-
-# Expected: 200 OK with user data
-# Check for Set-Cookie header with zk_token
+  -d '{"email":"test@example.com","password":"TestPass123"}' \
+  -c cookies.txt -v
+# Expected: 200, Set-Cookie: token=<jwt>; HttpOnly; SameSite=Lax
 ```
 
-- [ ] Valid credentials return 200
-- [ ] Invalid password returns 401
-- [ ] Nonexistent email returns 401
-- [ ] JWT token is set in cookie
-- [ ] Token is valid and signed
+- [ ] Valid credentials → 200 + `token` cookie
+- [ ] Wrong password → 401
+- [ ] Unknown email → 401
+- [ ] Cookie is HttpOnly (not readable by JS)
 
-**GET /api/auth/logout**
+### Logout
 ```bash
-curl -X GET http://localhost:3000/api/auth/logout \
-  -v
-
-# Expected: 200 OK
-# Check for Set-Cookie clearing token
+curl http://localhost:3000/api/auth/logout -b cookies.txt -v
+# Expected: 200, Set-Cookie clears the token
 ```
 
-- [ ] Logout clears token cookie
-- [ ] Returns 200 OK
-
-#### Content Routes
-
-**GET /api/events**
+### Me
 ```bash
-curl http://localhost:3000/api/events | json_pp
-
-# Expected: 200 OK with events array
+curl http://localhost:3000/api/auth/me -b cookies.txt
+# Expected: 200 { user: { id, name, email, role } }
+# Without cookie: 401
 ```
 
-- [ ] Returns all events
-- [ ] Event object has required fields
-- [ ] No authentication required
+---
 
-**POST /api/events** (Admin only)
+## 2. Events
+
 ```bash
+# Upcoming events
+curl "http://localhost:3000/api/events"
+
+# Past events
+curl "http://localhost:3000/api/events?past=true"
+
+# Filter by type
+curl "http://localhost:3000/api/events?type=tournament&limit=5"
+
+# Register for event (requires login)
 curl -X POST http://localhost:3000/api/events \
   -H "Content-Type: application/json" \
-  -d '{
-    "title":"New Event",
-    "slug":"new-event",
-    "description":"Test event",
-    "location":"Nairobi",
-    "startDate":"2026-05-25T09:00:00Z",
-    "endDate":"2026-05-27T18:00:00Z",
-    "capacity":64
-  }'
-
-# Expected: 201 Created
+  -b cookies.txt \
+  -d '{"action":"register","eventId":"<event-id>"}'
 ```
 
-- [ ] Valid event creation succeeds
-- [ ] Missing fields returns 400
-- [ ] Event appears in GET request
+- [ ] GET returns events array with `_count.registrations`
+- [ ] Past filter works
+- [ ] Type filter works
+- [ ] Register → 200 (or 409 if already registered, 400 if full)
+- [ ] Register without cookie → 401
 
-**GET /api/members**
+---
+
+## 3. Members
+
 ```bash
-curl http://localhost:3000/api/members | json_pp
+# Public rankings
+curl "http://localhost:3000/api/members"
+# Expected: sorted by rating desc, includes ratingDelta
 
-# Expected: 200 OK with members array
+# Admin view (all members)
+curl "http://localhost:3000/api/members?admin=true" -b admin_cookies.txt
 ```
 
-- [ ] Returns all members
-- [ ] Includes user data
-- [ ] No authentication required
+- [ ] Returns `rank`, `rating`, `wins`, `losses`, `draws`, `ratingDelta`
+- [ ] `?admin=true` without ADMIN role → 403
 
-**GET /api/posts**
+---
+
+## 4. Posts
+
 ```bash
-curl http://localhost:3000/api/posts | json_pp
+# List posts
+curl "http://localhost:3000/api/posts?page=1&limit=6"
 
-# Expected: 200 OK with published posts
+# By category
+curl "http://localhost:3000/api/posts?category=tournament"
+
+# Single post
+curl "http://localhost:3000/api/posts?slug=<post-slug>"
+# Expected: { post: {...}, related: [...] }
 ```
 
-- [ ] Returns only published posts
-- [ ] Ordered by creation date
+- [ ] Only `published: true` posts returned (public)
+- [ ] Pagination: `total`, `pages`, `hasNext`, `hasPrev`
+- [ ] Slug query returns `related` array
 
-**GET /api/gallery**
+---
+
+## 5. Gallery
+
 ```bash
-curl http://localhost:3000/api/gallery | json_pp
+# List
+curl "http://localhost:3000/api/gallery"
 
-# Expected: 200 OK with gallery items
+# Filter by category
+curl "http://localhost:3000/api/gallery?category=tournaments"
+
+# Upload (any authenticated user)
+curl -X POST http://localhost:3000/api/gallery \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{"title":"Trophy Ceremony","imageUrl":"https://example.com/photo.jpg","caption":"...","category":"tournaments"}'
 ```
 
-- [ ] Returns all gallery items
-- [ ] Ordered by creation date
+- [ ] Upload without cookie → 401
+- [ ] Upload with cookie → 201 with `uploadedBy` set to user ID
+- [ ] Delete without ADMIN → 403
 
-**POST /api/contact**
+---
+
+## 6. Contact form
+
 ```bash
 curl -X POST http://localhost:3000/api/contact \
   -H "Content-Type: application/json" \
   -d '{
-    "name":"John Test",
+    "name":"John Ochieng",
     "email":"john@example.com",
-    "message":"Test message"
+    "subject":"Membership",
+    "message":"I would like to join."
+  }'
+# Expected: 201 { ok: true, id: "..." }
+```
+
+- [ ] Missing `subject` → 400
+- [ ] Invalid email → 400
+- [ ] Message stored with `status: NEW`
+
+---
+
+## 7. Newsletter
+
+```bash
+curl -X POST http://localhost:3000/api/newsletter \
+  -H "Content-Type: application/json" \
+  -d '{"email":"fan@example.com"}'
+# Expected: 200 { ok: true, message: "Subscribed successfully!" }
+
+# Re-subscribe (should reactivate)
+curl -X POST http://localhost:3000/api/newsletter \
+  -H "Content-Type: application/json" \
+  -d '{"email":"fan@example.com"}'
+# Expected: 200 (upsert — no error)
+```
+
+---
+
+## 8. Donations
+
+```bash
+# Submit donation
+curl -X POST http://localhost:3000/api/donations \
+  -H "Content-Type: application/json" \
+  -d '{
+    "donorName":"Wanjiku Njoroge",
+    "donorEmail":"wanjiku@example.com",
+    "amount":1000,
+    "category":"GENERAL_FUND",
+    "donorType":"INDIVIDUAL",
+    "anonymous":false
   }'
 
-# Expected: 201 Created
+# Leaderboard (public)
+curl "http://localhost:3000/api/donations/leaderboard"
+
+# Own donations (requires login)
+curl "http://localhost:3000/api/donations" -b cookies.txt
+
+# All donations (ADMIN only)
+curl "http://localhost:3000/api/donations?admin=true" -b admin_cookies.txt
 ```
 
-- [ ] Valid contact succeeds
-- [ ] Missing fields returns 400
-- [ ] Invalid email returns 400
-- [ ] Message saved to database
+---
 
-**GET /api/dashboard/stats**
+## 9. Memberships
+
 ```bash
-curl http://localhost:3000/api/dashboard/stats | json_pp
+# Current user's membership
+curl http://localhost:3000/api/memberships -b cookies.txt
 
-# Expected: 200 OK with statistics
-```
-
-- [ ] Returns member count
-- [ ] Returns event count
-- [ ] Returns post count
-
----
-
-## 2. Page Load Tests
-
-### Public Pages
-
-- [ ] **Home (/)** - Loads < 2 seconds
-- [ ] **About (/about)** - Renders correctly
-- [ ] **Membership (/membership)** - Form inputs work
-- [ ] **Events (/events)** - Events display
-- [ ] **Rankings (/rankings)** - Table displays
-- [ ] **Gallery (/gallery)** - Images load
-- [ ] **Blog (/blog)** - Posts display
-- [ ] **Contact (/contact)** - Form submits
-
-### Authentication Pages
-
-- [ ] **Login (/login)** - Form works
-- [ ] **Register (/register)** - Registration works
-- [ ] **Login → Register** - Navigation works
-- [ ] **Register → Login** - Redirect works
-
-### Protected Pages
-
-- [ ] **Dashboard (/dashboard)** - Requires auth
-- [ ] **Admin (/admin)** - Admin-only (implement auth check)
-
----
-
-## 3. User Flow Testing
-
-### Registration Flow
-
-```
-1. Visit /register
-   ✓ Page loads
-   ✓ Form visible
-
-2. Fill form:
-   ✓ Name input accepts text
-   ✓ Email input accepts email
-   ✓ Password input masks text
-
-3. Submit:
-   ✓ Form validates
-   ✓ API endpoint called
-   ✓ User created in database
-   ✓ Redirect to /login
-```
-
-### Login Flow
-
-```
-1. Visit /login
-   ✓ Page loads
-
-2. Fill form:
-   ✓ Email input accepts email
-   ✓ Password input masks
-
-3. Submit:
-   ✓ API endpoint called
-   ✓ Token received
-   ✓ Cookie set
-   ✓ Redirect to /dashboard
-```
-
-### Event Registration Flow
-
-```
-1. Visit /events
-   ✓ Page loads
-   ✓ Events display
-
-2. Click Register:
-   ✓ Registration form opens (or redirects)
-   ✓ User can confirm
-   ✓ Database updated
-   ✓ Confirmation message shown
-```
-
-### Contact Form Flow
-
-```
-1. Visit /contact
-   ✓ Page loads
-
-2. Fill form:
-   ✓ Name accepts text
-   ✓ Email validates format
-   ✓ Message accepts long text
-
-3. Submit:
-   ✓ Form validates
-   ✓ API endpoint called
-   ✓ Message saved to database
-   ✓ Success message shown
+# Create/renew
+curl -X POST http://localhost:3000/api/memberships \
+  -H "Content-Type: application/json" \
+  -b cookies.txt \
+  -d '{"plan":"ANNUAL","tier":"ADVANCED","autoRenew":false}'
 ```
 
 ---
 
-## 4. Responsive Design Tests
+## 10. Announcements
 
-### Mobile (iPhone 375px width)
-- [ ] Navigation menu works (hamburger)
-- [ ] Text is readable
-- [ ] Buttons are touch-friendly (48px+)
-- [ ] Images scale properly
-- [ ] Forms are usable
-
-### Tablet (iPad 768px width)
-- [ ] 2-column layouts work
-- [ ] Navigation is accessible
-- [ ] All pages render properly
-
-### Desktop (1920px width)
-- [ ] Multi-column layouts work
-- [ ] Full width utilized
-- [ ] Navigation bar full width
-
-### Test Devices/Browsers
-
-**Browsers:**
-- [ ] Chrome (latest)
-- [ ] Firefox (latest)
-- [ ] Safari (latest)
-- [ ] Edge (latest)
-
-**Devices:**
-- [ ] iPhone 12/13/14
-- [ ] Android device
-- [ ] iPad
-- [ ] Desktop (various resolutions)
-
----
-
-## 5. Performance Tests
-
-### Load Time
-
-Target: **< 2 seconds** home page load
-
-Test with:
 ```bash
-# Chrome DevTools Lighthouse
-# Or use WebPageTest: https://www.webpagetest.org/
-
-# Local testing:
-npm run build
-npm start
-# Then measure load time
-```
-
-- [ ] First Contentful Paint < 1.5s
-- [ ] Largest Contentful Paint < 2.5s
-- [ ] Cumulative Layout Shift < 0.1
-- [ ] Total Blocking Time < 300ms
-
-### Lighthouse Scores
-
-Run Chrome DevTools Lighthouse:
-
-- [ ] Performance: > 90
-- [ ] Accessibility: > 90
-- [ ] Best Practices: > 90
-- [ ] SEO: > 90
-
-### Database Performance
-
-- [ ] User registration < 500ms
-- [ ] Login < 300ms
-- [ ] Events fetch < 200ms
-- [ ] Members fetch < 500ms
-
----
-
-## 6. Security Tests
-
-### Input Validation
-
-- [ ] SQL injection attempt blocked
-  ```sql
-  email: admin@example.com'; DROP TABLE users--
-  ```
-- [ ] XSS attempt blocked
-  ```
-  name: <script>alert('XSS')</script>
-  ```
-- [ ] Email validation rejects invalid
-  ```
-  email: notanemail
-  ```
-
-### Authentication Security
-
-- [ ] Password hashing verified (not plain text)
-- [ ] JWT token signature validated
-- [ ] Expired tokens rejected
-- [ ] Token tamper-detection works
-- [ ] Secure cookies set (HttpOnly, Secure)
-
-### API Security
-
-- [ ] Unauthenticated admin routes return 401
-- [ ] CORS headers set correctly
-- [ ] Missing Content-Type handled
-- [ ] Large payloads rejected (if limit set)
-
-### Password Security
-
-- [ ] Minimum 8 characters enforced
-- [ ] Hashing with bcryptjs verified
-- [ ] Different users have different hashes
-- [ ] Rainbow table attack resistant
-
----
-
-## 7. Database Tests
-
-### Data Integrity
-
-- [ ] User email is unique
-- [ ] Member user relationship maintained
-- [ ] Event registrations have valid user/event IDs
-- [ ] Results reference valid events/users
-
-### CRUD Operations
-
-**Create:**
-- [ ] New user created correctly
-- [ ] New event created correctly
-- [ ] New post created correctly
-
-**Read:**
-- [ ] Users fetched correctly
-- [ ] Events fetched correctly
-- [ ] Members fetched correctly
-
-**Update:**
-- [ ] User data updates correctly
-- [ ] Event data updates correctly
-- [ ] Member status updates correctly
-
-**Delete:**
-- [ ] User deletion cascades correctly
-- [ ] Event deletion cascades correctly
-- [ ] Data consistency maintained
-
-### Database Backup
-
-- [ ] Backup mechanism configured
-- [ ] Restore from backup works
-- [ ] No data loss on restore
-
----
-
-## 8. Error Handling Tests
-
-### 404 Errors
-
-- [ ] Invalid URL returns 404
-- [ ] 404 page displays correctly
-- [ ] Home link available on 404 page
-
-### 500 Errors
-
-- [ ] Database errors return 500
-- [ ] Error message is generic (not detailed)
-- [ ] Error is logged
-- [ ] User sees friendly error message
-
-### Form Errors
-
-- [ ] Missing required fields show error
-- [ ] Invalid email shows error
-- [ ] Duplicate email shows error
-- [ ] Error messages are clear
-
-### Network Errors
-
-- [ ] Network timeout handled
-- [ ] Retry mechanism works (if implemented)
-- [ ] User receives friendly message
-
----
-
-## 9. SEO Tests
-
-### Meta Tags
-
-- [ ] Page title set on all pages
-- [ ] Meta description set
-- [ ] Open Graph tags present
-- [ ] Twitter cards present
-
-### Sitemap & Robots
-
-- [ ] robots.txt accessible
-- [ ] sitemap.xml accessible
-- [ ] All public pages in sitemap
-
-### Structured Data
-
-- [ ] JSON-LD markup valid
-- [ ] Schema.org markup correct
-- [ ] Google Rich Results test passes
-
----
-
-## 10. Browser Console Tests
-
-### No JavaScript Errors
-
-Open Chrome DevTools Console (F12):
-
-- [ ] No red errors on any page
-- [ ] No warnings that affect functionality
-- [ ] All resources load (no 404s)
-
-### Local Storage / Cookies
-
-- [ ] zk_token cookie set after login
-- [ ] Cookie cleared after logout
-- [ ] No sensitive data in localStorage
-
----
-
-## 11. Accessibility Tests
-
-### Keyboard Navigation
-
-- [ ] All buttons accessible via Tab
-- [ ] Form inputs accessible
-- [ ] Links navigable
-- [ ] Focus visible (gold outline)
-
-### Screen Reader
-
-Test with NVDA (Windows) or VoiceOver (Mac):
-
-- [ ] Page structure announced correctly
-- [ ] Images have alt text
-- [ ] Form labels associated
-- [ ] Headings hierarchical
-
-### Color Contrast
-
-Use WebAIM Contrast Checker:
-
-- [ ] Black text on white: Pass
-- [ ] Gold on black: Pass (15.6:1 AAA)
-- [ ] White on dark gray: Pass
-
----
-
-## 12. Cross-Browser Compatibility
-
-### Desktop Browsers
-
-| Browser | Version | Status |
-|---------|---------|--------|
-| Chrome | Latest | ✓ Test |
-| Firefox | Latest | ✓ Test |
-| Safari | Latest | ✓ Test |
-| Edge | Latest | ✓ Test |
-
-### Mobile Browsers
-
-| Browser | Device | Status |
-|---------|--------|--------|
-| Chrome | Android | ✓ Test |
-| Safari | iOS | ✓ Test |
-| Firefox | Android | ✓ Test |
-
----
-
-## Manual Testing Checklist
-
-### Pre-Launch (1 Week Before)
-
-```
-Day 1:
-- [ ] Complete all API tests
-- [ ] Test all user flows
-- [ ] Verify database integrity
-
-Day 2-3:
-- [ ] Test on multiple browsers
-- [ ] Test on mobile devices
-- [ ] Verify responsive design
-
-Day 4-5:
-- [ ] Run Lighthouse tests
-- [ ] Test accessibility
-- [ ] Verify SEO
-
-Day 6:
-- [ ] Security audit
-- [ ] Error handling review
-- [ ] Performance optimization
-
-Day 7:
-- [ ] Final sanity check
-- [ ] Verify all links
-- [ ] Test contact form
-- [ ] Ready for deployment
+# Active announcements (public)
+curl http://localhost:3000/api/announcements
+# Expected: pinned first, expired excluded
 ```
 
 ---
 
-## Automated Testing (Future)
+## 11. Admin stats
 
-Consider implementing:
-- Jest for unit tests
-- React Testing Library for component tests
-- Cypress for e2e tests
-- Postman for API tests
+```bash
+curl http://localhost:3000/api/admin/stats -b admin_cookies.txt
+# Expected: totalMembers, pendingMembers, activeMembers, totalEvents, etc.
 
----
-
-## Bug Report Template
-
-If you find an issue:
-
-```
-Title: [Component] Brief description
-Severity: Critical / High / Medium / Low
-Steps to Reproduce:
-1. Visit page
-2. Fill form
-3. Submit
-
-Expected Result:
-Success message shown
-
-Actual Result:
-Error shown instead
-
-Browser: Chrome 120
-Device: MacBook Pro
+# Without ADMIN role → 403
+curl http://localhost:3000/api/admin/stats -b cookies.txt
 ```
 
 ---
 
-## Sign-Off Checklist
+## 12. Admin messages
 
-- [ ] All tests passed
-- [ ] No critical bugs found
-- [ ] Performance acceptable
-- [ ] Security verified
-- [ ] Accessibility confirmed
-- [ ] Ready for production
+```bash
+# List
+curl http://localhost:3000/api/admin/messages -b admin_cookies.txt
+
+# Mark as read
+curl -X PATCH http://localhost:3000/api/admin/messages \
+  -H "Content-Type: application/json" \
+  -b admin_cookies.txt \
+  -d '{"id":"<msg-id>","status":"READ"}'
+
+# Invalid status → 400
+curl -X PATCH http://localhost:3000/api/admin/messages \
+  -H "Content-Type: application/json" \
+  -b admin_cookies.txt \
+  -d '{"id":"<msg-id>","status":"INVALID"}'
+```
 
 ---
 
-**Testing Complete!** Ready to deploy to production. Follow DEPLOYMENT_GUIDE.md for next steps.
+## 13. Site settings
+
+```bash
+# Public
+curl http://localhost:3000/api/site-settings
+
+# Admin read/update
+curl http://localhost:3000/api/admin/settings -b admin_cookies.txt
+curl -X PATCH http://localhost:3000/api/admin/settings \
+  -H "Content-Type: application/json" \
+  -b admin_cookies.txt \
+  -d '{"heroTitle":"Master the Game of Kings"}'
+```
+
+---
+
+## 14. Page load tests
+
+| Page | Check |
+|------|-------|
+| `/` | Loads < 2s, events show, announcements show |
+| `/events` | Event cards render, register button works |
+| `/rankings` | Table sorted by rating, ratingDelta shown |
+| `/gallery` | Images load, filter works, upload requires login |
+| `/blog` | Pagination works, category filter works |
+| `/blog/[slug]` | Full post renders, related posts shown |
+| `/donate` | Form works, leaderboard loads |
+| `/dashboard` | Redirects to `/login` if no cookie |
+| `/admin` | Redirects to `/admin/login` if no ADMIN cookie |
+| `/renew` | Redirects to `/login` if no cookie |
+
+---
+
+## 15. User flows
+
+### Registration → Dashboard
+1. `/register` → fill form → submit → redirected to `/login`
+2. `/login` → fill credentials → redirected to `/dashboard`
+3. Dashboard shows member status (PENDING until approved)
+
+### Admin message workflow
+1. Submit contact form at `/contact`
+2. Log in as ADMIN → `/admin`
+3. Find message in inbox → mark as READ → mark as REPLIED
+
+### Membership renewal
+1. Log in as member with EXPIRED status
+2. `/dashboard` shows renewal banner
+3. Click renew → `/renew` → select plan → M-Pesa payment
+
+---
+
+## 16. Security tests
+
+- [ ] `email: admin@example.com'; DROP TABLE "User"--` → 400 (sanitized)
+- [ ] `name: <script>alert(1)</script>` → stored/displayed escaped
+- [ ] Access `/api/admin/stats` without cookie → 401
+- [ ] Access `/api/admin/stats` with MEMBER cookie → 403
+- [ ] Expired JWT cookie → 401 on protected routes
+
+---
+
+## 17. Responsive design
+
+| Breakpoint | Check |
+|------------|-------|
+| 375px (mobile) | Single-column, hamburger nav works |
+| 768px (tablet) | 2-column layouts |
+| 1280px (desktop) | 3-column grids, full-width nav |
+
+Browsers: Chrome, Firefox, Safari, Edge.
+
+---
+
+## 18. Error handling
+
+- [ ] `404` — invalid route shows Next.js 404 page
+- [ ] `405` — wrong HTTP method returns `{ error: "Method not allowed" }`
+- [ ] `500` — database errors return `{ error: "..." }` without stack traces
+- [ ] All errors return `{ error: "<human-readable message>" }` format

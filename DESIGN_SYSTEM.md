@@ -1,301 +1,133 @@
-# ZaidKnights Chess Club - UI Design System & Mockups
+# Zaid Knights Chess Club — Design System
 
 ## Design Philosophy
-Modern luxury chess aesthetic with dark theme, gold accents, and glassmorphism.
+
+Modern luxury chess aesthetic: dark background, gold accents, glassmorphism cards, clean typography.
 
 ---
 
 ## Color Palette
 
-### Primary Colors
-- **Black**: `#0B0B0B` - Main background, dark elements
-- **White**: `#FFFFFF` - Text, light elements
-- **Gold**: `#D4AF37` - Primary accent, buttons, highlights
-- **Forest Green**: `#0F3D2E` - Secondary accent, hover states
+Defined in `tailwind.config.js` under `theme.extend.colors`:
 
-### Neutral Colors
-- **Dark Gray**: `#1A1A1A` - Secondary background
-- **Light Gray**: `#F0F0F0` - Light text backgrounds
-- **Slate 300**: `#CBD5E1` - Muted text
-- **Slate 400**: `#94A3B8` - Secondary text
+| Token | Hex | Use |
+|-------|-----|-----|
+| `gold.DEFAULT` | `#D4AF37` | Primary accent, buttons, highlights |
+| `gold.light` | `#E8C84A` | Hover state for gold elements |
+| `gold.dark` | `#B8941E` | Active / pressed state |
+| `dark.DEFAULT` | `#0B0B0B` | Page background |
+| `dark.2` | `#111111` | Card backgrounds |
+| `dark.3` | `#1A1A1A` | Secondary surfaces |
+| `slate-300` | `#CBD5E1` | Muted body text |
+| `slate-400` | `#94A3B8` | Placeholder, secondary text |
 
 ---
 
 ## Typography
 
-### Font Family
-- **Primary**: Inter (Google Fonts)
-- **Weights**: 400 (Regular), 500 (Medium), 600 (Semi-bold), 700 (Bold), 800 (Extra-bold)
+Defined in `tailwind.config.js` under `theme.extend.fontFamily`:
 
-### Font Sizes
-- **H1**: 56px (hero titles)
-- **H2**: 40px (section titles)
-- **H3**: 32px (card titles)
-- **Body**: 16px (paragraph text)
-- **Small**: 14px (captions, labels)
-- **XSmall**: 12px (helper text)
+| Family | Fonts | Use |
+|--------|-------|-----|
+| `font-serif` | Playfair Display, Georgia | Hero titles, section headings |
+| `font-sans` | Inter, system-ui | Body text, UI labels |
 
-### Line Heights
-- **Headings**: 1.2
-- **Body**: 1.6
-- **Lists**: 1.8
+### Scale
 
----
-
-## Component Designs
-
-### Button
-
-**Primary Button (Gold)**
-```
-Background: #D4AF37
-Text: Black (#0B0B0B)
-Padding: 12px 24px
-Border Radius: 999px (pill shape)
-Font Weight: 600
-Hover: Background #E8C547 + slight scale (1.02)
-Transition: 200ms ease-in-out
-Shadow: none (clean)
-```
-
-**Secondary Button (Ghost)**
-```
-Background: transparent
-Border: 1px #FFFFFF/20%
-Text: White (#FFFFFF)
-Padding: 12px 24px
-Border Radius: 999px
-Hover: Border #D4AF37, Text #D4AF37
-Transition: 200ms ease-in-out
-```
-
-### Card (Glass)
-
-```
-Background: rgba(255, 255, 255, 0.05)
-Border: 1px solid rgba(255, 255, 255, 0.1)
-Backdrop Filter: blur(18px)
-Padding: 24px (6 units)
-Border Radius: 24px (1.5rem)
-Box Shadow: 0 10px 40px rgba(0, 0, 0, 0.15)
-Hover: Border rgba(255, 255, 255, 0.2)
-```
-
-### Input Field
-
-```
-Background: rgba(0, 0, 0, 0.6)
-Border: 1px solid rgba(255, 255, 255, 0.1)
-Padding: 12px 16px
-Border Radius: 24px
-Font: Inter 16px
-Text Color: White
-Placeholder: Slate 400
-Focus: Border #D4AF37, Outline none
-Transition: 150ms ease-in-out
-```
+| Class | Size | Use |
+|-------|------|-----|
+| `text-5xl` / `text-6xl` | 48–60px | Hero titles |
+| `text-3xl` / `text-4xl` | 30–36px | Section headings |
+| `text-xl` / `text-2xl` | 20–24px | Card titles |
+| `text-base` | 16px | Body text |
+| `text-sm` | 14px | Labels, captions |
+| `text-xs` | 12px | Helper text, badges |
 
 ---
 
-## Page Layouts
+## Glassmorphism System
 
-### Home Page (`/`)
-
-**Hero Section**
-```
-┌─────────────────────────────────────────────────────┐
-│                                                     │
-│  ╔═══════════════════════╦═══════════════════════╗  │
-│  ║                       ║                       ║  │
-│  ║  ZaidKnights Chess    ║   Next Event Card    ║  │
-│  ║  Club                 ║   ┌─────────────────┐ ║  │
-│  ║  Strategy. Discipline║   │ Nairobi Rapid  │ ║  │
-│  ║  Excellence.         ║   │ May 25 • 12 hrs │ ║  │
-│  ║                       ║   │ Featured Players│ ║  │
-│  ║  [Join] [View Events] ║   └─────────────────┘ ║  │
-│  ╚═══════════════════════╩═══════════════════════╝  │
-│                                                     │
-└─────────────────────────────────────────────────────┘
-
-Stats Row (3 columns)
-┌──────────────────┬──────────────────┬──────────────────┐
-│ 280+ Members     │ 24 Tournaments   │ 1575 Avg ELO     │
-└──────────────────┴──────────────────┴──────────────────┘
-
-Membership Tiers (3 columns)
-┌──────────────┬──────────────┬──────────────┐
-│ Beginner     │ Advanced     │ Master       │
-│ Free Trial   │ KES 2,500/mo │ KES 5,500/mo │
-│ ✓ Lessons    │ ✓ Coaching   │ ✓ Personal   │
-│ ✓ Community  │ ✓ Prep       │ ✓ Elite      │
-└──────────────┴──────────────┴──────────────┘
-
-Events (3 columns)
-┌──────────────┬──────────────┬──────────────┐
-│ Champions    │ Youth        │ Masters      │
-│ Blitz        │ Circuit      │ Weekend      │
-│ Register     │ Register     │ Register     │
-└──────────────┴──────────────┴──────────────┘
-```
-
-**Announcements Section**
-```
-Latest announcements (3 cards)
-┌──────────────┬──────────────┬──────────────┐
-│ Masterclass  │ Registration │ Portal       │
-│ on strategy  │ open for     │ launched     │
-│              │ July Open    │              │
-└──────────────┴──────────────┴──────────────┘
-```
-
-### Membership Page (`/membership`)
-
-**Registration Form (2 column layout)**
-```
-Left: Registration Form
-┌─────────────────────────┐
-│ Register Now           │
-│ ┌───────────────────┐  │
-│ │ Name:             │  │
-│ │ [____________]    │  │
-│ │ Email:            │  │
-│ │ [____________]    │  │
-│ │ Tier:             │  │
-│ │ [____________▼]   │  │
-│ │ [Submit button]   │  │
-│ └───────────────────┘  │
-└─────────────────────────┘
-
-Right: Benefits List
-┌─────────────────────────┐
-│ Benefits:              │
-│ • Training sessions    │
-│ • Priority events      │
-│ • Rankings dashboard   │
-│ • Member news          │
-└─────────────────────────┘
-```
-
-### Events Page (`/events`)
-
-**Event Cards (3 column grid)**
-```
-┌────────────────┬────────────────┬────────────────┐
-│ UPCOMING       │ REGISTRATION   │ UPCOMING       │
-│                │                │                │
-│ Nairobi Rapid  │ Youth Cup      │ Masters        │
-│ May 25, 2026   │ June 12, 2026  │ July 3, 2026   │
-│ Chess Academy  │ ZaidKnights    │ Premier Hotel  │
-│                │                │                │
-│ [Register]     │ [Register]     │ [Register]     │
-└────────────────┴────────────────┴────────────────┘
-```
-
-### Rankings Page (`/rankings`)
-
-**Leaderboard Table**
-```
-┌──────────────────────────────────────┐
-│ Player            │ ELO    │ Record  │
-├──────────────────────────────────────┤
-│ Amina Mwangi      │ 1920   │ 18-3-1  │
-│ David Okello      │ 1865   │ 16-4-2  │
-│ Sofia Kariuki     │ 1810   │ 14-5-3  │
-└──────────────────────────────────────┘
-```
-
-### Login Page (`/login`)
-
-**Centered Form**
-```
-         ┌─────────────────┐
-         │ Member Login    │
-         │                 │
-         │ [Email input]   │
-         │ [Pass input]    │
-         │ [Sign In btn]   │
-         │                 │
-         │ New? Register   │
-         └─────────────────┘
-```
-
-### Admin Dashboard (`/admin`)
-
-**4 Stat Cards**
-```
-┌──────────────┬──────────────┬──────────────┬──────────────┐
-│ 280 Members  │ 14 Pending   │ 3 Live       │ 12 Posts     │
-│ Active       │ Apps         │ Events       │ Published    │
-└──────────────┴──────────────┴──────────────┴──────────────┘
-```
-
----
-
-## Responsive Breakpoints
-
-| Screen | Width | Layout |
-|--------|-------|--------|
-| Mobile | < 640px | Single column, stacked cards |
-| Tablet | 640px - 1024px | 2 columns, compact |
-| Desktop | > 1024px | 3+ columns, full width |
-
-### Mobile Optimizations
-- Touch-friendly button sizes (min 48px)
-- Single column layouts
-- Simplified navigation menu
-- Full-width cards with padding
-
----
-
-## Animation Guidelines
-
-### Transitions
-- Duration: 200-300ms
-- Easing: ease-in-out
-- Properties: opacity, transform, color
-
-### Hover Effects
-- Buttons: Scale 1.02, color shift
-- Cards: Border brightness, shadow increase
-- Links: Color change to gold
-
-### Page Load
-- Fade in elements with 300ms stagger
-- Hero content slides up (Framer Motion)
-- Stats counter animate on scroll (future)
-
----
-
-## Icon Guidelines
-
-All icons should be:
-- Chess-themed (knights, kings, boards)
-- Minimal and clean
-- Size: 24px or 32px
-- Color: Gold or White
-
-Suggested icons:
-- Knight: ♘ (navigation, rankings)
-- King: ♚ (leadership, admin)
-- Board: ⚏ (events, tournaments)
-- Trophy: 🏆 (achievements)
-- Users: 👥 (members, community)
-
----
-
-## Shadow System
+Global classes in `styles/globals.css`:
 
 ```css
-/* Light shadow */
-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.glass         /* card surface: rgba white 5%, blur 18px, border rgba white 10% */
+.glass-hover   /* same + hover: border rgba white 20% */
+.glass-gold    /* gold-tinted glass: rgba gold 10%, border rgba gold 20% */
+```
 
-/* Medium shadow (cards) */
+### Card spec
+
+```
+background:      rgba(255, 255, 255, 0.05)
+border:          1px solid rgba(255, 255, 255, 0.10)
+backdrop-filter: blur(18px)
+border-radius:   1.5rem (24px)
+box-shadow:      0 10px 40px rgba(0, 0, 0, 0.15)
+```
+
+---
+
+## Buttons
+
+Global classes in `styles/globals.css`:
+
+```css
+.btn-primary    /* gold bg, dark text, pill shape, hover: gold-light + scale 1.02 */
+.btn-secondary  /* transparent, white border, hover: gold border + gold text */
+```
+
+Spec:
+
+| Property | Primary | Secondary |
+|----------|---------|-----------|
+| Background | `#D4AF37` | transparent |
+| Text color | `#0B0B0B` | white |
+| Border | none | `1px rgba(255,255,255,0.2)` |
+| Border radius | 999px (pill) | 999px |
+| Padding | 12px 24px | 12px 24px |
+| Hover | bg `#E8C84A`, scale 1.02 | border+text gold |
+| Transition | 200ms ease-in-out | 200ms ease-in-out |
+
+---
+
+## Input Fields
+
+```
+background:     rgba(0, 0, 0, 0.6)
+border:         1px solid rgba(255, 255, 255, 0.1)
+border-radius:  24px
+padding:        12px 16px
+color:          white
+placeholder:    slate-400
+focus:          border gold, outline none
+transition:     150ms ease-in-out
+```
+
+---
+
+## Animations
+
+Defined in `tailwind.config.js`:
+
+| Class | Effect |
+|-------|--------|
+| `animate-fade-in` | opacity 0→1, 300ms |
+| `animate-slide-up` | translateY 16px→0 + fade, 500ms |
+| `animate-pulse-gold` | opacity 0.6↔1 pulse, 2s |
+| `animate-shimmer` | loading shimmer sweep |
+
+---
+
+## Shadows
+
+```css
+/* Card */
 box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
 
-/* Strong shadow (elevation) */
+/* Elevated */
 box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
 
-/* Gold glow (accent) */
+/* Gold glow (tailwind: shadow-gold) */
 box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
 ```
 
@@ -303,68 +135,112 @@ box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
 
 ## Spacing Scale
 
+Tailwind default spacing (4px base unit).
+
+| Class | Value | Use |
+|-------|-------|-----|
+| `p-4` | 16px | Compact padding |
+| `p-6` | 24px | Standard card padding |
+| `p-8` | 32px | Generous section padding |
+| `gap-4` | 16px | Tight grid gap |
+| `gap-6` | 24px | Standard grid gap |
+| `gap-8` | 32px | Section gap |
+
+---
+
+## Responsive Breakpoints
+
+| Name | Width | Layout |
+|------|-------|--------|
+| Mobile | < 640px | Single column, stacked |
+| Tablet (`sm`) | 640px | 2 columns |
+| Desktop (`lg`) | 1024px | 3+ columns, full width |
+| Wide (`xl`) | 1280px | Max-width container |
+
+---
+
+## Components
+
+### UI components (`components/ui/`)
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| `Button` | Button.tsx | Primary/secondary variants |
+| `Card` | Card.tsx | Glass container |
+| `Badge` | Badge.tsx | Status/level pill |
+| `Countdown` | Countdown.tsx | Animated timer |
+| `EmptyState` | EmptyState.tsx | Empty list placeholder |
+| `Modal` | Modal.tsx | Overlay dialog |
+| `ProgressBar` | ProgressBar.tsx | Step/completion bar |
+| `SkeletonCard` | SkeletonCard.tsx | Loading skeleton |
+| `Toast` | Toast.tsx | Success/error notification |
+| `Accordion` | Accordion.tsx | Collapsible FAQ item |
+
+### Common components (`components/common/`)
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| `Layout` | Layout.tsx | Page wrapper with SEO head |
+| `Navbar` | Navbar.tsx | Responsive top nav |
+| `Footer` | Footer.tsx | Contact, socials, links |
+| `ProtectedRoute` | ProtectedRoute.tsx | Redirect to login if unauth |
+
+### Section components (`components/sections/`)
+
+`Hero` · `StatsSection` · `EventHighlights` · `MembershipTiers`
+
+### Dashboard components (`components/dashboard/`)
+
+`StatusBanner` · `RenewalBanner` · `EventCountdown` · `MemberStats`
+
+---
+
+## Membership Tiers (Design)
+
+| Tier | Badge Color | Price (Annual) |
+|------|-------------|----------------|
+| Beginner | slate | KES 4,000 |
+| Intermediate | blue | KES 6,500 |
+| Advanced | gold | KES 10,000 |
+| Competitive Squad | red/premium | KES 16,000 |
+
+---
+
+## Accessibility
+
+- Color contrast — Gold on Black: 15.6:1 (AAA)
+- Touch targets — minimum 48px for all interactive elements
+- Focus states — gold ring on keyboard focus
+- Alt text — required on all `<img>` elements
+- Semantic HTML — `<main>`, `<nav>`, `<section>`, form `<label>` associations
+- Keyboard navigation — all flows reachable via Tab
+
+---
+
+## Page Layout Patterns
+
+### 3-column grid (events, blog, gallery)
 ```
-xs:  4px  (1 unit)
-sm:  8px  (2 units)
-md:  16px (4 units)
-lg:  24px (6 units)
-xl:  32px (8 units)
-2xl: 48px (12 units)
-3xl: 64px (16 units)
+[  Card  ] [  Card  ] [  Card  ]
+```
+`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6`
+
+### 2-column split (forms + info)
+```
+[ Form (left 60%) ] [ Info (right 40%) ]
+```
+`grid grid-cols-1 lg:grid-cols-5 gap-8` — form is `lg:col-span-3`, info is `lg:col-span-2`
+
+### Centered card (login, single-step forms)
+```
+max-w-md mx-auto
 ```
 
-Used for:
-- Padding: `p-6` = 24px padding
-- Margin: `m-4` = 16px margin
-- Gap: `gap-6` = 24px spacing between items
-
----
-
-## Accessibility Standards
-
-✅ **Color Contrast**: Gold on Black = 15.6:1 (AAA)  
-✅ **Touch Targets**: Minimum 48px for interactive elements  
-✅ **Focus States**: Visible gold border on tab focus  
-✅ **Alt Text**: All images have descriptive alt text  
-✅ **Semantic HTML**: Proper heading hierarchy, form labels  
-✅ **Keyboard Navigation**: All features keyboard accessible  
-
----
-
-## Live Component Examples
-
-All components are in `/components/`:
-- `common/Navbar.tsx` - Navigation
-- `common/Footer.tsx` - Footer
-- `ui/Button.tsx` - Button component
-- `ui/Card.tsx` - Glass card
-- `sections/Hero.tsx` - Hero animation
-- `sections/MembershipTiers.tsx` - Tier cards
-- `sections/EventHighlights.tsx` - Event cards
-- `sections/StatsSection.tsx` - Statistics display
-
----
-
-## Next Steps for Design
-
-1. **Export Assets**: Create logo in gold & white
-2. **Photography**: Professional chess tournament photos
-3. **Favicons**: Generate from logo
-4. **OG Images**: Social media share images
-5. **Dark Mode**: Already implemented via Tailwind
-6. **Print Styles**: Add for certificates/tournament brackets
-
----
-
-## Design Files Storage
-
-Recommended tools:
-- **Figma**: Full design system mockups
-- **Illustrator**: Logo and icon creation
-- **Photoshop**: Image editing
-- **Lightroom**: Photo optimization
-
-Store in: `/public/assets/` or cloud storage with CI/CD integration
+### Stats row
+```
+[ Stat ] [ Stat ] [ Stat ] [ Stat ]
+```
+`grid grid-cols-2 lg:grid-cols-4 gap-4`
 
 ---
 
@@ -372,10 +248,4 @@ Store in: `/public/assets/` or cloud storage with CI/CD integration
 
 **Tagline**: "Strategy. Discipline. Excellence."
 
-**Tone**: Professional, welcoming, aspirational  
-**Personality**: Modern, chess-focused, community-driven  
-**Language**: Clear, concise, engaging  
-
----
-
-This design system provides a solid foundation for a production-grade chess club platform with modern aesthetics and excellent UX.
+Tone: Professional, welcoming, aspirational — write for serious chess players who are also community-minded. Avoid jargon-heavy chess notation in marketing copy.
