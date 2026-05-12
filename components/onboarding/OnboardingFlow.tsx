@@ -367,8 +367,8 @@ export default function OnboardingFlow({
             <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 text-sm text-gray-300 space-y-1">
               <p className="text-green-400 font-semibold mb-2">M-PESA Payment Instructions</p>
               <p>1. Go to <strong className="text-white">M-PESA</strong> → Lipa na M-PESA → Pay Bill</p>
-              <p>2. Business No: <strong className="text-white">522522</strong></p>
-              <p>3. Account: <strong className="text-white">your email address</strong></p>
+              <p>2. Business No: <strong className="text-white">880100</strong></p>
+              <p>3. Account No: <strong className="text-white">124498</strong></p>
               <p>4. Amount: <strong className="text-yellow-400">{TIER_AMOUNT[memberTier]}</strong></p>
             </div>
             <div className="flex gap-3">

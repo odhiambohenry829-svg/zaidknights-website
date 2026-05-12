@@ -130,8 +130,8 @@ export default function RenewPage() {
                 <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-5 text-sm text-gray-300 space-y-1.5 mb-8 text-left">
                   <p className="text-green-400 font-semibold mb-2">Complete M-Pesa Payment</p>
                   <p>1. Go to M-PESA → Lipa na M-PESA → Pay Bill</p>
-                  <p>2. Business No: <strong className="text-white">522522</strong></p>
-                  <p>3. Account: <strong className="text-white">{user?.email}</strong></p>
+                  <p>2. Business No: <strong className="text-white">880100</strong></p>
+                  <p>3. Account No: <strong className="text-white">124498</strong></p>
                   <p>4. Amount: <strong className="text-yellow-400">KES {success.amount.toLocaleString()}</strong></p>
                 </div>
               )}
@@ -259,8 +259,8 @@ export default function RenewPage() {
                   <div className="mt-4 bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-sm text-gray-300 space-y-1.5">
                     <p className="text-green-400 font-semibold mb-2">M-Pesa Step-by-Step</p>
                     <p>1. Go to <strong className="text-white">M-PESA</strong> → Lipa na M-PESA → Pay Bill</p>
-                    <p>2. Business No: <strong className="text-white">522522</strong></p>
-                    <p>3. Account No: <strong className="text-white">{user?.email}</strong></p>
+                    <p>2. Business No: <strong className="text-white">880100</strong></p>
+                    <p>3. Account No: <strong className="text-white">124498</strong></p>
                     <p>4. Amount: <strong className="text-yellow-400">KES {amount.toLocaleString()}</strong></p>
                     <p>5. Enter PIN and confirm</p>
                   </div>
@@ -275,7 +275,7 @@ export default function RenewPage() {
                     <p className="text-white font-semibold mb-2">Bank Details</p>
                     <p>Bank: <strong>Equity Bank Kenya</strong></p>
                     <p>Account: <strong>Zaid Knights Chess Club</strong></p>
-                    <p>Acc No: <strong>0123456789</strong></p>
+                    <p>Acc No: <strong>1006394827</strong></p>
                     <p>Branch: <strong>Nairobi Central</strong></p>
                   </div>
                 )}

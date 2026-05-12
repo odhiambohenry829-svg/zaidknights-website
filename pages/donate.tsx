@@ -166,8 +166,8 @@ export default function DonatePage() {
               {payment === 'MPESA' && (
                 <>
                   <p>1. Go to <strong className="text-white">M-PESA</strong> → Lipa na M-PESA → Pay Bill</p>
-                  <p>2. Business No: <strong className="text-white">522522</strong></p>
-                  <p>3. Account No: <strong className="text-white">{donorEmail}</strong></p>
+                  <p>2. Business No: <strong className="text-white">880100</strong></p>
+                  <p>3. Account No: <strong className="text-white">124498</strong></p>
                   <p>4. Amount: <strong className="text-yellow-400">KES {effectiveAmount.toLocaleString()}</strong></p>
                   <p>5. Enter PIN and confirm</p>
                 </>
@@ -393,7 +393,7 @@ export default function DonatePage() {
                     <p className="text-white font-semibold mb-2">Bank Details</p>
                     <p>Bank: <strong>Equity Bank Kenya</strong></p>
                     <p>Account Name: <strong>Zaid Knights Chess Club</strong></p>
-                    <p>Account No: <strong>0123456789</strong></p>
+                    <p>Account No: <strong>1006394827</strong></p>
                     <p>Branch: <strong>Nairobi Central</strong></p>
                   </div>
                 )}
