@@ -8,6 +8,9 @@ const nextConfig = {
     ],
   },
 
+  // Transpile ESM packages for Next.js Pages Router compatibility
+  transpilePackages: ['chess.js', 'react-chessboard'],
+
   // Ensures Prisma and bcrypt are only bundled server-side (Pages Router)
   experimental: {
     serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],

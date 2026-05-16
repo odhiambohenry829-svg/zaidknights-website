@@ -110,6 +110,26 @@ enum ContactMessageStatus {
   ARCHIVED
 }
 
+enum GameStatus {
+  WAITING
+  ACTIVE
+  COMPLETED
+  ABORTED
+}
+
+enum GameFormat {
+  BULLET
+  BLITZ
+  DAILY
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  BLOCKED
+}
+
 // ─── Core User ────────────────────────────────────────────────
 
 model User {
@@ -124,13 +144,22 @@ model User {
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
-  posts         Post[]
-  member        Member?
-  registrations Registration[]
-  results       Result[]
-  donations     Donation[]
-  auditLogs     AuditLog[]
-  announcements Announcement[]
+  posts          Post[]
+  member         Member?
+  registrations  Registration[]
+  results        Result[]
+  donations      Donation[]
+  auditLogs      AuditLog[]
+  announcements  Announcement[]
+  whiteGames     OnlineGame[]    @relation("WhiteGames")
+  blackGames     OnlineGame[]    @relation("BlackGames")
+  puzzleAttempts PuzzleAttempt[]
+  puzzleRush     PuzzleRush[]
+  forumThreads   ForumThread[]   @relation("ForumThreads")
+  forumPosts     ForumPost[]     @relation("ForumPosts")
+  friendRequests Friendship[]    @relation("FriendRequests")
+  friendReceived Friendship[]    @relation("FriendReceived")
+  onlineRatings  OnlineRating[]
 }
 
 model Post {
@@ -418,8 +447,6 @@ model Announcement {
   @@index([expiresAt])
 }
 
-// ─── Contact Messages ─────────────────────────────────────────
-
 model ContactMessage {
   id        String               @id @default(uuid())
   name      String
@@ -469,4 +496,204 @@ model AuditLog {
   @@index([userId, createdAt])
   @@index([entity, entityId])
   @@index([createdAt])
+}
+
+// ─── Online Chess Games ───────────────────────────────────────
+
+model OnlineGame {
+  id               String     @id @default(uuid())
+  whiteId          String
+  blackId          String?
+  botLevel         Int?
+  format           GameFormat @default(BLITZ)
+  timeLimit        Int        @default(600)
+  increment        Int        @default(0)
+  moves            String     @default("")
+  fen              String     @default("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+  pgn              String?
+  status           GameStatus @default(WAITING)
+  result           String?
+  termination      String?
+  whiteRating      Int?
+  blackRating      Int?
+  whiteRatingDelta Int?
+  blackRatingDelta Int?
+  isPublic         Boolean    @default(true)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  white User  @relation("WhiteGames", fields: [whiteId], references: [id], onDelete: Cascade)
+  black User? @relation("BlackGames", fields: [blackId], references: [id], onDelete: SetNull)
+
+  @@index([whiteId, createdAt])
+  @@index([blackId, createdAt])
+  @@index([status])
+}
+
+// ─── Puzzles ──────────────────────────────────────────────────
+
+model Puzzle {
+  id          String   @id @default(uuid())
+  fen         String
+  moves       String
+  rating      Int      @default(1200)
+  themes      String[]
+  openingTags String[]
+  createdAt   DateTime @default(now())
+
+  attempts     PuzzleAttempt[]
+  dailyPuzzles DailyPuzzle[]
+
+  @@index([rating])
+}
+
+model PuzzleAttempt {
+  id        String   @id @default(uuid())
+  userId    String
+  puzzleId  String
+  solved    Boolean  @default(false)
+  timeTaken Int?
+  moves     String?
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  puzzle Puzzle @relation(fields: [puzzleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, puzzleId])
+  @@index([userId, createdAt])
+  @@index([puzzleId])
+}
+
+model PuzzleRush {
+  id        String   @id @default(uuid())
+  userId    String
+  score     Int      @default(0)
+  solved    Int      @default(0)
+  attempted Int      @default(0)
+  duration  Int      @default(180)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, score])
+  @@index([score])
+}
+
+model DailyPuzzle {
+  id       String   @id @default(uuid())
+  puzzleId String
+  date     DateTime @db.Date
+
+  puzzle Puzzle @relation(fields: [puzzleId], references: [id], onDelete: Cascade)
+
+  @@unique([date])
+  @@index([date])
+}
+
+// ─── Video Lessons ────────────────────────────────────────────
+
+model VideoLesson {
+  id          String      @id @default(uuid())
+  title       String
+  description String?
+  youtubeId   String
+  category    String      @default("general")
+  level       MemberLevel @default(BEGINNER)
+  durationSec Int?
+  thumbnail   String?
+  order       Int         @default(0)
+  premium     Boolean     @default(false)
+  published   Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+
+  @@index([category, level])
+  @@index([published, order])
+}
+
+// ─── Community Forums ─────────────────────────────────────────
+
+model ForumCategory {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  slug        String   @unique
+  icon        String   @default("💬")
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  threads ForumThread[]
+}
+
+model ForumThread {
+  id         String   @id @default(uuid())
+  categoryId String
+  authorId   String
+  title      String
+  slug       String   @unique
+  pinned     Boolean  @default(false)
+  locked     Boolean  @default(false)
+  views      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  category ForumCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  author   User          @relation("ForumThreads", fields: [authorId], references: [id], onDelete: Cascade)
+  posts    ForumPost[]
+
+  @@index([categoryId, createdAt])
+  @@index([authorId])
+  @@index([pinned, createdAt])
+}
+
+model ForumPost {
+  id        String   @id @default(uuid())
+  threadId  String
+  authorId  String
+  content   String
+  edited    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  thread ForumThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  author User        @relation("ForumPosts", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([threadId, createdAt])
+  @@index([authorId])
+}
+
+// ─── Friends System ───────────────────────────────────────────
+
+model Friendship {
+  id          String           @id @default(uuid())
+  requesterId String
+  addresseeId String
+  status      FriendshipStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  requester User @relation("FriendRequests", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee User @relation("FriendReceived", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, addresseeId])
+  @@index([requesterId, status])
+  @@index([addresseeId, status])
+}
+
+// ─── Online Rating System ─────────────────────────────────────
+
+model OnlineRating {
+  id      String     @id @default(uuid())
+  userId  String
+  format  GameFormat
+  rating  Int        @default(800)
+  games   Int        @default(0)
+  wins    Int        @default(0)
+  losses  Int        @default(0)
+  draws   Int        @default(0)
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, format])
+  @@index([format, rating])
 }

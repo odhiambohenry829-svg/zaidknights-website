@@ -25,9 +25,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const { search, limit } = req.query;
+
+      const where: Record<string, unknown> = { status: 'ACTIVE' };
+      if (search) {
+        where.user = { name: { contains: search as string, mode: 'insensitive' } };
+      }
 
       const members = await prisma.member.findMany({
-        where:   { status: 'ACTIVE' },
+        where,
+        take: limit ? parseInt(limit as string) : undefined,
         include: {
           user:         { select: { name: true, email: true } },
           results:      { select: { wins: true, losses: true, draws: true, score: true } },

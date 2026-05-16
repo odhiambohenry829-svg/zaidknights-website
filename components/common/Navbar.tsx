@@ -8,21 +8,42 @@ type NavGroup = { label: string; children: NavLink[] };
 type NavItem  = NavLink | NavGroup;
 
 const navItems: NavItem[] = [
-  { href: '/',      label: 'Home' },
+  { href: '/', label: 'Home' },
   { href: '/about', label: 'About' },
+  {
+    label: '♟️ Play',
+    children: [
+      { href: '/play',         label: '⚡ Play Online' },
+      { href: '/play/bot',     label: '🤖 Play vs Bot' },
+      { href: '/puzzles',      label: '🧩 Puzzles' },
+      { href: '/puzzles/rush', label: '⚡ Puzzle Rush' },
+      { href: '/analysis',     label: '🔍 Game Analysis' },
+      { href: '/live',         label: '📺 Live Games' },
+    ],
+  },
+  {
+    label: '📚 Learn',
+    children: [
+      { href: '/lessons',   label: '🎥 Video Lessons' },
+      { href: '/openings',  label: '📖 Opening Explorer' },
+      { href: '/endgames',  label: '🏁 Endgame Drills' },
+    ],
+  },
   {
     label: 'Explore',
     children: [
-      { href: '/events',   label: 'Events & Tournaments' },
-      { href: '/rankings', label: 'Rankings' },
-      { href: '/gallery',  label: 'Gallery' },
-      { href: '/blog',     label: 'Blog' },
+      { href: '/events',      label: 'Events & Tournaments' },
+      { href: '/leaderboard', label: '🏆 Leaderboard' },
+      { href: '/forums',      label: '💬 Forums' },
+      { href: '/gallery',     label: 'Gallery' },
+      { href: '/blog',        label: 'Blog' },
     ],
   },
   {
     label: 'Community',
     children: [
       { href: '/membership',    label: 'Membership' },
+      { href: '/friends',       label: '👥 Friends' },
       { href: '/organizations', label: 'Organizations' },
       { href: '/donate',        label: 'Donate' },
     ],

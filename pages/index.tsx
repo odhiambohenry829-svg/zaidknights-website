@@ -1,9 +1,100 @@
+import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import Layout from '../components/common/Layout';
 import Hero from '../components/sections/Hero';
 import StatsSection from '../components/sections/StatsSection';
 import MembershipTiers from '../components/sections/MembershipTiers';
 import EventHighlights from '../components/sections/EventHighlights';
 import Link from 'next/link';
+
+const Chessboard = dynamic(() => import('react-chessboard').then(m => m.Chessboard), { ssr: false });
+
+interface DailyPuzzleData {
+  puzzle: { id: string; fen: string; moves: string; rating: number; themes: string[] };
+  date: string;
+}
+
+function DailyPuzzleWidget() {
+  const [daily, setDaily] = useState<DailyPuzzleData | null>(null);
+  const [revealed, setRevealed] = useState(false);
+  const [fen, setFen] = useState('start');
+
+  useEffect(() => {
+    fetch('/api/puzzles/daily').then(r => r.json()).then(d => {
+      if (d.daily?.puzzle) {
+        setDaily({ puzzle: d.daily.puzzle, date: d.daily.date });
+        // load initial position (after opponent's first move)
+        import('chess.js').then(({ Chess }) => {
+          const chess = new Chess();
+          chess.load(d.daily.puzzle.fen);
+          const moves = d.daily.puzzle.moves.split(' ').filter(Boolean);
+          if (moves[0]) {
+            try { chess.move({ from: moves[0].slice(0,2), to: moves[0].slice(2,4), promotion: moves[0][4] || 'q' }); } catch {}
+          }
+          setFen(chess.fen());
+        });
+      }
+    });
+  }, []);
+
+  if (!daily) return null;
+
+  return (
+    <section className="py-16 px-4">
+      <div className="max-w-5xl mx-auto">
+        <div className="glass-gold rounded-2xl overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+            <div className="p-8 flex flex-col justify-center">
+              <p className="text-yellow-400 text-sm uppercase tracking-widest mb-2">☀️ Daily Puzzle</p>
+              <h2 className="text-3xl font-bold text-white mb-3" style={{ fontFamily: 'Playfair Display, serif' }}>
+                Today's Challenge
+              </h2>
+              <p className="text-gray-400 mb-2">Rating: <span className="text-yellow-400 font-bold">{daily.puzzle.rating}</span></p>
+              <div className="flex flex-wrap gap-2 mb-6">
+                {daily.puzzle.themes.map(t => (
+                  <span key={t} className="text-xs px-2 py-0.5 rounded-full border border-white/10 text-gray-400 capitalize">{t}</span>
+                ))}
+              </div>
+              {!revealed ? (
+                <div className="space-y-3">
+                  <Link href="/puzzles" className="block btn-primary text-center">
+                    Solve the Puzzle →
+                  </Link>
+                  <button onClick={() => setRevealed(true)} className="w-full btn-secondary text-sm py-2">Peek at Position</button>
+                </div>
+              ) : (
+                <Link href="/puzzles" className="btn-primary text-center block">
+                  Solve on Puzzle Page →
+                </Link>
+              )}
+            </div>
+            <div className="relative bg-black/20">
+              {revealed ? (
+                <div className="p-4">
+                  <Chessboard
+                    options={{
+                      position: fen,
+                      allowDragging: false,
+                      darkSquareStyle: { backgroundColor: '#4a3728' },
+                      lightSquareStyle: { backgroundColor: '#f0d9b5' },
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className="h-full flex items-center justify-center p-8">
+                  <div className="text-center">
+                    <div className="text-7xl mb-4 opacity-30">♟️</div>
+                    <p className="text-gray-500 text-sm">Click "Peek at Position" to preview</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export default function HomePage() {
   return (
@@ -40,6 +131,28 @@ export default function HomePage() {
 
       <Hero />
       <StatsSection />
+      <DailyPuzzleWidget />
+
+      {/* Play Now Banner */}
+      <section className="py-8 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { href: '/play', icon: '⚡', label: 'Play Online', desc: 'Blitz & Bullet' },
+              { href: '/play/bot', icon: '🤖', label: 'vs Computer', desc: '10 difficulty levels' },
+              { href: '/puzzles', icon: '🧩', label: 'Puzzles', desc: 'Daily tactics' },
+              { href: '/lessons', icon: '🎥', label: 'Lessons', desc: 'Video library' },
+            ].map(item => (
+              <Link key={item.href} href={item.href} className="glass-hover p-4 rounded-xl text-center group">
+                <div className="text-3xl mb-2 group-hover:scale-110 transition-transform">{item.icon}</div>
+                <p className="text-white font-semibold text-sm">{item.label}</p>
+                <p className="text-gray-400 text-xs mt-0.5">{item.desc}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <EventHighlights />
       <MembershipTiers />
 
