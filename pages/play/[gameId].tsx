@@ -143,14 +143,12 @@ export default function GamePage() {
 
                   <div className="rounded-xl overflow-hidden border border-white/10">
                     <Chessboard
-                      options={{
-                        position: fen,
-                        onPieceDrop: !!myColor && isMyTurn && !isOver ? onPieceDrop : undefined,
-                        boardOrientation: myColor === 'black' ? 'black' : 'white',
-                        allowDragging: !!myColor && isMyTurn && !isOver,
-                        darkSquareStyle: { backgroundColor: '#4a3728' },
-                        lightSquareStyle: { backgroundColor: '#f0d9b5' },
-                      }}
+                      position={fen}
+                      onPieceDrop={!!myColor && isMyTurn && !isOver ? onPieceDrop : undefined}
+                      boardOrientation={myColor === 'black' ? 'black' : 'white'}
+                      arePiecesDraggable={!!myColor && isMyTurn && !isOver}
+                      customDarkSquareStyle={{ backgroundColor: '#4a3728' }}
+                      customLightSquareStyle={{ backgroundColor: '#f0d9b5' }}
                     />
                   </div>
 

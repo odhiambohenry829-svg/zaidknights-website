@@ -36,7 +36,6 @@ export default function LivePage() {
     return () => clearInterval(iv);
   }, [loadGames]);
 
-  // Subscribe to Supabase Realtime for live updates
   useEffect(() => {
     const channel = supabase
       .channel('live-games')
@@ -52,8 +51,6 @@ export default function LivePage() {
     const updated = games.find(g => g.id === selected.id);
     if (updated) setSelected(updated);
   }, [games, selected?.id]);
-
-  const completedGames = games.filter(g => g.status === 'COMPLETED');
 
   return (
     <Layout title="Live Games | Zaid Knights" description="Watch ongoing club chess games live.">
@@ -72,7 +69,6 @@ export default function LivePage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Game list */}
             <div>
               <h2 className="text-white font-semibold mb-4">Active Games</h2>
               {loading ? (
@@ -85,11 +81,8 @@ export default function LivePage() {
               ) : (
                 <div className="space-y-3">
                   {games.map(g => (
-                    <button
-                      key={g.id}
-                      onClick={() => setSelected(g)}
-                      className={`w-full text-left glass-hover rounded-xl p-4 transition-all ${selected?.id === g.id ? 'border border-yellow-500/40' : ''}`}
-                    >
+                    <button key={g.id} onClick={() => setSelected(g)}
+                      className={`w-full text-left glass-hover rounded-xl p-4 transition-all ${selected?.id === g.id ? 'border border-yellow-500/40' : ''}`}>
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs px-2 py-0.5 rounded-full border border-white/10 text-gray-400">{g.format}</span>
                         <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
@@ -111,7 +104,6 @@ export default function LivePage() {
               )}
             </div>
 
-            {/* Board viewer */}
             <div className="lg:col-span-2">
               {!selected ? (
                 <div className="glass rounded-xl p-12 text-center">
@@ -135,39 +127,32 @@ export default function LivePage() {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* White's perspective */}
                     <div>
                       <p className="text-gray-400 text-xs mb-2 text-center">White's view — {selected.white?.name}</p>
                       <div className="rounded-xl overflow-hidden border border-white/10">
                         <Chessboard
-                          options={{
-                            position: selected.fen || 'start',
-                            allowDragging: false,
-                            boardOrientation: 'white',
-                            darkSquareStyle: { backgroundColor: '#4a3728' },
-                            lightSquareStyle: { backgroundColor: '#f0d9b5' },
-                          }}
+                          position={selected.fen || 'start'}
+                          arePiecesDraggable={false}
+                          boardOrientation="white"
+                          customDarkSquareStyle={{ backgroundColor: '#4a3728' }}
+                          customLightSquareStyle={{ backgroundColor: '#f0d9b5' }}
                         />
                       </div>
                     </div>
-                    {/* Black's perspective */}
                     <div>
                       <p className="text-gray-400 text-xs mb-2 text-center">Black's view — {selected.black?.name ?? '…'}</p>
                       <div className="rounded-xl overflow-hidden border border-white/10">
                         <Chessboard
-                          options={{
-                            position: selected.fen || 'start',
-                            allowDragging: false,
-                            boardOrientation: 'black',
-                            darkSquareStyle: { backgroundColor: '#4a3728' },
-                            lightSquareStyle: { backgroundColor: '#f0d9b5' },
-                          }}
+                          position={selected.fen || 'start'}
+                          arePiecesDraggable={false}
+                          boardOrientation="black"
+                          customDarkSquareStyle={{ backgroundColor: '#4a3728' }}
+                          customLightSquareStyle={{ backgroundColor: '#f0d9b5' }}
                         />
                       </div>
                     </div>
                   </div>
 
-                  {/* Move list */}
                   <div className="glass p-4 rounded-xl mt-4">
                     <h4 className="text-white font-medium text-sm mb-2">Moves</h4>
                     <div className="text-sm font-mono text-gray-400 max-h-24 overflow-y-auto">
