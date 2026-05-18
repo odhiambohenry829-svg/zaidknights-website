@@ -150,7 +150,7 @@ export default function PuzzleRushPage() {
                   <div className="text-6xl mb-4">⚡</div>
                   <h2 className="text-2xl font-bold text-white mb-2">Ready for the Rush?</h2>
                   <p className="text-gray-400 mb-6">You have 3 minutes. Each correct move keeps the streak alive. One wrong move — next puzzle!</p>
-                  <button onClick={startRush} className="btn-primary px-12 py-4 text-lg">Start Rush</button>
+                  <button type="button" onClick={startRush} className="btn-primary px-12 py-4 text-lg">Start Rush</button>
                 </div>
                 <div className="glass p-6 rounded-xl">
                   <h3 className="text-white font-semibold mb-4">🏆 All-Time Leaderboard</h3>
@@ -198,7 +198,7 @@ export default function PuzzleRushPage() {
                   <p className="text-gray-400 text-sm mb-2">Score</p>
                   <p className="text-4xl font-bold text-yellow-400 mb-4">{score}</p>
                   <p className="text-gray-400 text-sm">Attempted: {attempted}</p>
-                  <button onClick={endRush} className="w-full btn-secondary mt-6 text-sm py-2">End Rush</button>
+                  <button type="button" onClick={endRush} className="w-full btn-secondary mt-6 text-sm py-2">End Rush</button>
                 </div>
               </div>
             )}
@@ -212,8 +212,8 @@ export default function PuzzleRushPage() {
                   <p className="text-gray-400">puzzles solved out of {attempted} attempted</p>
                 </div>
                 <div className="flex gap-4">
-                  <button onClick={startRush} className="flex-1 btn-primary py-3">Play Again</button>
-                  <button onClick={() => setPhase('lobby')} className="flex-1 btn-secondary py-3">Leaderboard</button>
+                  <button type="button" onClick={startRush} className="flex-1 btn-primary py-3">Play Again</button>
+                  <button type="button" onClick={() => setPhase('lobby')} className="flex-1 btn-secondary py-3">Leaderboard</button>
                 </div>
               </div>
             )}

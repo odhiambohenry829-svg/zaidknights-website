@@ -81,7 +81,7 @@ export default function LivePage() {
               ) : (
                 <div className="space-y-3">
                   {games.map(g => (
-                    <button key={g.id} onClick={() => setSelected(g)}
+                    <button type="button" key={g.id} onClick={() => setSelected(g)}
                       className={`w-full text-left glass-hover rounded-xl p-4 transition-all ${selected?.id === g.id ? 'border border-yellow-500/40' : ''}`}>
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs px-2 py-0.5 rounded-full border border-white/10 text-gray-400">{g.format}</span>

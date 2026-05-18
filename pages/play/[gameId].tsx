@@ -197,12 +197,12 @@ export default function GamePage() {
                   </div>
 
                   {!isOver && myColor && (
-                    <button onClick={resign} className="w-full btn-secondary text-sm py-2">🏳️ Resign</button>
+                    <button type="button" onClick={resign} className="w-full btn-secondary text-sm py-2">🏳️ Resign</button>
                   )}
                   {isOver && (
                     <div className="space-y-2">
-                      <button onClick={() => router.push('/play')} className="w-full btn-primary text-sm py-2">New Game</button>
-                      <button onClick={() => router.push(`/analysis?game=${game.id}`)} className="w-full btn-secondary text-sm py-2">🔍 Analyse Game</button>
+                      <button type="button" onClick={() => router.push('/play')} className="w-full btn-primary text-sm py-2">New Game</button>
+                      <button type="button" onClick={() => router.push(`/analysis?game=${game.id}`)} className="w-full btn-secondary text-sm py-2">🔍 Analyse Game</button>
                     </div>
                   )}
                   {game.status === 'WAITING' && (

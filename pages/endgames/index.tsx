@@ -97,7 +97,7 @@ export default function EndgamesPage() {
             <div className="space-y-4">
               <div className="flex flex-wrap gap-2 mb-4">
                 {DIFFICULTIES.map(d => (
-                  <button key={d} onClick={() => setFilterDiff(d)}
+                  <button type="button" key={d} onClick={() => setFilterDiff(d)}
                     className={`px-3 py-1 rounded-full text-xs border transition-all ${filterDiff === d ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400' : 'border-white/10 text-gray-400'}`}>
                     {d}
                   </button>
@@ -105,7 +105,7 @@ export default function EndgamesPage() {
               </div>
               <div className="flex flex-wrap gap-2 mb-4">
                 {CONCEPTS.map(c => (
-                  <button key={c} onClick={() => setFilterConcept(c)}
+                  <button type="button" key={c} onClick={() => setFilterConcept(c)}
                     className={`px-3 py-1 rounded-full text-xs border transition-all ${filterConcept === c ? 'bg-blue-500/20 border-blue-500/50 text-blue-400' : 'border-white/10 text-gray-400'}`}>
                     {c}
                   </button>
@@ -113,7 +113,7 @@ export default function EndgamesPage() {
               </div>
               <div className="space-y-2">
                 {filtered.map(d => (
-                  <button key={d.id} onClick={() => startDrill(d)}
+                  <button type="button" key={d.id} onClick={() => startDrill(d)}
                     className={`w-full text-left p-4 rounded-xl border transition-all ${drill?.id === d.id ? 'bg-yellow-500/20 border-yellow-500/30' : 'glass hover:border-yellow-500/20'}`}>
                     <div className="flex items-start justify-between">
                       <div>
@@ -172,8 +172,8 @@ export default function EndgamesPage() {
                   </div>
 
                   <div className="flex gap-3 mt-4">
-                    <button onClick={() => startDrill(drill)} className="btn-secondary flex-1 py-2 text-sm">Reset</button>
-                    <button onClick={() => { setHint(drill.tip); }} className="btn-secondary flex-1 py-2 text-sm">💡 Hint</button>
+                    <button type="button" onClick={() => startDrill(drill)} className="btn-secondary flex-1 py-2 text-sm">Reset</button>
+                    <button type="button" onClick={() => { setHint(drill.tip); }} className="btn-secondary flex-1 py-2 text-sm">💡 Hint</button>
                   </div>
 
                   {drill.tip && (

@@ -169,13 +169,13 @@ export default function PuzzlesPage() {
                   <p className="text-gray-400 mb-8">Choose a puzzle type or start with a random puzzle</p>
                   <div className="flex flex-wrap gap-3 justify-center mb-6">
                     {daily && (
-                      <button onClick={loadDailyPuzzle} className="btn-primary px-6">☀️ Today's Puzzle</button>
+                      <button type="button" onClick={loadDailyPuzzle} className="btn-primary px-6">☀️ Today's Puzzle</button>
                     )}
-                    <button onClick={() => loadPuzzle()} className="btn-secondary px-6">🎲 Random Puzzle</button>
+                    <button type="button" onClick={() => loadPuzzle()} className="btn-secondary px-6">🎲 Random Puzzle</button>
                   </div>
                   <div className="flex flex-wrap gap-2 justify-center">
                     {THEMES.map(t => (
-                      <button key={t} onClick={() => loadPuzzle(t)} className="px-3 py-1 text-xs rounded-full border border-white/10 text-gray-400 hover:border-yellow-500/30 hover:text-yellow-400 transition-colors capitalize">
+                      <button type="button" key={t} onClick={() => loadPuzzle(t)} className="px-3 py-1 text-xs rounded-full border border-white/10 text-gray-400 hover:border-yellow-500/30 hover:text-yellow-400 transition-colors capitalize">
                         {t}
                       </button>
                     ))}
@@ -201,9 +201,9 @@ export default function PuzzlesPage() {
                     />
                   </div>
                   <div className="flex gap-3 mt-4">
-                    <button onClick={() => loadPuzzle()} className="btn-primary flex-1 py-2 text-sm">Next Puzzle</button>
+                    <button type="button" onClick={() => loadPuzzle()} className="btn-primary flex-1 py-2 text-sm">Next Puzzle</button>
                     {state === 'failed' && (
-                      <button onClick={() => { setState('idle'); setTimeout(() => loadPuzzle(), 100); }} className="btn-secondary px-4 py-2 text-sm">Try Again</button>
+                      <button type="button" onClick={() => { setState('idle'); setTimeout(() => loadPuzzle(), 100); }} className="btn-secondary px-4 py-2 text-sm">Try Again</button>
                     )}
                   </div>
                 </>
@@ -216,7 +216,7 @@ export default function PuzzlesPage() {
                   <p className="text-yellow-400 text-xs uppercase tracking-widest mb-1">☀️ Daily Puzzle</p>
                   <p className="text-white font-semibold">Today's Challenge</p>
                   <p className="text-gray-400 text-sm mt-1">Rating: {daily.puzzle.rating}</p>
-                  <button onClick={loadDailyPuzzle} className="w-full btn-primary mt-3 py-2 text-sm">Solve It</button>
+                  <button type="button" onClick={loadDailyPuzzle} className="w-full btn-primary mt-3 py-2 text-sm">Solve It</button>
                 </div>
               )}
               {user && (
@@ -244,7 +244,7 @@ export default function PuzzlesPage() {
                 <h3 className="text-white font-semibold mb-3">Practice by Theme</h3>
                 <div className="flex flex-wrap gap-2">
                   {THEMES.map(t => (
-                    <button key={t} onClick={() => loadPuzzle(t)} className="px-3 py-1 text-xs rounded-full border border-white/10 text-gray-400 hover:border-yellow-500/30 hover:text-yellow-400 transition-colors capitalize">
+                    <button type="button" key={t} onClick={() => loadPuzzle(t)} className="px-3 py-1 text-xs rounded-full border border-white/10 text-gray-400 hover:border-yellow-500/30 hover:text-yellow-400 transition-colors capitalize">
                       {t}
                     </button>
                   ))}

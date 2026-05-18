@@ -104,6 +104,7 @@ export default function PlayPage() {
                       <div className="flex flex-wrap gap-2">
                         {controls.map(tc => (
                           <button
+                            type="button"
                             key={tc.label}
                             onClick={() => setSelected(tc)}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border ${
@@ -122,6 +123,7 @@ export default function PlayPage() {
 
                 <div className="mt-6 flex gap-4 flex-wrap">
                   <button
+                    type="button"
                     onClick={handlePlay}
                     disabled={seeking}
                     className="btn-primary flex-1 text-center py-4 text-lg"
@@ -149,7 +151,7 @@ export default function PlayPage() {
                             <p className="text-white text-sm font-medium">{g.white?.name ?? 'Anonymous'}</p>
                             <p className="text-gray-400 text-xs">{g.format} · {Math.floor(g.timeLimit / 60)}min</p>
                           </div>
-                          <button onClick={() => joinGame(g.id)} className="btn-primary text-xs px-3 py-1">Join</button>
+                          <button type="button" onClick={() => joinGame(g.id)} className="btn-primary text-xs px-3 py-1">Join</button>
                         </div>
                       ))}
                     </div>

@@ -144,14 +144,14 @@ export default function PlayBotPage() {
                 <label className="label">Play As</label>
                 <div className="flex gap-3">
                   {(['white', 'black'] as const).map(c => (
-                    <button key={c} onClick={() => setPlayerColor(c)}
+                    <button type="button" key={c} onClick={() => setPlayerColor(c)}
                       className={`flex-1 py-3 rounded-lg border capitalize transition-all ${playerColor === c ? 'bg-yellow-500 text-black border-yellow-400' : 'border-white/10 text-gray-300'}`}>
                       {c === 'white' ? '♔' : '♚'} {c}
                     </button>
                   ))}
                 </div>
               </div>
-              <button onClick={startGame} className="w-full btn-primary py-4 text-lg">Start Game</button>
+              <button type="button" onClick={startGame} className="w-full btn-primary py-4 text-lg">Start Game</button>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -194,8 +194,8 @@ export default function PlayBotPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <button onClick={startGame} className="w-full btn-primary text-sm py-2">New Game</button>
-                  <button onClick={() => setStarted(false)} className="w-full btn-secondary text-sm py-2">Change Settings</button>
+                  <button type="button" onClick={startGame} className="w-full btn-primary text-sm py-2">New Game</button>
+                  <button type="button" onClick={() => setStarted(false)} className="w-full btn-secondary text-sm py-2">Change Settings</button>
                 </div>
               </div>
             </div>
