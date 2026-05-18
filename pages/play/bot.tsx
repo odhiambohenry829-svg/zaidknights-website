@@ -162,14 +162,12 @@ export default function PlayBotPage() {
                 </div>
                 <div className="rounded-xl overflow-hidden border border-white/10">
                   <Chessboard
-                    options={{
-                      position: fen,
-                      onPieceDrop: !gameOver ? onPieceDrop : undefined,
-                      boardOrientation: playerColor,
-                      allowDragging: !gameOver,
-                      darkSquareStyle: { backgroundColor: '#4a3728' },
-                      lightSquareStyle: { backgroundColor: '#f0d9b5' },
-                    }}
+                    position={fen}
+                    onPieceDrop={!gameOver ? onPieceDrop : undefined}
+                    boardOrientation={playerColor}
+                    arePiecesDraggable={!gameOver}
+                    customDarkSquareStyle={{ backgroundColor: '#4a3728' }}
+                    customLightSquareStyle={{ backgroundColor: '#f0d9b5' }}
                   />
                 </div>
                 <div className="glass p-3 rounded-xl mt-2 flex items-center gap-3">

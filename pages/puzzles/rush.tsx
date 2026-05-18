@@ -10,7 +10,7 @@ const Chessboard = dynamic(() => import('react-chessboard').then(m => m.Chessboa
 interface Puzzle { id: string; fen: string; moves: string; rating: number; themes: string[] }
 interface LeaderboardEntry { userId: string; score: number; user: { name: string } }
 
-const DURATION = 180; // 3 minutes
+const DURATION = 180;
 
 export default function PuzzleRushPage() {
   const { user } = useAuth();
@@ -47,7 +47,6 @@ export default function PuzzleRushPage() {
     const chess = chessRef.current;
     chess.load(p.fen);
     const moves = p.moves.split(' ').filter(Boolean);
-    // bot's first move
     if (moves[0]) {
       try { chess.move({ from: moves[0].slice(0,2) as Square, to: moves[0].slice(2,4) as Square, promotion: moves[0][4] || 'q' }); } catch {}
     }
@@ -184,14 +183,12 @@ export default function PuzzleRushPage() {
                   </div>
                   <div className="rounded-xl overflow-hidden border border-white/10">
                     <Chessboard
-                      options={{
-                        position: fen,
-                        onPieceDrop: onDrop,
-                        boardOrientation: playerColor,
-                        allowDragging: true,
-                        darkSquareStyle: { backgroundColor: '#4a3728' },
-                        lightSquareStyle: { backgroundColor: '#f0d9b5' },
-                      }}
+                      position={fen}
+                      onPieceDrop={onDrop}
+                      boardOrientation={playerColor}
+                      arePiecesDraggable={true}
+                      customDarkSquareStyle={{ backgroundColor: '#4a3728' }}
+                      customLightSquareStyle={{ backgroundColor: '#f0d9b5' }}
                     />
                   </div>
                 </div>

@@ -12,7 +12,7 @@ interface EndgameDrill {
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
   concept: string;
   fen: string;
-  solution: string; // first best move (UCI)
+  solution: string;
   tip: string;
 }
 
@@ -94,7 +94,6 @@ export default function EndgamesPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Drill List */}
             <div className="space-y-4">
               <div className="flex flex-wrap gap-2 mb-4">
                 {DIFFICULTIES.map(d => (
@@ -114,11 +113,8 @@ export default function EndgamesPage() {
               </div>
               <div className="space-y-2">
                 {filtered.map(d => (
-                  <button
-                    key={d.id}
-                    onClick={() => startDrill(d)}
-                    className={`w-full text-left p-4 rounded-xl border transition-all ${drill?.id === d.id ? 'bg-yellow-500/20 border-yellow-500/30' : 'glass hover:border-yellow-500/20'}`}
-                  >
+                  <button key={d.id} onClick={() => startDrill(d)}
+                    className={`w-full text-left p-4 rounded-xl border transition-all ${drill?.id === d.id ? 'bg-yellow-500/20 border-yellow-500/30' : 'glass hover:border-yellow-500/20'}`}>
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="text-white font-medium text-sm">{d.title}</p>
@@ -135,7 +131,6 @@ export default function EndgamesPage() {
               </div>
             </div>
 
-            {/* Board & info */}
             <div className="lg:col-span-2">
               {!drill ? (
                 <div className="glass rounded-xl p-12 text-center">
@@ -167,14 +162,12 @@ export default function EndgamesPage() {
 
                   <div className="rounded-xl overflow-hidden border border-white/10">
                     <Chessboard
-                      options={{
-                        position: fen,
-                        onPieceDrop: state === 'playing' ? onDrop : undefined,
-                        boardOrientation: playerColor,
-                        allowDragging: state === 'playing',
-                        darkSquareStyle: { backgroundColor: '#4a3728' },
-                        lightSquareStyle: { backgroundColor: '#f0d9b5' },
-                      }}
+                      position={fen}
+                      onPieceDrop={state === 'playing' ? onDrop : undefined}
+                      boardOrientation={playerColor}
+                      arePiecesDraggable={state === 'playing'}
+                      customDarkSquareStyle={{ backgroundColor: '#4a3728' }}
+                      customLightSquareStyle={{ backgroundColor: '#f0d9b5' }}
                     />
                   </div>
 

@@ -32,22 +32,17 @@ export default function PuzzlesPage() {
   const startTime = useRef<number>(0);
 
   useEffect(() => {
-    import('chess.js').then(({ Chess }) => {
-      chessRef.current = new Chess();
-    });
+    import('chess.js').then(({ Chess }) => { chessRef.current = new Chess(); });
   }, []);
 
-  // Load daily puzzle
   useEffect(() => {
     fetch('/api/puzzles/daily').then(r => r.json()).then(d => {
       if (d.daily) setDaily({ puzzle: d.daily.puzzle, date: d.daily.date });
     });
   }, []);
 
-  // Load puzzle stats for user
   useEffect(() => {
     if (!user) return;
-    // approximate from attempts - just use session for now
   }, [user]);
 
   const loadPuzzle = useCallback(async (theme?: string) => {
@@ -65,12 +60,10 @@ export default function PuzzlesPage() {
 
     const chess = chessRef.current;
     chess.load(p.fen);
-
     const moves = p.moves.split(' ').filter(Boolean);
     setPuzzleMoves(moves);
     setPuzzle(p);
 
-    // puzzle starts with opponent making a move, then player responds
     const opponentMove = moves[0];
     if (opponentMove) {
       try {
@@ -111,7 +104,6 @@ export default function PuzzlesPage() {
     if (!chessRef.current || !puzzle || state !== 'playing' || !targetSquare) return false;
     const chess = chessRef.current;
     const isPromotion = piece.pieceType[1] === 'P' && ((playerColor === 'white' && targetSquare[1] === '8') || (playerColor === 'black' && targetSquare[1] === '1'));
-
     const moveAttempt = sourceSquare + targetSquare + (isPromotion ? 'q' : '');
     const expectedMove = puzzleMoves[moveIndex];
 
@@ -169,7 +161,6 @@ export default function PuzzlesPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Board */}
             <div className="lg:col-span-2">
               {state === 'idle' ? (
                 <div className="glass rounded-xl p-12 text-center">
@@ -178,13 +169,9 @@ export default function PuzzlesPage() {
                   <p className="text-gray-400 mb-8">Choose a puzzle type or start with a random puzzle</p>
                   <div className="flex flex-wrap gap-3 justify-center mb-6">
                     {daily && (
-                      <button onClick={loadDailyPuzzle} className="btn-primary px-6">
-                        ☀️ Today's Puzzle
-                      </button>
+                      <button onClick={loadDailyPuzzle} className="btn-primary px-6">☀️ Today's Puzzle</button>
                     )}
-                    <button onClick={() => loadPuzzle()} className="btn-secondary px-6">
-                      🎲 Random Puzzle
-                    </button>
+                    <button onClick={() => loadPuzzle()} className="btn-secondary px-6">🎲 Random Puzzle</button>
                   </div>
                   <div className="flex flex-wrap gap-2 justify-center">
                     {THEMES.map(t => (
@@ -205,31 +192,25 @@ export default function PuzzlesPage() {
                   )}
                   <div className="rounded-xl overflow-hidden border border-white/10">
                     <Chessboard
-                      options={{
-                        position: fen,
-                        onPieceDrop: state === 'playing' ? onDrop : undefined,
-                        boardOrientation: playerColor,
-                        allowDragging: state === 'playing',
-                        darkSquareStyle: { backgroundColor: '#4a3728' },
-                        lightSquareStyle: { backgroundColor: '#f0d9b5' },
-                      }}
+                      position={fen}
+                      onPieceDrop={state === 'playing' ? onDrop : undefined}
+                      boardOrientation={playerColor}
+                      arePiecesDraggable={state === 'playing'}
+                      customDarkSquareStyle={{ backgroundColor: '#4a3728' }}
+                      customLightSquareStyle={{ backgroundColor: '#f0d9b5' }}
                     />
                   </div>
                   <div className="flex gap-3 mt-4">
                     <button onClick={() => loadPuzzle()} className="btn-primary flex-1 py-2 text-sm">Next Puzzle</button>
                     {state === 'failed' && (
-                      <button onClick={() => {
-                        setState('idle'); setTimeout(() => loadPuzzle(), 100);
-                      }} className="btn-secondary px-4 py-2 text-sm">Try Again</button>
+                      <button onClick={() => { setState('idle'); setTimeout(() => loadPuzzle(), 100); }} className="btn-secondary px-4 py-2 text-sm">Try Again</button>
                     )}
                   </div>
                 </>
               )}
             </div>
 
-            {/* Sidebar */}
             <div className="space-y-5">
-              {/* Daily Puzzle */}
               {daily && (
                 <div className="glass-gold p-5 rounded-xl">
                   <p className="text-yellow-400 text-xs uppercase tracking-widest mb-1">☀️ Daily Puzzle</p>
@@ -238,8 +219,6 @@ export default function PuzzlesPage() {
                   <button onClick={loadDailyPuzzle} className="w-full btn-primary mt-3 py-2 text-sm">Solve It</button>
                 </div>
               )}
-
-              {/* Stats */}
               {user && (
                 <div className="glass p-5 rounded-xl">
                   <h3 className="text-white font-semibold mb-3">Your Session</h3>
@@ -255,16 +234,12 @@ export default function PuzzlesPage() {
                   </div>
                 </div>
               )}
-
-              {/* Puzzle Rush */}
               <div className="glass p-5 rounded-xl text-center">
                 <p className="text-3xl mb-2">⚡</p>
                 <h3 className="text-white font-semibold">Puzzle Rush</h3>
                 <p className="text-gray-400 text-sm mt-1 mb-4">Solve as many puzzles as possible in 3 minutes!</p>
                 <Link href="/puzzles/rush" className="btn-primary w-full block text-sm py-2">Play Puzzle Rush</Link>
               </div>
-
-              {/* Themes */}
               <div className="glass p-5 rounded-xl">
                 <h3 className="text-white font-semibold mb-3">Practice by Theme</h3>
                 <div className="flex flex-wrap gap-2">
@@ -275,8 +250,6 @@ export default function PuzzlesPage() {
                   ))}
                 </div>
               </div>
-
-              {/* Endgames CTA */}
               <div className="glass p-5 rounded-xl">
                 <h3 className="text-white font-semibold mb-2">🏁 Endgame Drills</h3>
                 <p className="text-gray-400 text-sm mb-3">Practice fundamental endgame techniques</p>
