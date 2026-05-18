@@ -193,12 +193,10 @@ export default function AnalysisPage() {
               <div className="lg:col-span-2">
                 <div className="rounded-xl overflow-hidden border border-white/10 mb-4">
                   <Chessboard
-                    options={{
-                      position: fen,
-                      allowDragging: false,
-                      darkSquareStyle: { backgroundColor: '#4a3728' },
-                      lightSquareStyle: { backgroundColor: '#f0d9b5' },
-                    }}
+                    position={fen}
+                    arePiecesDraggable={false}
+                    customDarkSquareStyle={{ backgroundColor: '#4a3728' }}
+                    customLightSquareStyle={{ backgroundColor: '#f0d9b5' }}
                   />
                 </div>
 
