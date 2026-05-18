@@ -102,12 +102,12 @@ export default function PlayBotPage() {
     if (playerColor === 'black') setTimeout(() => doBotMove(), 500);
   };
 
-  const onPieceDrop = ({ sourceSquare, targetSquare, piece }: { piece: { pieceType: string }; sourceSquare: string; targetSquare: string | null }): boolean => {
-    if (!chessRef.current || !started || gameOver || !targetSquare) return false;
+  const onPieceDrop = (sourceSquare: string, targetSquare: string, piece: string): boolean => {
+    if (!chessRef.current || !started || gameOver) return false;
     const c = chessRef.current;
     const playerTurn = playerColor === 'white' ? 'w' : 'b';
     if (c.turn() !== playerTurn) return false;
-    const isPromotion = piece.pieceType[1] === 'P' && ((playerColor === 'white' && targetSquare[1] === '8') || (playerColor === 'black' && targetSquare[1] === '1'));
+    const isPromotion = piece[1] === 'P' && ((playerColor === 'white' && targetSquare[1] === '8') || (playerColor === 'black' && targetSquare[1] === '1'));
     try {
       const move = c.move({ from: sourceSquare, to: targetSquare, promotion: isPromotion ? 'q' : undefined } as Parameters<typeof c.move>[0]);
       if (!move) return false;
@@ -132,8 +132,8 @@ export default function PlayBotPage() {
           {!started ? (
             <div className="max-w-md mx-auto glass p-8 rounded-xl">
               <div className="mb-6">
-                <label className="label">Bot Difficulty</label>
-                <input type="range" min={1} max={10} value={difficulty} onChange={e => setDifficulty(parseInt(e.target.value))} className="w-full accent-yellow-500" />
+                <label htmlFor="bot-difficulty" className="label">Bot Difficulty</label>
+                <input id="bot-difficulty" type="range" min={1} max={10} value={difficulty} onChange={e => setDifficulty(parseInt(e.target.value))} className="w-full accent-yellow-500" />
                 <div className="flex justify-between mt-1">
                   <span className="text-xs text-gray-500">Beginner</span>
                   <span className="text-yellow-400 font-semibold text-sm">{DIFFICULTY_LABELS[difficulty]}</span>

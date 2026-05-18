@@ -82,10 +82,10 @@ export default function GamePage() {
   const isMyTurn = chessRef.current ? (myColor === 'white' ? chessRef.current.turn() === 'w' : chessRef.current.turn() === 'b') : false;
   const isOver = game?.status === 'COMPLETED' || game?.status === 'ABORTED';
 
-  const onPieceDrop = ({ sourceSquare, targetSquare, piece }: { piece: { pieceType: string }; sourceSquare: string; targetSquare: string | null }): boolean => {
-    if (!chessRef.current || !game || !myColor || !isMyTurn || game.status !== 'ACTIVE' || !targetSquare) return false;
+  const onPieceDrop = (sourceSquare: string, targetSquare: string, piece: string): boolean => {
+    if (!chessRef.current || !game || !myColor || !isMyTurn || game.status !== 'ACTIVE') return false;
     const chess = chessRef.current;
-    const isPromotion = piece.pieceType[1] === 'P' && ((myColor === 'white' && targetSquare[1] === '8') || (myColor === 'black' && targetSquare[1] === '1'));
+    const isPromotion = piece[1] === 'P' && ((myColor === 'white' && targetSquare[1] === '8') || (myColor === 'black' && targetSquare[1] === '1'));
 
     try {
       const move = chess.move({ from: sourceSquare, to: targetSquare, promotion: isPromotion ? 'q' : undefined } as Parameters<typeof chess.move>[0]);

@@ -100,10 +100,10 @@ export default function PuzzlesPage() {
     setHint(`Find the best move for ${chess.turn() === 'w' ? 'White' : 'Black'}`);
   }, [daily]);
 
-  const onDrop = ({ sourceSquare, targetSquare, piece }: { piece: { pieceType: string }; sourceSquare: string; targetSquare: string | null }): boolean => {
-    if (!chessRef.current || !puzzle || state !== 'playing' || !targetSquare) return false;
+  const onDrop = (sourceSquare: string, targetSquare: string, piece: string): boolean => {
+    if (!chessRef.current || !puzzle || state !== 'playing') return false;
     const chess = chessRef.current;
-    const isPromotion = piece.pieceType[1] === 'P' && ((playerColor === 'white' && targetSquare[1] === '8') || (playerColor === 'black' && targetSquare[1] === '1'));
+    const isPromotion = piece[1] === 'P' && ((playerColor === 'white' && targetSquare[1] === '8') || (playerColor === 'black' && targetSquare[1] === '1'));
     const moveAttempt = sourceSquare + targetSquare + (isPromotion ? 'q' : '');
     const expectedMove = puzzleMoves[moveIndex];
 

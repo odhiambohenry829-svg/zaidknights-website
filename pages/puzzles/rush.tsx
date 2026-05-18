@@ -88,10 +88,10 @@ export default function PuzzleRushPage() {
     if (timeLeft === 0 && phase === 'playing') endRush();
   }, [timeLeft, phase, endRush]);
 
-  const onDrop = ({ sourceSquare, targetSquare, piece }: { piece: { pieceType: string }; sourceSquare: string; targetSquare: string | null }): boolean => {
-    if (!chessRef.current || !puzzle || phase !== 'playing' || !targetSquare) return false;
+  const onDrop = (sourceSquare: string, targetSquare: string, piece: string): boolean => {
+    if (!chessRef.current || !puzzle || phase !== 'playing') return false;
     const chess = chessRef.current;
-    const isPromotion = piece.pieceType[1] === 'P' && ((playerColor === 'white' && targetSquare[1] === '8') || (playerColor === 'black' && targetSquare[1] === '1'));
+    const isPromotion = piece[1] === 'P' && ((playerColor === 'white' && targetSquare[1] === '8') || (playerColor === 'black' && targetSquare[1] === '1'));
     const moveAttempt = sourceSquare + targetSquare + (isPromotion ? 'q' : '');
     const expected = puzzleMoves[moveIndex];
 

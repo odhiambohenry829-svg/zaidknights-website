@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import type { Square } from 'chess.js';
 import Layout from '../../components/common/Layout';
@@ -57,8 +57,8 @@ export default function EndgamesPage() {
     setHint('');
   };
 
-  const onDrop = ({ sourceSquare, targetSquare }: { piece: { pieceType: string }; sourceSquare: string; targetSquare: string | null }): boolean => {
-    if (!chessRef.current || !drill || state !== 'playing' || !targetSquare) return false;
+  const onDrop = (sourceSquare: Square, targetSquare: Square): boolean => {
+    if (!chessRef.current || !drill || state !== 'playing') return false;
     const chess = chessRef.current;
     const moveAttempt = sourceSquare + targetSquare;
 
