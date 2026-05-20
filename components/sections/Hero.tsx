@@ -1,5 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+
+// Real Zaid Knights photos from public/images/gallery
+const SLIDES = [
+  { src: '/images/gallery/20251019_161800.jpg', caption: 'Zaid Knights in action' },
+  { src: '/images/gallery/20251019_161816.jpg', caption: 'Strategic minds at work' },
+  { src: '/images/gallery/20251018_090240.jpg', caption: 'Club training session' },
+  { src: '/images/gallery/20251014_171920.jpg', caption: 'Competitive chess at its finest' },
+  { src: '/images/gallery/20251019_084248.jpg', caption: 'Our players representing Kenya' },
+  { src: '/images/gallery/20251018_090305.jpg', caption: 'Sharpening great minds' },
+  { src: '/images/gallery/20251014_172114.jpg', caption: 'Zaid Knights community' },
+  { src: '/images/gallery/20251019_161839.jpg', caption: 'National level competition' },
+];
 
 interface NextEvent {
   title: string;
@@ -31,11 +44,17 @@ function useCountdown(target: Date | null) {
 }
 
 export default function Hero() {
-  const [nextEvent,    setNextEvent]    = useState<NextEvent | null>(null);
-  const [heroTitle,    setHeroTitle]    = useState('Master the Game of Kings');
-  const [heroSubtitle, setHeroSubtitle] = useState(
-    'Join Zaid Knights Chess Club — where strategy meets community. Compete in tournaments, climb the rankings, and grow with Kenya\'s most passionate chess players.'
-  );
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [nextEvent, setNextEvent] = useState<NextEvent | null>(null);
+  const slideTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Auto-advance slideshow every 4 seconds
+  useEffect(() => {
+    slideTimer.current = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % SLIDES.length);
+    }, 4000);
+    return () => { if (slideTimer.current) clearInterval(slideTimer.current); };
+  }, []);
 
   useEffect(() => {
     fetch('/api/events?limit=1')
@@ -45,85 +64,177 @@ export default function Hero() {
         if (events.length > 0) setNextEvent(events[0]);
       })
       .catch(() => {});
-
-    fetch('/api/site-settings')
-      .then(r => r.json())
-      .then(data => {
-        if (data.settings?.heroTitle)    setHeroTitle(data.settings.heroTitle);
-        if (data.settings?.heroSubtitle) setHeroSubtitle(data.settings.heroSubtitle);
-      })
-      .catch(() => {});
   }, []);
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+    if (slideTimer.current) clearInterval(slideTimer.current);
+    slideTimer.current = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % SLIDES.length);
+    }, 4000);
+  };
 
   const eventDate = nextEvent ? new Date(nextEvent.startDate) : null;
   const countdown = useCountdown(eventDate);
 
   return (
-    <section className="relative min-h-[90vh] flex items-center overflow-hidden chess-pattern">
-      {/* Background glows */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-yellow-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-yellow-500/3 rounded-full blur-3xl" />
-      </div>
+    <section className="relative min-h-[100vh] flex items-center overflow-hidden">
 
-      {/* Decorative chess piece */}
-      <div className="absolute right-8 top-1/2 -translate-y-1/2 text-[20rem] opacity-5 select-none pointer-events-none hidden lg:block">
-        ♞
-      </div>
-
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-        <div className="max-w-3xl animate-fade-in">
-
-          {/* Tag */}
-          <div className="inline-flex items-center gap-2 badge-gold mb-6 py-1.5 px-4 text-sm">
-            <span className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
-            Nairobi's Premier Chess Club
-          </div>
-
-          {/* Headline */}
-          <h1
-            className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight"
-            style={{ fontFamily: 'Playfair Display, serif' }}
+      {/* ── Slideshow Background ── */}
+      <div className="absolute inset-0 z-0">
+        {SLIDES.map((slide, i) => (
+          <div
+            key={slide.src}
+            className={`absolute inset-0 transition-opacity duration-1000 ${i === currentSlide ? 'opacity-100' : 'opacity-0'}`}
           >
-            <span className="gold-gradient">{heroTitle}</span>
-          </h1>
+            <Image
+              src={slide.src}
+              alt={slide.caption}
+              fill
+              className="object-cover"
+              priority={i === 0}
+              sizes="100vw"
+            />
+          </div>
+        ))}
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-black/65 z-10" />
+        {/* Bottom gradient */}
+        <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#0A0A0F] to-transparent z-10" />
+      </div>
 
-          <p className="text-xl text-gray-400 mb-10 leading-relaxed">
-            {heroSubtitle}
-          </p>
+      {/* ── Content ── */}
+      <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
 
-          {/* CTA Buttons */}
-          <div className="flex flex-wrap gap-4 mb-14">
-            <Link href="/register" className="btn-primary text-base px-8 py-4">
-              Join the Club →
-            </Link>
-            <Link href="/events" className="btn-secondary text-base px-8 py-4">
-              View Events
-            </Link>
+          {/* Left — Text */}
+          <div className="animate-fade-in">
+            {/* Logo */}
+            <div className="mb-8">
+              <Image
+                src="/logo.png"
+                alt="Zaid Knights"
+                width={200}
+                height={67}
+                className="object-contain"
+                priority
+              />
+            </div>
+
+            {/* Tag */}
+            <div className="inline-flex items-center gap-2 badge-gold mb-6 py-1.5 px-4 text-sm">
+              <span className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
+              Nairobi's Premier Chess Club
+            </div>
+
+            {/* Headline */}
+            <h1
+              className="text-5xl md:text-6xl font-bold text-white mb-4 leading-tight"
+              style={{ fontFamily: 'Playfair Display, serif' }}
+            >
+              <span className="gold-gradient">Sharpening</span>
+              <br />
+              <span className="text-white">Great Minds</span>
+            </h1>
+
+            <p className="text-lg text-gray-300 mb-8 leading-relaxed max-w-lg">
+              Join Zaid Knights Chess Club — where strategy meets community. Compete in tournaments,
+              climb the rankings, and grow with Kenya's most passionate chess players.
+            </p>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-wrap gap-4 mb-10">
+              <Link href="/register" className="btn-primary text-base px-8 py-4">
+                Join the Club →
+              </Link>
+              <Link href="/events" className="btn-secondary text-base px-8 py-4">
+                View Events
+              </Link>
+            </div>
+
+            {/* Countdown */}
+            {nextEvent && eventDate && (
+              <div>
+                <p className="text-gray-400 text-xs mb-1 uppercase tracking-widest">Next Tournament</p>
+                <p className="text-yellow-400/70 text-xs mb-3 truncate max-w-xs">{nextEvent.title}</p>
+                <div className="flex gap-3 flex-wrap">
+                  {[
+                    { label: 'Days',    value: countdown.days },
+                    { label: 'Hours',   value: countdown.hours },
+                    { label: 'Mins',    value: countdown.minutes },
+                    { label: 'Secs',    value: countdown.seconds },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="glass px-4 py-3 text-center min-w-[70px]">
+                      <div className="text-2xl font-bold text-yellow-400 tabular-nums">
+                        {String(value).padStart(2, '0')}
+                      </div>
+                      <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">{label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Countdown — only shown when there's a real upcoming event */}
-          {nextEvent && eventDate && (
-            <div>
-              <p className="text-gray-500 text-sm mb-1 uppercase tracking-widest">Next Tournament</p>
-              <p className="text-yellow-400/70 text-xs mb-3 truncate max-w-xs">{nextEvent.title}</p>
-              <div className="flex gap-4 flex-wrap">
-                {[
-                  { label: 'Days',    value: countdown.days },
-                  { label: 'Hours',   value: countdown.hours },
-                  { label: 'Minutes', value: countdown.minutes },
-                  { label: 'Seconds', value: countdown.seconds },
-                ].map(({ label, value }) => (
-                  <div key={label} className="glass px-5 py-4 text-center min-w-[80px]">
-                    <div className="text-3xl font-bold text-yellow-400 tabular-nums">
-                      {String(value).padStart(2, '0')}
-                    </div>
-                    <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">{label}</div>
-                  </div>
-                ))}
+          {/* Right — Featured photo frame */}
+          <div className="hidden lg:block relative">
+            <div className="relative rounded-2xl overflow-hidden border-2 border-yellow-500/30 shadow-2xl shadow-yellow-500/10" style={{ height: '500px' }}>
+              {SLIDES.map((slide, i) => (
+                <div
+                  key={slide.src}
+                  className={`absolute inset-0 transition-opacity duration-1000 ${i === currentSlide ? 'opacity-100' : 'opacity-0'}`}
+                >
+                  <Image
+                    src={slide.src}
+                    alt={slide.caption}
+                    fill
+                    className="object-cover"
+                    sizes="50vw"
+                  />
+                </div>
+              ))}
+              {/* Caption */}
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 z-10">
+                <p className="text-white text-sm font-medium">{SLIDES[currentSlide].caption}</p>
               </div>
             </div>
-          )}
+
+            {/* Slide dots */}
+            <div className="flex justify-center gap-2 mt-4">
+              {SLIDES.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => goToSlide(i)}
+                  className={`w-2 h-2 rounded-full transition-all ${i === currentSlide ? 'bg-yellow-400 w-6' : 'bg-white/30'}`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Slide indicators (mobile) ── */}
+        <div className="flex justify-center gap-2 mt-8 lg:hidden">
+          {SLIDES.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => goToSlide(i)}
+              className={`w-2 h-2 rounded-full transition-all ${i === currentSlide ? 'bg-yellow-400 w-6' : 'bg-white/30'}`}
+            />
+          ))}
+        </div>
+
+        {/* ── Stats bar ── */}
+        <div className="grid grid-cols-3 gap-4 mt-16 max-w-lg">
+          {[
+            { number: '2025', label: 'Founded' },
+            { number: 'Nairobi', label: 'Based In' },
+            { number: 'National', label: 'Level Reached' },
+          ].map(stat => (
+            <div key={stat.label} className="text-center">
+              <div className="text-xl font-bold text-yellow-400">{stat.number}</div>
+              <div className="text-gray-500 text-xs uppercase tracking-wide mt-1">{stat.label}</div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
