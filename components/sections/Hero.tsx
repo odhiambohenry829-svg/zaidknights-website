@@ -112,7 +112,7 @@ export default function Hero() {
             {/* Logo */}
             <div className="mb-8">
               <Image
-                src="/logo.png"
+                src="/logo.png?v=2"
                 alt="Zaid Knights"
                 width={200}
                 height={67}

@@ -1,40 +1,41 @@
 import { useEffect, useRef, useState } from 'react';
 
 const stats = [
-  { label: 'Year Founded', value: 2025, suffix: '', icon: '♟' },
-  { label: 'Partner Schools', value: 10, suffix: '+', icon: '🏫' },
-  { label: 'National Level', value: 1, suffix: '', icon: '🏆', display: 'National' },
-  { label: 'Based In', value: 1, suffix: '', icon: '📍', display: 'Nairobi' },
+  { label: 'Year Founded',    value: 2025,      suffix: '',  icon: '♟',  isText: false },
+  { label: 'Partner Schools', value: 10,         suffix: '+', icon: '🏫', isText: false },
+  { label: 'Level Reached',   value: 'National', suffix: '',  icon: '🏆', isText: true  },
+  { label: 'Based In',        value: 'Nairobi',  suffix: '',  icon: '📍', isText: true  },
 ];
 
-function CountUp({ target, suffix, display }: { target: number; suffix: string; display?: string }) {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
+function CountUp({ target, suffix, isText }: { target: number | string; suffix: string; isText: boolean }) {
+  const [display, setDisplay] = useState<string>(isText ? String(target) : '0');
+  const ref    = useRef<HTMLDivElement>(null);
   const started = useRef(false);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !started.current) {
-          started.current = true;
-          if (display) { setCount(target); return; }
-          let start = 0;
-          const step = Math.ceil(target / 50);
-          const timer = setInterval(() => {
-            start += step;
-            if (start >= target) { setCount(target); clearInterval(timer); }
-            else setCount(start);
-          }, 30);
-        }
-      },
-      { threshold: 0.3 }
-    );
+    if (isText) { setDisplay(String(target)); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !started.current) {
+        started.current = true;
+        const end  = Number(target);
+        const step = Math.ceil(end / 50);
+        let cur  = 0;
+        const timer = setInterval(() => {
+          cur += step;
+          if (cur >= end) { setDisplay(String(end) + suffix); clearInterval(timer); }
+          else setDisplay(String(cur) + suffix);
+        }, 30);
+      }
+    }, { threshold: 0.3 });
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
-  }, [target, display]);
+  }, [target, suffix, isText]);
 
-  if (display) return <div ref={ref} className="text-4xl md:text-5xl font-bold text-yellow-400">{display}</div>;
-  return <div ref={ref} className="text-4xl md:text-5xl font-bold text-yellow-400">{count.toLocaleString()}{suffix}</div>;
+  return (
+    <div ref={ref} className="text-4xl md:text-5xl font-bold text-yellow-400">
+      {display}{!isText && suffix && !display.endsWith(suffix) ? suffix : ''}
+    </div>
+  );
 }
 
 export default function StatsSection() {
@@ -45,7 +46,7 @@ export default function StatsSection() {
           {stats.map(stat => (
             <div key={stat.label} className="glass p-6 rounded-xl text-center">
               <div className="text-3xl mb-3">{stat.icon}</div>
-              <CountUp target={stat.value} suffix={stat.suffix} display={stat.display} />
+              <CountUp target={stat.value} suffix={stat.suffix} isText={stat.isText} />
               <div className="text-gray-400 text-sm mt-2">{stat.label}</div>
             </div>
           ))}

@@ -28,7 +28,7 @@ export default function Footer() {
           <div className="md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
               <Image
-                src="/logo.png"
+                src="/logo.png?v=2"
                 alt="Zaid Knights Logo"
                 width={140}
                 height={48}
