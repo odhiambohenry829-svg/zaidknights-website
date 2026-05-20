@@ -28,23 +28,47 @@ function SkeletonDashboard() {
   );
 }
 
+function AccessDenied({ message }: { message: string }) {
+  const router = useRouter();
+  return (
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="glass p-10 rounded-2xl text-center max-w-md w-full">
+        <div className="text-6xl mb-4">🔐</div>
+        <h2 className="text-2xl font-bold text-white mb-3">Members Only</h2>
+        <p className="text-gray-400 mb-6">{message}</p>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button onClick={() => router.push('/login')} className="btn-primary flex-1">
+            Login
+          </button>
+          <button onClick={() => router.push('/register')} className="btn-secondary flex-1">
+            Join Free
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (loading) return;
-    if (!user) {
-      router.push(`/login?redirect=${encodeURIComponent(router.asPath)}`);
-      return;
-    }
+    if (!user) return; // handled by AccessDenied component below
     if (allowedRoles && !allowedRoles.includes(user.role)) {
       router.push('/dashboard');
     }
   }, [user, loading, router, allowedRoles]);
 
   if (loading) return <SkeletonDashboard />;
-  if (!user)   return <SkeletonDashboard />;
+
+  if (!user) {
+    return (
+      <AccessDenied message="You need to be logged in to access this page. Join Zaid Knights for free to get started!" />
+    );
+  }
+
   if (allowedRoles && !allowedRoles.includes(user.role)) return null;
 
   return <>{children}</>;
