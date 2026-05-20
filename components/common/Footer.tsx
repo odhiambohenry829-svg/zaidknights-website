@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 const quickLinks = [
   { href: '/about',         label: 'About Us' },
@@ -12,9 +13,9 @@ const quickLinks = [
 ];
 
 const socialLinks = [
-  { label: 'X / Twitter', href: 'https://x.com/zaidknights?s=20',                                                                            icon: '𝕏' },
-  { label: 'Facebook',    href: 'https://www.facebook.com/profile.php?id=61575904767623&sk',                                                  icon: 'f' },
-  { label: 'Instagram',   href: 'https://www.instagram.com/zaidknights?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==',           icon: '◎' },
+  { label: 'X / Twitter', href: 'https://x.com/zaidknights?s=20', icon: '𝕏' },
+  { label: 'Facebook',    href: 'https://www.facebook.com/profile.php?id=61575904767623&sk', icon: 'f' },
+  { label: 'Instagram',   href: 'https://www.instagram.com/zaidknights?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==', icon: '◎' },
 ];
 
 export default function Footer() {
@@ -26,15 +27,19 @@ export default function Footer() {
           {/* Brand */}
           <div className="md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-2xl">♞</span>
-              <span className="font-bold text-white text-xl">
-                Zaid <span className="text-yellow-400">Knights</span>
-              </span>
+              <Image
+                src="/logo.png"
+                alt="Zaid Knights Logo"
+                width={140}
+                height={48}
+                className="object-contain brightness-0 invert"
+              />
             </div>
-            <p className="text-gray-400 text-sm leading-relaxed max-w-sm">
-              Nairobi's premier chess club. Building champions, fostering strategic minds,
-              and growing the chess community in Kenya.
+            <p className="text-gray-400 text-sm leading-relaxed max-w-sm mt-2">
+              Nairobi's premier chess club. Sharpening great minds, fostering strategic thinking,
+              and growing the chess community in Kenya and beyond.
             </p>
+            <p className="text-yellow-400/60 italic text-sm mt-2">"Sharpening Great Minds"</p>
 
             {/* Social Links */}
             <div className="flex gap-3 mt-5">

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../pages/_app';
 
@@ -88,10 +89,14 @@ export default function Navbar() {
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group flex-shrink-0">
-            <span className="text-2xl">♞</span>
-            <span className="font-bold text-white group-hover:text-yellow-400 transition-colors">
-              Zaid <span className="text-yellow-400">Knights</span>
-            </span>
+            <Image
+              src="/logo.png"
+              alt="Zaid Knights Logo"
+              width={120}
+              height={40}
+              className="object-contain brightness-0 invert"
+              priority
+            />
           </Link>
 
           {/* Desktop Nav */}
