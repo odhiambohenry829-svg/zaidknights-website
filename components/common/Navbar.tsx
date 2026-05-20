@@ -94,7 +94,7 @@ export default function Navbar() {
               alt="Zaid Knights Logo"
               width={120}
               height={40}
-              className="object-contain brightness-0 invert"
+              className="object-contain"
               priority
             />
           </Link>

@@ -32,7 +32,7 @@ export default function Footer() {
                 alt="Zaid Knights Logo"
                 width={140}
                 height={48}
-                className="object-contain brightness-0 invert"
+                className="object-contain"
               />
             </div>
             <p className="text-gray-400 text-sm leading-relaxed max-w-sm mt-2">
