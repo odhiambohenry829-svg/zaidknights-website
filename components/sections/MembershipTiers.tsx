@@ -6,7 +6,7 @@ const tiers = [
     level: 'BEGINNER',
     price: 'Free',
     priceNote: 'forever',
-    description: 'Start your chess journey with us.',
+    description: 'Start your chess journey with Zaid Knights.',
     features: [
       'Access to club meetings',
       'Basic training sessions',
@@ -59,7 +59,7 @@ const tiers = [
     description: 'For serious competitors aiming for the top.',
     features: [
       'Everything in Advanced',
-      '4× personal coaching/month',
+      '4x personal coaching/month',
       'Travel support for nationals',
       'Sponsored tournament entries',
       'Full kit & training gear',

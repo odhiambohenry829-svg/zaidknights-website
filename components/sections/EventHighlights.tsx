@@ -45,7 +45,8 @@ export default function EventHighlights() {
         ) : events.length === 0 ? (
           <div className="text-center py-16 glass rounded-xl">
             <p className="text-4xl mb-3">♟</p>
-            <p className="text-gray-400">No upcoming events. Check back soon!</p>
+            <p className="text-gray-400">No upcoming events yet. Check back soon!</p>
+            <p className="text-gray-500 text-sm mt-2">Follow us on social media for updates.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -54,7 +55,6 @@ export default function EventHighlights() {
               const spotsLeft = event.capacity - (event._count?.registrations || 0);
               return (
                 <div key={event.id} className="glass-hover rounded-xl overflow-hidden">
-                  {/* Date Banner */}
                   <div className="bg-yellow-500/20 border-b border-yellow-500/20 px-5 py-3 flex items-center gap-3">
                     <div className="text-center">
                       <div className="text-yellow-400 font-bold text-lg leading-none">
@@ -67,7 +67,6 @@ export default function EventHighlights() {
                     <div className="h-8 w-px bg-yellow-500/20" />
                     <span className="badge-gold text-xs">{event.type}</span>
                   </div>
-
                   <div className="p-5">
                     <h3 className="text-white font-semibold mb-2">{event.title}</h3>
                     <p className="text-gray-400 text-sm mb-4 flex items-center gap-1">

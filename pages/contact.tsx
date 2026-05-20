@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import Layout from '../components/common/Layout';
-import Accordion from '../components/ui/Accordion';
-import type { AccordionItem } from '../components/ui/Accordion';
 
 const SUBJECTS = [
   'General Inquiry',
@@ -10,34 +8,53 @@ const SUBJECTS = [
   'Partnership',
   'Donation',
   'Junior Programme',
+  'School Partnership',
 ];
 
-const FAQS: AccordionItem[] = [
-  { question: 'How do I join Zaid Knights Chess Club?', answer: 'Simply click "Join the Club" on our homepage or visit zaidknights.org/register. Beginner membership is free! Fill in your details, choose a membership tier, and you\'re in. Our team will activate your account within 24 hours.' },
-  { question: 'What are your training sessions like?', answer: 'We run sessions every Saturday from 10am–4pm at our Nairobi facility. Sessions include opening theory, tactics puzzles, endgame studies, and practice games with analysis. Beginners and advanced players train in separate groups.' },
-  { question: 'Do you accept junior (under-18) members?', answer: 'Yes! We have a dedicated Junior Knights programme for players aged 8–18. A parent or guardian must complete the registration form. For minors, we require an emergency contact. Please contact us at info@zaidknights.org for details.' },
-  { question: 'How are ELO ratings calculated?', answer: 'We use the standard FIDE ELO system. Ratings are updated after each official club tournament based on your performance against opponents and their current ratings. New members start at 1200.' },
-  { question: 'Can my school or company partner with Zaid Knights?', answer: 'Absolutely! We actively partner with schools, companies, and academies across Kenya. Visit our Organizations page or email info@zaidknights.org to discuss partnership opportunities including training programs and tournament hosting.' },
+const FAQS = [
+  {
+    question: 'How do I join Zaid Knights Chess Club?',
+    answer: 'Simply click "Join the Club" on our homepage or visit zaidknights.org/register. Beginner membership is free! Fill in your details, choose a membership tier, and you\'re in. Our team will activate your account within 24 hours.',
+  },
+  {
+    question: 'What are your training sessions like?',
+    answer: 'We conduct house training sessions and partner with schools across Nairobi. Sessions include opening theory, tactics puzzles, endgame studies, and practice games with analysis. Beginners and advanced players are coached at their level.',
+  },
+  {
+    question: 'Do you accept junior (under-18) members?',
+    answer: 'Yes! We actively work with schools and young players. A parent or guardian must complete the registration form for minors. Please contact us at info@zaidknights.org or WhatsApp +254 726 027 960 for details. We take safeguarding very seriously.',
+  },
+  {
+    question: 'Can my school partner with Zaid Knights?',
+    answer: 'Absolutely! We actively partner with schools across Nairobi to bring chess to students. Email info@zaidknights.org or WhatsApp us to discuss how we can bring chess training to your school.',
+  },
+  {
+    question: 'What level do I need to be to join?',
+    answer: 'Any level! From complete beginners to experienced players — everyone is welcome at Zaid Knights. We have programmes suited for all skill levels and our coaches will help you improve regardless of where you start.',
+  },
+  {
+    question: 'How do I donate to Zaid Knights?',
+    answer: 'You can donate via M-Pesa Paybill 880100, Account 124498 (NCBA). Visit our donate page at zaidknights.org/donate for full details and payment options.',
+  },
 ];
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
 export default function ContactPage() {
-  const [form, setForm] = useState({
-    name: '', email: '', subject: SUBJECTS[0], message: '',
-  });
-  const [status,   setStatus]   = useState<Status>('idle');
+  const [form, setForm] = useState({ name: '', email: '', subject: SUBJECTS[0], message: '' });
+  const [status, setStatus] = useState<Status>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('loading');
     setErrorMsg('');
     try {
-      const res  = await fetch('/api/contact', {
-        method:  'POST',
+      const res = await fetch('/api/contact', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(form),
+        body: JSON.stringify(form),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to send message');
@@ -59,7 +76,7 @@ export default function ContactPage() {
             Get in <span className="gold-gradient">Touch</span>
           </h1>
           <p className="text-gray-400 text-lg">
-            Questions, partnerships, membership inquiries — we&apos;d love to hear from you.
+            Questions, partnerships, membership inquiries — we'd love to hear from you.
           </p>
         </div>
       </section>
@@ -67,6 +84,7 @@ export default function ContactPage() {
       {/* Two-column */}
       <section className="py-16 px-4 max-w-6xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+
           {/* Contact Form */}
           <div className="glass p-8 rounded-2xl">
             {status === 'success' ? (
@@ -74,7 +92,7 @@ export default function ContactPage() {
                 <div className="text-6xl">✉️</div>
                 <h2 className="text-xl font-bold text-white">Message Sent!</h2>
                 <p className="text-gray-400 text-sm leading-relaxed">
-                  Thanks for reaching out. We&apos;ll reply to your email within 24 hours.
+                  Thanks for reaching out. We'll reply to your email within 24 hours.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 pt-2">
                   <button
@@ -88,14 +106,10 @@ export default function ContactPage() {
                     Back to Home
                   </a>
                 </div>
-                <div className="pt-2 flex justify-center gap-6">
-                  <a href="/events" className="text-yellow-400 hover:text-yellow-300 text-sm transition">Browse Events →</a>
-                  <a href="/membership" className="text-yellow-400 hover:text-yellow-300 text-sm transition">Membership →</a>
-                </div>
               </div>
             ) : (
               <>
-                <h2 className="text-xl font-bold text-white mb-6 font-playfair">Send a Message</h2>
+                <h2 className="text-xl font-bold text-white mb-6">Send a Message</h2>
                 {errorMsg && (
                   <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-lg mb-5">
                     {errorMsg}
@@ -105,55 +119,27 @@ export default function ContactPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="label">Your Name *</label>
-                      <input
-                        type="text"
-                        required
-                        className="input"
-                        placeholder="Full name"
-                        value={form.name}
-                        onChange={e => setForm({ ...form, name: e.target.value })}
-                      />
+                      <input type="text" required className="input" placeholder="Full name"
+                        value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
                     </div>
                     <div>
                       <label className="label">Email Address *</label>
-                      <input
-                        type="email"
-                        required
-                        className="input"
-                        placeholder="you@example.com"
-                        value={form.email}
-                        onChange={e => setForm({ ...form, email: e.target.value })}
-                      />
+                      <input type="email" required className="input" placeholder="you@example.com"
+                        value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
                     </div>
                   </div>
                   <div>
-                    <label htmlFor="subject" className="label">Subject</label>
-                    <select
-                      id="subject"
-                      aria-label="Message subject"
-                      className="input"
-                      value={form.subject}
-                      onChange={e => setForm({ ...form, subject: e.target.value })}
-                    >
+                    <label className="label">Subject</label>
+                    <select className="input" value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })}>
                       {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="label">Message *</label>
-                    <textarea
-                      required
-                      rows={5}
-                      className="input resize-none"
-                      placeholder="How can we help you?"
-                      value={form.message}
-                      onChange={e => setForm({ ...form, message: e.target.value })}
-                    />
+                    <textarea required rows={5} className="input resize-none" placeholder="How can we help you?"
+                      value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} />
                   </div>
-                  <button
-                    type="submit"
-                    disabled={status === 'loading'}
-                    className="btn-primary w-full"
-                  >
+                  <button type="submit" disabled={status === 'loading'} className="btn-primary w-full">
                     {status === 'loading' ? 'Sending…' : 'Send Message →'}
                   </button>
                 </form>
@@ -163,26 +149,20 @@ export default function ContactPage() {
 
           {/* Info Cards */}
           <div className="space-y-4">
-            {/* Location */}
             <div className="glass p-5 rounded-xl">
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center text-lg flex-shrink-0">
-                  📍
-                </div>
+                <div className="w-10 h-10 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center text-lg flex-shrink-0">📍</div>
                 <div>
                   <h3 className="text-white font-semibold mb-1">Location</h3>
                   <p className="text-gray-400 text-sm">Nairobi, Kenya</p>
-                  <p className="text-gray-500 text-xs mt-1">Our facility is centrally located in Nairobi — exact address shared upon membership activation</p>
+                  <p className="text-gray-500 text-xs mt-1">We conduct house training sessions and partner with schools across Nairobi</p>
                 </div>
               </div>
             </div>
 
-            {/* Email */}
             <div className="glass p-5 rounded-xl">
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-lg flex-shrink-0">
-                  ✉️
-                </div>
+                <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-lg flex-shrink-0">✉️</div>
                 <div>
                   <h3 className="text-white font-semibold mb-1">Email</h3>
                   <a href="mailto:info@zaidknights.org" className="text-yellow-400 hover:text-yellow-300 text-sm transition-colors">
@@ -193,20 +173,13 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Phone / WhatsApp */}
             <div className="glass p-5 rounded-xl">
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center text-lg flex-shrink-0">
-                  📱
-                </div>
+                <div className="w-10 h-10 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center text-lg flex-shrink-0">📱</div>
                 <div>
                   <h3 className="text-white font-semibold mb-1">Phone / WhatsApp</h3>
-                  <a
-                    href="https://wa.me/254726027960"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-green-400 hover:text-green-300 text-sm transition-colors"
-                  >
+                  <a href="https://wa.me/254726027960" target="_blank" rel="noopener noreferrer"
+                    className="text-green-400 hover:text-green-300 text-sm transition-colors">
                     +254 726 027 960
                   </a>
                   <p className="text-gray-500 text-xs mt-1">WhatsApp available weekdays 9am–5pm EAT</p>
@@ -214,16 +187,14 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Meeting Times */}
             <div className="glass p-5 rounded-xl">
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-lg flex-shrink-0">
-                  🕐
-                </div>
+                <div className="w-10 h-10 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center text-lg flex-shrink-0">💳</div>
                 <div>
-                  <h3 className="text-white font-semibold mb-1">Training Sessions</h3>
-                  <p className="text-yellow-400 text-sm font-medium">Saturdays 10am – 4pm</p>
-                  <p className="text-gray-500 text-xs mt-1">All skill levels welcome · Nairobi facility</p>
+                  <h3 className="text-white font-semibold mb-1">Donations</h3>
+                  <p className="text-gray-400 text-sm">M-Pesa Paybill: <span className="text-yellow-400 font-bold">880100</span></p>
+                  <p className="text-gray-400 text-sm">Account: <span className="text-yellow-400 font-bold">124498</span></p>
+                  <p className="text-gray-500 text-xs mt-1">NCBA Bank — Zaid Knights Chess Club</p>
                 </div>
               </div>
             </div>
@@ -231,20 +202,15 @@ export default function ContactPage() {
             {/* Social Links */}
             <div className="glass p-5 rounded-xl">
               <h3 className="text-white font-semibold mb-3">Follow Us</h3>
-              <div className="flex gap-3 flex-wrap">
+              <div className="flex flex-wrap gap-2">
                 {[
-                  { label: 'Twitter/X',  href: 'https://twitter.com/zaidknights',       icon: '𝕏' },
-                  { label: 'Facebook',   href: 'https://facebook.com/zaidknights',       icon: 'f' },
-                  { label: 'Instagram',  href: 'https://instagram.com/zaidknights',      icon: '◎' },
-                  { label: 'WhatsApp',   href: 'https://wa.me/254726027960',             icon: '💬' },
+                  { label: 'X / Twitter', href: 'https://x.com/zaidknights?s=20', icon: '𝕏' },
+                  { label: 'Facebook', href: 'https://www.facebook.com/profile.php?id=61575904767623', icon: 'f' },
+                  { label: 'Instagram', href: 'https://www.instagram.com/zaidknights', icon: '◎' },
+                  { label: 'WhatsApp', href: 'https://wa.me/254726027960', icon: '💬' },
                 ].map(s => (
-                  <a
-                    key={s.label}
-                    href={s.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-2 glass rounded-lg text-sm text-gray-300 hover:text-yellow-400 hover:border-yellow-500/30 transition-all"
-                  >
+                  <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 glass rounded-lg text-sm text-gray-300 hover:text-yellow-400 hover:border-yellow-500/30 transition-all">
                     <span>{s.icon}</span>
                     <span>{s.label}</span>
                   </a>
@@ -264,7 +230,24 @@ export default function ContactPage() {
             </h2>
             <p className="text-gray-400">Quick answers to common questions</p>
           </div>
-          <Accordion items={FAQS} />
+          <div className="space-y-3">
+            {FAQS.map((faq, i) => (
+              <div key={i} className="glass rounded-xl overflow-hidden">
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full text-left px-6 py-4 flex items-center justify-between gap-4"
+                >
+                  <span className="text-white font-medium text-sm">{faq.question}</span>
+                  <span className={`text-yellow-400 text-lg transition-transform ${openFaq === i ? 'rotate-45' : ''}`}>+</span>
+                </button>
+                {openFaq === i && (
+                  <div className="px-6 pb-4">
+                    <p className="text-gray-400 text-sm leading-relaxed">{faq.answer}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -281,7 +264,7 @@ export default function ContactPage() {
                   <a href="mailto:info@zaidknights.org" className="text-yellow-400 hover:text-yellow-300">info@zaidknights.org</a>{' '}
                   or WhatsApp{' '}
                   <a href="https://wa.me/254726027960" className="text-green-400 hover:text-green-300" target="_blank" rel="noopener noreferrer">+254 726 027 960</a>{' '}
-                  with your child&apos;s details. We take safeguarding very seriously and all coaches are vetted.
+                  with your child's details. We take safeguarding very seriously and all coaches are vetted.
                 </p>
               </div>
             </div>
