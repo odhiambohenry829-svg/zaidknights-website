@@ -17,26 +17,36 @@ export default function Layout({
 }: LayoutProps) {
   return (
     <>
-      <Head>
-        <title>{title}</title>
-        <meta name="description" content={description} />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+     <Head>
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-        {/* Open Graph */}
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="Zaid Knights Chess Club" />
-        {ogImage && <meta property="og:image" content={ogImage} />}
+  {/* Favicon */}
+  <link rel="icon" href="/logo.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="shortcut icon" href="/logo.png" />
 
-        {/* Twitter */}
-        <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
-        <meta name="twitter:title" content={title} />
-        <meta name="twitter:description" content={description} />
-        {ogImage && <meta name="twitter:image" content={ogImage} />}
-      </Head>
+  {/* Open Graph - shows on Google/Facebook/WhatsApp */}
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://zaidknights.org" />
+  <meta property="og:site_name" content="Zaid Knights Chess Club" />
+  <meta property="og:image" content="https://zaidknights.org/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
 
-      <div className="min-h-screen flex flex-col bg-[#0A0A0F]">
+  {/* Twitter/X */}
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content="https://zaidknights.org/og-image.png" />
+
+  {/* Google */}
+  <meta name="robots" content="index, follow" />
+  <meta name="googlebot" content="index, follow" />
+</Head>      <div className="min-h-screen flex flex-col bg-[#0A0A0F]">
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />
