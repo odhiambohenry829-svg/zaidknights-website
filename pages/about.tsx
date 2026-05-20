@@ -16,7 +16,8 @@ const TIMELINE = [
 ];
 
 const TEAM = [
-  { name: 'Henry Odhiambo', role: 'Founder & Head Coach', initials: 'HO', bio: 'Founder of Zaid Knights, passionate about developing chess talent and growing the game across Kenya.' },
+  { name: 'Henry Odhiambo', role: 'Founder & Head Coach', initials: 'HO', bio: 'Founder of Zaid Knights, passionate about developing chess talent and growing the game across Kenya.', motto: '' },
+  { name: 'Gerrishom Samuel', role: 'Head Coach', initials: 'GS', bio: 'A founding member of Zaid Knights who has been with the club from the very beginning. Has coached players from regional level all the way to national championships.', motto: '"Let\'s meet on the board"' },
 ];
 
 const ACHIEVEMENTS = [
@@ -132,15 +133,16 @@ export default function AboutPage() {
             <h2 className="section-title mb-3">Leadership</h2>
             <p className="section-subtitle mx-auto">The passionate people steering Zaid Knights forward</p>
           </div>
-          <div className="flex justify-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {TEAM.map(member => (
-              <div key={member.name} className="glass-hover p-8 rounded-xl text-center max-w-sm w-full">
+              <div key={member.name} className="glass-hover p-8 rounded-xl text-center">
                 <div className="w-24 h-24 rounded-full bg-yellow-500/15 border-2 border-yellow-500/40 flex items-center justify-center text-3xl font-bold text-yellow-400 mx-auto mb-4">
                   {member.initials}
                 </div>
                 <h3 className="text-white font-bold text-lg">{member.name}</h3>
                 <p className="text-yellow-400/80 text-sm mt-0.5">{member.role}</p>
                 <p className="text-gray-400 text-sm mt-3 leading-relaxed">{member.bio}</p>
+                {member.motto && <p className="text-yellow-400/60 italic text-xs mt-3">{member.motto}</p>}
                 <a href="mailto:info@zaidknights.org" className="block mt-4 text-xs text-gray-500 hover:text-yellow-400 transition-colors">
                   ✉ Contact
                 </a>
