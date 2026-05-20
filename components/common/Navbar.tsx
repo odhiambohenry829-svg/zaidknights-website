@@ -114,7 +114,7 @@ export default function Navbar() {
           <div className="flex items-center justify-between h-16">
 
             <Link href="/" className="flex items-center flex-shrink-0">
-              <Image src="/logo.png?v=2" alt="Zaid Knights" width={110} height={37} className="object-contain" priority />
+              
             </Link>
 
             <div className="hidden md:flex items-center gap-1">
