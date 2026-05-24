@@ -45,33 +45,47 @@ function useCountdown(target: Date | null) {
 
 export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [loadedSlides, setLoadedSlides] = useState<Set<number>>(new Set([0]));
   const [nextEvent, setNextEvent] = useState<NextEvent | null>(null);
   const slideTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Auto-advance slideshow every 4 seconds
+  // Auto-advance slideshow every 6 seconds (slower to reduce mobile load)
   useEffect(() => {
     slideTimer.current = setInterval(() => {
-      setCurrentSlide(prev => (prev + 1) % SLIDES.length);
-    }, 4000);
+      setCurrentSlide(prev => {
+        const next = (prev + 1) % SLIDES.length;
+        setLoadedSlides(s => new Set(s).add(next));
+        return next;
+      });
+    }, 6000);
     return () => { if (slideTimer.current) clearInterval(slideTimer.current); };
   }, []);
 
+  // Defer non-critical event fetch until after first paint to avoid blocking
   useEffect(() => {
-    fetch('/api/events?limit=1')
-      .then(r => r.json())
-      .then(data => {
-        const events: NextEvent[] = data.events || [];
-        if (events.length > 0) setNextEvent(events[0]);
-      })
-      .catch(() => {});
+    const t = setTimeout(() => {
+      fetch('/api/events?limit=1')
+        .then(r => r.json())
+        .then(data => {
+          const events: NextEvent[] = data.events || [];
+          if (events.length > 0) setNextEvent(events[0]);
+        })
+        .catch(() => {});
+    }, 1500);
+    return () => clearTimeout(t);
   }, []);
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
+    setLoadedSlides(s => new Set(s).add(index));
     if (slideTimer.current) clearInterval(slideTimer.current);
     slideTimer.current = setInterval(() => {
-      setCurrentSlide(prev => (prev + 1) % SLIDES.length);
-    }, 4000);
+      setCurrentSlide(prev => {
+        const next = (prev + 1) % SLIDES.length;
+        setLoadedSlides(s => new Set(s).add(next));
+        return next;
+      });
+    }, 6000);
   };
 
   const eventDate = nextEvent ? new Date(nextEvent.startDate) : null;
@@ -87,14 +101,18 @@ export default function Hero() {
             key={slide.src}
             className={`absolute inset-0 transition-opacity duration-1000 ${i === currentSlide ? 'opacity-100' : 'opacity-0'}`}
           >
-            <Image
-              src={slide.src}
-              alt={slide.caption}
-              fill
-              className="object-cover"
-              priority={i === 0}
-              sizes="100vw"
-            />
+            {loadedSlides.has(i) && (
+              <Image
+                src={slide.src}
+                alt={slide.caption}
+                fill
+                className="object-cover"
+                priority={i === 0}
+                loading={i === 0 ? 'eager' : 'lazy'}
+                quality={70}
+                sizes="(max-width: 768px) 100vw, 100vw"
+              />
+            )}
           </div>
         ))}
         {/* Dark overlay for text readability */}
@@ -118,6 +136,7 @@ export default function Hero() {
                 height={67}
                 className="object-contain"
                 priority
+                sizes="200px"
               />
             </div>
 
@@ -144,10 +163,10 @@ export default function Hero() {
 
             {/* CTA Buttons */}
             <div className="flex flex-wrap gap-4 mb-10">
-              <Link href="/register" className="btn-primary text-base px-8 py-4">
+              <Link href="/register" prefetch={false} className="btn-primary text-base px-8 py-4">
                 Join the Club →
               </Link>
-              <Link href="/events" className="btn-secondary text-base px-8 py-4">
+              <Link href="/events" prefetch={false} className="btn-secondary text-base px-8 py-4">
                 View Events
               </Link>
             </div>
@@ -176,7 +195,7 @@ export default function Hero() {
             )}
           </div>
 
-          {/* Right — Featured photo frame */}
+          {/* Right — Featured photo frame (desktop only — already hidden on mobile) */}
           <div className="hidden lg:block relative">
             <div className="relative rounded-2xl overflow-hidden border-2 border-yellow-500/30 shadow-2xl shadow-yellow-500/10" style={{ height: '500px' }}>
               {SLIDES.map((slide, i) => (
@@ -184,13 +203,17 @@ export default function Hero() {
                   key={slide.src}
                   className={`absolute inset-0 transition-opacity duration-1000 ${i === currentSlide ? 'opacity-100' : 'opacity-0'}`}
                 >
-                  <Image
-                    src={slide.src}
-                    alt={slide.caption}
-                    fill
-                    className="object-cover"
-                    sizes="50vw"
-                  />
+                  {loadedSlides.has(i) && (
+                    <Image
+                      src={slide.src}
+                      alt={slide.caption}
+                      fill
+                      className="object-cover"
+                      loading="lazy"
+                      quality={75}
+                      sizes="(max-width: 1024px) 0px, 50vw"
+                    />
+                  )}
                 </div>
               ))}
               {/* Caption */}
@@ -205,6 +228,7 @@ export default function Hero() {
                 <button
                   key={i}
                   onClick={() => goToSlide(i)}
+                  aria-label={`Go to slide ${i + 1}`}
                   className={`w-2 h-2 rounded-full transition-all ${i === currentSlide ? 'bg-yellow-400 w-6' : 'bg-white/30'}`}
                 />
               ))}
@@ -218,6 +242,7 @@ export default function Hero() {
             <button
               key={i}
               onClick={() => goToSlide(i)}
+              aria-label={`Go to slide ${i + 1}`}
               className={`w-2 h-2 rounded-full transition-all ${i === currentSlide ? 'bg-yellow-400 w-6' : 'bg-white/30'}`}
             />
           ))}
