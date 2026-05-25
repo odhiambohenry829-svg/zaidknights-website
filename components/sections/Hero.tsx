@@ -1,4 +1,3 @@
-cat > components/sections/Hero.tsx << 'HEROEOF'
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -273,4 +272,3 @@ export default function Hero() {
     </section>
   );
 }
-HEROEOF
