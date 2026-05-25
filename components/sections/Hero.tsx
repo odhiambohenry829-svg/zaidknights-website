@@ -1,8 +1,8 @@
+cat > components/sections/Hero.tsx << 'HEROEOF'
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
-// Real Zaid Knights photos from public/images/gallery
 const SLIDES = [
   { src: '/images/gallery/20251019_161800.jpg', caption: 'Zaid Knights in action' },
   { src: '/images/gallery/20251019_161816.jpg', caption: 'Strategic minds at work' },
@@ -45,23 +45,38 @@ function useCountdown(target: Date | null) {
 
 export default function Hero() {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [loadedSlides, setLoadedSlides] = useState<Set<number>>(new Set([0]));
+  const [loadedSlides, setLoadedSlides] = useState<Set<number>>(new Set([0, 1]));
   const [nextEvent, setNextEvent] = useState<NextEvent | null>(null);
   const slideTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Auto-advance slideshow every 6 seconds (slower to reduce mobile load)
   useEffect(() => {
-    slideTimer.current = setInterval(() => {
+    const advance = () => {
       setCurrentSlide(prev => {
         const next = (prev + 1) % SLIDES.length;
-        setLoadedSlides(s => new Set(s).add(next));
+        setLoadedSlides(() => {
+          const fresh = new Set<number>();
+          fresh.add(next);
+          fresh.add((next + 1) % SLIDES.length);
+          return fresh;
+        });
         return next;
       });
-    }, 6000);
-    return () => { if (slideTimer.current) clearInterval(slideTimer.current); };
+    };
+    slideTimer.current = setInterval(advance, 8000);
+    const onVis = () => {
+      if (document.hidden) {
+        if (slideTimer.current) { clearInterval(slideTimer.current); slideTimer.current = null; }
+      } else if (!slideTimer.current) {
+        slideTimer.current = setInterval(advance, 8000);
+      }
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => {
+      if (slideTimer.current) clearInterval(slideTimer.current);
+      document.removeEventListener('visibilitychange', onVis);
+    };
   }, []);
 
-  // Defer non-critical event fetch until after first paint to avoid blocking
   useEffect(() => {
     const t = setTimeout(() => {
       fetch('/api/events?limit=1')
@@ -77,15 +92,25 @@ export default function Hero() {
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
-    setLoadedSlides(s => new Set(s).add(index));
+    setLoadedSlides(() => {
+      const fresh = new Set<number>();
+      fresh.add(index);
+      fresh.add((index + 1) % SLIDES.length);
+      return fresh;
+    });
     if (slideTimer.current) clearInterval(slideTimer.current);
     slideTimer.current = setInterval(() => {
       setCurrentSlide(prev => {
         const next = (prev + 1) % SLIDES.length;
-        setLoadedSlides(s => new Set(s).add(next));
+        setLoadedSlides(() => {
+          const fresh = new Set<number>();
+          fresh.add(next);
+          fresh.add((next + 1) % SLIDES.length);
+          return fresh;
+        });
         return next;
       });
-    }, 6000);
+    }, 8000);
   };
 
   const eventDate = nextEvent ? new Date(nextEvent.startDate) : null;
@@ -93,8 +118,6 @@ export default function Hero() {
 
   return (
     <section className="relative min-h-[100vh] flex items-center overflow-hidden">
-
-      {/* ── Slideshow Background ── */}
       <div className="absolute inset-0 z-0">
         {SLIDES.map((slide, i) => (
           <div
@@ -115,19 +138,13 @@ export default function Hero() {
             )}
           </div>
         ))}
-        {/* Dark overlay for text readability */}
         <div className="absolute inset-0 bg-black/65 z-10" />
-        {/* Bottom gradient */}
         <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#0A0A0F] to-transparent z-10" />
       </div>
 
-      {/* ── Content ── */}
       <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-
-          {/* Left — Text */}
           <div className="animate-fade-in">
-            {/* Logo */}
             <div className="mb-8">
               <Image
                 src="/logo.png?v=2"
@@ -140,13 +157,11 @@ export default function Hero() {
               />
             </div>
 
-            {/* Tag */}
             <div className="inline-flex items-center gap-2 badge-gold mb-6 py-1.5 px-4 text-sm">
               <span className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
               Nairobi's Premier Chess Club
             </div>
 
-            {/* Headline */}
             <h1
               className="text-5xl md:text-6xl font-bold text-white mb-4 leading-tight"
               style={{ fontFamily: 'Playfair Display, serif' }}
@@ -161,7 +176,6 @@ export default function Hero() {
               climb the rankings, and grow with Kenya's most passionate chess players.
             </p>
 
-            {/* CTA Buttons */}
             <div className="flex flex-wrap gap-4 mb-10">
               <Link href="/register" prefetch={false} className="btn-primary text-base px-8 py-4">
                 Join the Club →
@@ -171,7 +185,6 @@ export default function Hero() {
               </Link>
             </div>
 
-            {/* Countdown */}
             {nextEvent && eventDate && (
               <div>
                 <p className="text-gray-400 text-xs mb-1 uppercase tracking-widest">Next Tournament</p>
@@ -195,7 +208,6 @@ export default function Hero() {
             )}
           </div>
 
-          {/* Right — Featured photo frame (desktop only — already hidden on mobile) */}
           <div className="hidden lg:block relative">
             <div className="relative rounded-2xl overflow-hidden border-2 border-yellow-500/30 shadow-2xl shadow-yellow-500/10" style={{ height: '500px' }}>
               {SLIDES.map((slide, i) => (
@@ -216,13 +228,11 @@ export default function Hero() {
                   )}
                 </div>
               ))}
-              {/* Caption */}
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 z-10">
                 <p className="text-white text-sm font-medium">{SLIDES[currentSlide].caption}</p>
               </div>
             </div>
 
-            {/* Slide dots */}
             <div className="flex justify-center gap-2 mt-4">
               {SLIDES.map((_, i) => (
                 <button
@@ -236,7 +246,6 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* ── Slide indicators (mobile) ── */}
         <div className="flex justify-center gap-2 mt-8 lg:hidden">
           {SLIDES.map((_, i) => (
             <button
@@ -248,7 +257,6 @@ export default function Hero() {
           ))}
         </div>
 
-        {/* ── Stats bar ── */}
         <div className="grid grid-cols-3 gap-4 mt-16 max-w-lg">
           {[
             { number: '2025', label: 'Founded' },
@@ -265,3 +273,4 @@ export default function Hero() {
     </section>
   );
 }
+HEROEOF

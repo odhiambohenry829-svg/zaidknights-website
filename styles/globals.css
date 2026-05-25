@@ -53,21 +53,24 @@ body {
   .btn-primary {
     @apply bg-yellow-500 text-black font-semibold px-6 py-3 rounded-lg
            hover:bg-yellow-400 active:bg-yellow-600
-           transition-all duration-200 shadow-lg shadow-yellow-500/25
-           disabled:opacity-50 disabled:cursor-not-allowed;
+           transition-colors duration-150 shadow-lg shadow-yellow-500/25
+           disabled:opacity-50 disabled:cursor-not-allowed
+           touch-manipulation select-none;
   }
 
   .btn-secondary {
     @apply border border-yellow-500/50 text-yellow-400 font-semibold px-6 py-3 rounded-lg
            hover:bg-yellow-500/10 hover:border-yellow-400
-           transition-all duration-200
-           disabled:opacity-50 disabled:cursor-not-allowed;
+           transition-colors duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed
+           touch-manipulation select-none;
   }
 
   .btn-ghost {
     @apply text-gray-300 font-medium px-4 py-2 rounded-lg
            hover:bg-white/10 hover:text-white
-           transition-all duration-200;
+           transition-colors duration-150
+           touch-manipulation select-none;
   }
 
   /* ─── Cards ────────────────────────────────────────────────── */
