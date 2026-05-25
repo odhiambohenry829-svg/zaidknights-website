@@ -16,7 +16,7 @@ export default function Button({
   disabled,
   ...props
 }: ButtonProps) {
-  const base = 'inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
+  const base = 'inline-flex items-center justify-center font-semibold rounded-lg transition-colors duration-150 touch-manipulation select-none disabled:opacity-50 disabled:cursor-not-allowed';
 
   const variants = {
     primary:   'bg-yellow-500 text-black hover:bg-yellow-400 active:bg-yellow-600 shadow-lg shadow-yellow-500/25',

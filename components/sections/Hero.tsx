@@ -121,7 +121,7 @@ export default function Hero() {
         {SLIDES.map((slide, i) => (
           <div
             key={slide.src}
-            className={`absolute inset-0 transition-opacity duration-1000 ${i === currentSlide ? 'opacity-100' : 'opacity-0'}`}
+            className={`absolute inset-0 transition-opacity duration-700 ${i === currentSlide ? 'opacity-100' : 'opacity-0'}`}
           >
             {loadedSlides.has(i) && (
               <Image
@@ -212,7 +212,7 @@ export default function Hero() {
               {SLIDES.map((slide, i) => (
                 <div
                   key={slide.src}
-                  className={`absolute inset-0 transition-opacity duration-1000 ${i === currentSlide ? 'opacity-100' : 'opacity-0'}`}
+                  className={`absolute inset-0 transition-opacity duration-700 ${i === currentSlide ? 'opacity-100' : 'opacity-0'}`}
                 >
                   {loadedSlides.has(i) && (
                     <Image

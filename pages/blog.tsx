@@ -173,7 +173,7 @@ export default function BlogPage() {
                         <img
                           src={featured.imageUrl}
                           alt={featured.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       </div>
                     )}
@@ -210,7 +210,7 @@ export default function BlogPage() {
                             <img
                               src={post.imageUrl}
                               alt={post.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             />
                           </div>
                         ) : (
@@ -243,7 +243,7 @@ export default function BlogPage() {
               {totalPages > 1 && (
                 <div className="flex items-center justify-center gap-3 mt-8">
                   <button
-                    onClick={() => { setPage(p => p - 1); window.scrollTo(0, 0); }}
+                    onClick={() => { setPage(p => p - 1); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })); }}
                     disabled={page === 1}
                     className="btn-secondary disabled:opacity-40 text-sm px-4 py-2"
                   >
@@ -251,7 +251,7 @@ export default function BlogPage() {
                   </button>
                   <span className="text-gray-400 text-sm">Page {page} of {totalPages}</span>
                   <button
-                    onClick={() => { setPage(p => p + 1); window.scrollTo(0, 0); }}
+                    onClick={() => { setPage(p => p + 1); requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })); }}
                     disabled={page >= totalPages}
                     className="btn-secondary disabled:opacity-40 text-sm px-4 py-2"
                   >

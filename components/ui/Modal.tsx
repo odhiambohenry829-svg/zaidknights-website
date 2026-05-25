@@ -15,7 +15,7 @@ export default function Modal({
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     if (open) {
-      document.addEventListener('keydown', handleKey);
+      document.addEventListener('keydown', handleKey, { passive: true });
       document.body.style.overflow = 'hidden';
     }
     return () => {
