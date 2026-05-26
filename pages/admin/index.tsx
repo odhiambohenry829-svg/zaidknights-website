@@ -476,12 +476,17 @@ export default function AdminPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
             <p className="text-gray-400 mt-1">Manage the Zaid Knights Chess Club</p>
           </div>
-          <span className="badge-gold">Administrator</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link href="/admin/ai" className="btn-secondary">
+              AI Tools
+            </Link>
+            <span className="badge-gold">Administrator</span>
+          </div>
         </div>
 
         {/* Error / Success banners */}

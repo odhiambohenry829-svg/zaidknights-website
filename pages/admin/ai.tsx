@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import Link from 'next/link';
+import Layout from '../../components/common/Layout';
 import ProtectedRoute from '../../components/common/ProtectedRoute';
 
 export default function AdminAI() {
@@ -29,8 +31,17 @@ export default function AdminAI() {
 
   return (
     <ProtectedRoute allowedRoles={["ADMIN","COACH"]}>
-      <div className="max-w-4xl mx-auto p-6">
-        <h1 className="text-2xl font-bold mb-4">AI — Article Generator</h1>
+      <Layout title="AI Tools | Zaid Knights Chess Club">
+        <div className="max-w-4xl mx-auto p-6">
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold mb-1">AI — Article Generator</h1>
+              <p className="text-gray-400">Use Claude to generate article drafts for club news and blog posts.</p>
+            </div>
+            <Link href="/admin" className="btn-secondary">
+              Back to admin
+            </Link>
+          </div>
         <form onSubmit={handleGenerate} className="space-y-4">
           <label className="block">
             <div className="text-sm text-gray-300 mb-1">Brief / prompt</div>
@@ -44,10 +55,10 @@ export default function AdminAI() {
         </form>
 
         <div className="mt-6">
-          <h2 className="text-lg font-semibold mb-2">Result</h2>
-          <pre className="whitespace-pre-wrap bg-black/30 p-4 rounded">{result ?? 'No result yet'}</pre>
+            <h2 className="text-lg font-semibold mb-2">Result</h2>
+            <pre className="whitespace-pre-wrap bg-black/30 p-4 rounded">{result ?? 'No result yet'}</pre>
+          </div>
         </div>
-      </div>
-    </ProtectedRoute>
+      </Layout>
   );
 }
