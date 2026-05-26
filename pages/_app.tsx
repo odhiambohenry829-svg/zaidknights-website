@@ -1,5 +1,7 @@
 import type { AppProps } from 'next/app';
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
+import { useRouter } from 'next/router';
 import '../styles/globals.css';
 
 // ─── Auth Types ───────────────────────────────────────────────
@@ -60,6 +62,8 @@ function writeAuthCache(user: AuthUser | null) {
 
 // ─── App ──────────────────────────────────────────────────────
 export default function App({ Component, pageProps }: AppProps) {
+  const router = useRouter();
+  
   // Hydrate from cache synchronously so navbar renders correctly on first paint
   const [user, setUserState] = useState<AuthUser | null>(() => readAuthCache());
   const [loading, setLoading] = useState(() => readAuthCache() === null);
@@ -110,6 +114,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <AuthContext.Provider value={{ user, setUser, loading, logout }}>
       <Component {...pageProps} />
+      <SpeedInsights route={router.pathname} />
     </AuthContext.Provider>
   );
 }
