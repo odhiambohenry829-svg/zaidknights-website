@@ -76,6 +76,12 @@ Built with Next.js 14 (Pages Router), Tailwind CSS, Prisma 5, and Supabase Postg
 
 ---
 
+## AI Integration
+
+- **Provider:** Claude (default). Set `CLAUDE_API_KEY` in your environment or Vercel project settings.
+- **Admin UI:** `/admin/ai` — generate article drafts from prompts (Admin/Coach only).
+- **Server API:** `POST /api/ai/article` — accepts `{ brief, maxTokens }` and returns a generated article.
+
 ## Components
 
 ### UI
