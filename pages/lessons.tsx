@@ -166,7 +166,7 @@ export default function LessonsPage() {
                 Our coaches Henry Odhiambo and Gerrishom Samuel offer personal coaching sessions in Nairobi. Contact us to book your session.
               </p>
               <div className="flex gap-4 justify-center flex-wrap">
-                <a href="https://wa.me/254726027960" target="_blank" rel="noopener noreferrer" className="btn-primary px-8">
+                <a href="https://wa.me/254726027966" target="_blank" rel="noopener noreferrer" className="btn-primary px-8">
                   WhatsApp Us
                 </a>
                 <Link href="/contact" className="btn-secondary px-8">Contact Form</Link>

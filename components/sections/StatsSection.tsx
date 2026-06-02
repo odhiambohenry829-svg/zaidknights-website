@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 
 const stats = [
-  { label: 'Year Founded',    value: 2025,      suffix: '',  icon: '♟',  isText: false },
-  { label: 'Partner Schools', value: 10,         suffix: '+', icon: '🏫', isText: false },
-  { label: 'Level Reached',   value: 'National', suffix: '',  icon: '🏆', isText: true  },
-  { label: 'Based In',        value: 'Nairobi',  suffix: '',  icon: '📍', isText: true  },
+  { label: 'Year Founded',        value: 2025,      suffix: '',  icon: '♟',  isText: false },
+  { label: 'School Partnerships', value: 'Active',  suffix: '',  icon: '🏫', isText: true  },
+  { label: 'Qualified for Nationals',   value: 'National', suffix: '',  icon: '🏆', isText: true  },
+  { label: 'Based In',            value: 'Nairobi',  suffix: '',  icon: '📍', isText: true  },
 ];
 
 function CountUp({ target, suffix, isText }: { target: number | string; suffix: string; isText: boolean }) {

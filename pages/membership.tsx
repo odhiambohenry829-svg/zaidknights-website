@@ -91,9 +91,9 @@ const PLANS = [
 
 const BENEFITS = [
   { icon: '🏆', title: 'Competitive Tournaments', desc: 'Enter club and inter-club tournaments representing Zaid Knights at every level.' },
-  { icon: '🎓', title: 'Expert Coaching', desc: 'Learn from coaches Henry Odhiambo & Gerrishom Samuel who have guided players to nationals.' },
+  { icon: '🎓', title: 'Expert Coaching', desc: 'Learn from coaches Henry Odhiambo & Gerrishom Samuel who have coached players to national-championship qualification.' },
   { icon: '📊', title: 'ELO Rating System', desc: 'Track your progress with our club ELO system, updated after every tournament.' },
-  { icon: '🌍', title: 'National Representation', desc: 'Top performers get the chance to represent Kenya at regional and national championships.' },
+  { icon: '🌍', title: 'National Representation', desc: 'Top performers have the opportunity to compete and represent the club at regional and national levels in the future.' },
   { icon: '🏠', title: 'House Training', desc: 'Personalised house training sessions brought directly to you across Nairobi.' },
   { icon: '🏫', title: 'School Partnerships', desc: 'Access to our school partnership network — develop chess in your school community.' },
 ];

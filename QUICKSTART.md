@@ -31,6 +31,7 @@ DIRECT_URL=postgresql://USER:PASSWORD@HOST:5432/zaidknights
 JWT_SECRET=<at-least-32-random-characters>
 ADMIN_EMAIL=admin@zaidknights.org
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
+CLAUDE_API_KEY=your_claude_api_key_here
 
 # Optional for local dev (leave as-is to skip M-Pesa and email)
 MPESA_ENV=sandbox

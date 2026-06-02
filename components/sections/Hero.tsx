@@ -260,7 +260,7 @@ export default function Hero() {
           {[
             { number: '2025', label: 'Founded' },
             { number: 'Nairobi', label: 'Based In' },
-            { number: 'National', label: 'Level Reached' },
+            { number: 'National', label: 'Qualified for Nationals' },
           ].map(stat => (
             <div key={stat.label} className="text-center">
               <div className="text-xl font-bold text-yellow-400">{stat.number}</div>

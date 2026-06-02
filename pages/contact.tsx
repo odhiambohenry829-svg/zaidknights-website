@@ -22,7 +22,7 @@ const FAQS = [
   },
   {
     question: 'Do you accept junior (under-18) members?',
-    answer: 'Yes! We actively work with schools and young players. A parent or guardian must complete the registration form for minors. Please contact us at info@zaidknights.org or WhatsApp +254 726 027 960 for details. We take safeguarding very seriously.',
+    answer: 'Yes! We actively work with schools and young players. A parent or guardian must complete the registration form for minors. Please contact us at info@zaidknights.org or WhatsApp +254 726 027 966 for details. We take safeguarding very seriously.',
   },
   {
     question: 'Can my school partner with Zaid Knights?',
@@ -178,9 +178,9 @@ export default function ContactPage() {
                 <div className="w-10 h-10 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center text-lg flex-shrink-0">📱</div>
                 <div>
                   <h3 className="text-white font-semibold mb-1">Phone / WhatsApp</h3>
-                  <a href="https://wa.me/254726027960" target="_blank" rel="noopener noreferrer"
+                  <a href="https://wa.me/254726027966" target="_blank" rel="noopener noreferrer"
                     className="text-green-400 hover:text-green-300 text-sm transition-colors">
-                    +254 726 027 960
+                    +254 726 027 966
                   </a>
                   <p className="text-gray-500 text-xs mt-1">WhatsApp available weekdays 9am–5pm EAT</p>
                 </div>
@@ -207,7 +207,7 @@ export default function ContactPage() {
                   { label: 'X / Twitter', href: 'https://x.com/zaidknights?s=20', icon: '𝕏' },
                   { label: 'Facebook', href: 'https://www.facebook.com/profile.php?id=61575904767623', icon: 'f' },
                   { label: 'Instagram', href: 'https://www.instagram.com/zaidknights', icon: '◎' },
-                  { label: 'WhatsApp', href: 'https://wa.me/254726027960', icon: '💬' },
+                  { label: 'WhatsApp', href: 'https://wa.me/254726027966', icon: '💬' },
                 ].map(s => (
                   <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer"
                     className="flex items-center gap-2 px-4 py-2 glass rounded-lg text-sm text-gray-300 hover:text-yellow-400 hover:border-yellow-500/30 transition-all">
@@ -263,7 +263,7 @@ export default function ContactPage() {
                   For junior members (under 18), parent or guardian consent is required. Please email{' '}
                   <a href="mailto:info@zaidknights.org" className="text-yellow-400 hover:text-yellow-300">info@zaidknights.org</a>{' '}
                   or WhatsApp{' '}
-                  <a href="https://wa.me/254726027960" className="text-green-400 hover:text-green-300" target="_blank" rel="noopener noreferrer">+254 726 027 960</a>{' '}
+                  <a href="https://wa.me/254726027966" className="text-green-400 hover:text-green-300" target="_blank" rel="noopener noreferrer">+254 726 027 966</a>{' '}
                   with your child's details. We take safeguarding very seriously and all coaches are vetted.
                 </p>
               </div>

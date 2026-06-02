@@ -1,3 +1,4 @@
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import type { AppProps } from 'next/app';
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import '../styles/globals.css';

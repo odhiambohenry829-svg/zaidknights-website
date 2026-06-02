@@ -12,7 +12,7 @@ interface LayoutProps {
 export default function Layout({
   children,
   title = 'Zaid Knights Chess Club | Nairobi, Kenya',
-  description = "Zaid Knights Chess Club — Nairobi's premier chess community. Sharpening great minds through chess. Join tournaments, improve your game, and connect with passionate players.",
+  description = "Zaid Knights Chess Club — Nairobi's premier chess club. Sharpening great minds through chess. Join tournaments, improve your game, and connect with passionate players.",
   ogImage,
 }: LayoutProps) {
   return (

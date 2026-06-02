@@ -9,22 +9,22 @@ const VALUES = [
 ];
 
 const TIMELINE = [
-  { year: '2025', title: 'Zaid Knights Founded', desc: 'Zaid Knights Chess Club was established in Nairobi by Henry Odhiambo — with a vision to develop chess talent and build a vibrant community of players representing Kenya at the highest levels.' },
+  { year: '2025', title: 'Zaid Knights Founded', desc: 'Zaid Knights Chess Club was established in Nairobi by Henry Odhiambo — with a vision to develop chess talent and build a vibrant community of players, with the long-term goal of representing Kenya at the highest levels.' },
   { year: '2025', title: 'House Training Begins', desc: 'The club launched its signature house training sessions, bringing personalised coaching directly to members and partnering with local schools across Nairobi.' },
   { year: '2025', title: 'School Partnerships', desc: 'Zaid Knights began partnering with schools to introduce chess to young students, planting seeds for the next generation of Kenyan chess champions.' },
-  { year: '2025', title: 'Regional to National', desc: 'Our students made remarkable progress, advancing from regional level competitions all the way to national championships — a proud milestone for the club.' },
+  { year: '2025', title: 'Regional Play & National Qualification', desc: 'Our players competed at regional level and qualified for the national championships — a proud milestone for the club.' },
 ];
 
 const TEAM = [
   { name: 'Henry Odhiambo', role: 'Founder & Head Coach', initials: 'HO', bio: 'Founder of Zaid Knights, passionate about developing chess talent and growing the game across Kenya.', motto: '' },
-  { name: 'Gerrishom Samuel', role: 'Head Coach', initials: 'GS', bio: 'A founding member of Zaid Knights who has been with the club from the very beginning. Has coached players from regional level all the way to national championships.', motto: '"Let\'s meet on the board"' },
+  { name: 'Gerrishom Samuel', role: 'Head Coach', initials: 'GS', bio: 'A founding member of Zaid Knights who has been with the club from the very beginning. Has coached players at regional level and to national-championship qualification.', motto: '"Let\'s meet on the board"' },
 ];
 
 const ACHIEVEMENTS = [
   { icon: '🏆', number: '2025', label: 'Year Founded' },
-  { icon: '🏫', number: '10+',  label: 'Partner Schools' },
-  { icon: '🌍', number: '🇰🇪',   label: 'Representing Kenya' },
-  { icon: '📈', number: 'Regional → National', label: 'Student Progress' },
+  { icon: '🏫', number: 'Active',  label: 'School Partnerships' },
+  { icon: '🌍', number: '🏆',   label: 'Representing the Club' },
+  { icon: '📈', number: 'Regional', label: 'Level Played — Qualified for Nationals' },
   { icon: '🏠', number: 'Nairobi', label: 'Based In' },
   { icon: '♟', number: '∞',    label: 'Passion for Chess' },
 ];
@@ -47,8 +47,8 @@ export default function AboutPage() {
           <p className="text-yellow-400/80 italic text-xl mb-6">"Sharpening Great Minds"</p>
           <p className="text-gray-300 text-lg leading-relaxed max-w-3xl mx-auto">
             Founded in 2025 by Henry Odhiambo, Zaid Knights Chess Club is dedicated to developing chess
-            talent, fostering strategic thinking, and building a vibrant community of players who represent
-            the club and Kenya at large on the national and international levels.
+            talent, fostering strategic thinking, and building a vibrant community of players who proudly
+            represent the club, with the ambition of representing Kenya at national and international level in the years ahead.
           </p>
         </div>
       </section>
@@ -104,7 +104,7 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-14">
             <h2 className="section-title mb-3">Our Journey</h2>
-            <p className="section-subtitle mx-auto">From founding to representing Kenya — our story so far</p>
+            <p className="section-subtitle mx-auto">From founding to national qualification — our story so far</p>
           </div>
           <div className="relative">
             <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-px bg-yellow-500/20 md:-translate-x-px" />
