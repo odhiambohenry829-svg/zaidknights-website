@@ -12,14 +12,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const tx = await prisma.paymentTransaction.findUnique({
       where:  { id: transactionId },
-      select: { status: true, mpesaReceiptNo: true, amount: true, failureReason: true },
+      select: { status: true, mpesaReceiptNo: true, amount: true, failureReason: true, etimsReceiptNo: true },
     });
     if (!tx) return res.status(404).json({ error: 'Transaction not found' });
     return res.status(200).json({
-      status:        tx.status,
+      status:         tx.status,
       mpesaReceiptNo: tx.mpesaReceiptNo,
-      amount:        tx.amount,
-      failureReason: tx.failureReason,
+      etimsReceiptNo: tx.etimsReceiptNo,
+      amount:         tx.amount,
+      failureReason:  tx.failureReason,
     });
   } catch {
     return res.status(500).json({ error: 'Failed to fetch status' });

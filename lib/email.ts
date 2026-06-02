@@ -2,6 +2,7 @@
 // Install: npm install resend
 
 import { Resend } from 'resend';
+import { inlineEtimsBlock, type EtimsReceiptData } from './etims';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 const FROM   = process.env.EMAIL_FROM ?? 'ZaidKnights <noreply@zaidknights.com>';
@@ -62,6 +63,7 @@ export function donationReceiptHtml(params: {
   mpesaCode: string;
   date: string;
   message?: string;
+  etims?: EtimsReceiptData;
 }): string {
   return layout(`
     <h2 style="margin:0 0 8px;color:#fff;font-size:22px;">Thank you for your donation!</h2>
@@ -80,6 +82,10 @@ export function donationReceiptHtml(params: {
 
     ${params.message ? `<p style="color:#94a3b8;font-style:italic;margin:0 0 24px;">"${params.message}"</p>` : ''}
 
+    ${params.etims ? inlineEtimsBlock(params.etims) : ''}
+
+    ${params.etims ? `<p style="margin:12px 0 24px;"><a href="${SITE}/payments/receipt/${params.etims.transactionId}" style="color:#D4AF37;font-size:13px;">View / Print Full eTIMS Receipt →</a></p>` : ''}
+
     <a href="${SITE}/donate" style="display:inline-block;background:#D4AF37;color:#000;text-decoration:none;font-weight:600;padding:12px 24px;border-radius:9999px;font-size:14px;">View Donation Page</a>
   `);
 }
@@ -92,6 +98,7 @@ export function membershipReceiptHtml(params: {
   startDate: string;
   endDate: string;
   mpesaCode: string;
+  etims?: EtimsReceiptData;
 }): string {
   return layout(`
     <h2 style="margin:0 0 8px;color:#fff;font-size:22px;">Membership Confirmed!</h2>
@@ -109,6 +116,10 @@ export function membershipReceiptHtml(params: {
         <tr><td style="padding:8px 0;color:#94a3b8;font-size:14px;">M-PESA Code</td><td style="padding:8px 0;color:#D4AF37;font-size:14px;font-weight:600;text-align:right;">${params.mpesaCode}</td></tr>
       </table>
     </div>
+
+    ${params.etims ? inlineEtimsBlock(params.etims) : ''}
+
+    ${params.etims ? `<p style="margin:12px 0 24px;"><a href="${SITE}/payments/receipt/${params.etims.transactionId}" style="color:#D4AF37;font-size:13px;">View / Print Full eTIMS Receipt →</a></p>` : ''}
 
     <a href="${SITE}/dashboard" style="display:inline-block;background:#D4AF37;color:#000;text-decoration:none;font-weight:600;padding:12px 24px;border-radius:9999px;font-size:14px;">Go to Dashboard</a>
   `);
@@ -153,19 +164,21 @@ export function organizationApprovedHtml(params: {
 // ─── Send helpers ─────────────────────────────────────────────
 
 export async function sendDonationReceipt(to: string, params: Parameters<typeof donationReceiptHtml>[0]) {
+  const receiptTag = params.etims ? ` · ${params.etims.receiptNo}` : '';
   return resend.emails.send({
     from:    FROM,
     to,
-    subject: `Donation Receipt — KES ${params.amount.toLocaleString()} · ${params.mpesaCode}`,
+    subject: `Donation Receipt — KES ${params.amount.toLocaleString()} · ${params.mpesaCode}${receiptTag}`,
     html:    donationReceiptHtml(params),
   });
 }
 
 export async function sendMembershipReceipt(to: string, params: Parameters<typeof membershipReceiptHtml>[0]) {
+  const receiptTag = params.etims ? ` · ${params.etims.receiptNo}` : '';
   return resend.emails.send({
     from:    FROM,
     to,
-    subject: `Membership Confirmed — ${params.plan} ${params.tier}`,
+    subject: `Membership Confirmed — ${params.plan} ${params.tier}${receiptTag}`,
     html:    membershipReceiptHtml(params),
   });
 }

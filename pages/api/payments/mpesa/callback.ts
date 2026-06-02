@@ -2,14 +2,14 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '../../../../lib/prisma';
 import { parseMpesaCallback, type MpesaCallbackBody } from '../../../../lib/mpesa';
 import { sendDonationReceipt, sendMembershipReceipt } from '../../../../lib/email';
+import { buildEtimsReceipt } from '../../../../lib/etims';
 
-// Disable body parsing to receive raw MPESA payload
 export const config = { api: { bodyParser: true } };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  // Always acknowledge MPESA immediately
+  // Always acknowledge M-Pesa immediately
   res.status(200).json({ ResultCode: 0, ResultDesc: 'Accepted' });
 
   try {
@@ -17,8 +17,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!result.success) {
       await prisma.paymentTransaction.updateMany({
-        where:  { checkoutRequestId: result.checkoutRequestId },
-        data:   { status: 'FAILED', failureReason: result.reason },
+        where: { checkoutRequestId: result.checkoutRequestId },
+        data:  { status: 'FAILED', failureReason: result.reason },
       });
       return;
     }
@@ -45,7 +45,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         data:  { status: 'COMPLETED' },
       });
 
-      // Send receipt email
+      // Generate & persist eTIMS receipt
+      const etims = buildEtimsReceipt({
+        transactionId: tx.id,
+        mpesaCode:     result.mpesaReceiptNo ?? '',
+        amount:        donation.amount,
+        buyerName:     donation.donorName,
+        buyerPhone:    tx.phoneNumber ?? result.phoneNumber ?? '',
+        description:   `Donation — ${donation.category.replace(/_/g, ' ')}`,
+      });
+
+      await prisma.paymentTransaction.update({
+        where: { id: tx.id },
+        data: {
+          etimsReceiptNo: etims.receiptNo,
+          etimsData:      JSON.stringify(etims),
+        },
+      });
+
       try {
         await sendDonationReceipt(donation.donorEmail, {
           donorName:  donation.donorName,
@@ -54,6 +71,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           mpesaCode:  result.mpesaReceiptNo ?? '',
           date:       new Date().toLocaleDateString('en-KE', { day: 'numeric', month: 'long', year: 'numeric' }),
           message:    donation.message ?? undefined,
+          etims,
         });
       } catch (emailErr) {
         console.error('Donation receipt email failed:', emailErr);
@@ -63,20 +81,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Fulfill membership
     if (tx.membershipId) {
       const membership = await prisma.membership.update({
-        where: { id: tx.membershipId },
-        data:  { status: 'ACTIVE' },
+        where:   { id: tx.membershipId },
+        data:    { status: 'ACTIVE' },
         include: { member: { include: { user: true } } },
       });
 
-      // Activate member status
       await prisma.member.update({
         where: { id: membership.memberId },
         data:  { status: 'ACTIVE' },
       });
 
-      // Send receipt email
+      // Generate & persist eTIMS receipt
+      const user = membership.member.user;
+      const etims = buildEtimsReceipt({
+        transactionId: tx.id,
+        mpesaCode:     result.mpesaReceiptNo ?? '',
+        amount:        membership.amount,
+        buyerName:     user.name ?? 'Member',
+        buyerPhone:    tx.phoneNumber ?? result.phoneNumber ?? '',
+        description:   `ZaidKnights Membership — ${membership.plan} ${membership.tier}`,
+      });
+
+      await prisma.paymentTransaction.update({
+        where: { id: tx.id },
+        data: {
+          etimsReceiptNo: etims.receiptNo,
+          etimsData:      JSON.stringify(etims),
+        },
+      });
+
       try {
-        const user = membership.member.user;
         await sendMembershipReceipt(user.email, {
           memberName: user.name ?? 'Member',
           plan:       membership.plan,
@@ -85,6 +119,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           startDate:  membership.startDate.toLocaleDateString('en-KE'),
           endDate:    membership.endDate.toLocaleDateString('en-KE'),
           mpesaCode:  result.mpesaReceiptNo ?? '',
+          etims,
         });
       } catch (emailErr) {
         console.error('Membership receipt email failed:', emailErr);

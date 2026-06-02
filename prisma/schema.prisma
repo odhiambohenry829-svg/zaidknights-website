@@ -359,6 +359,8 @@ model PaymentTransaction {
   merchantRequestId String?
   failureReason     String?
   metadata          String?
+  etimsReceiptNo    String?
+  etimsData         String?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 

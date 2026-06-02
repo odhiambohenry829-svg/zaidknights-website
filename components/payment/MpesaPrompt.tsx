@@ -10,6 +10,10 @@ interface Props {
   onCancel:    () => void;
 }
 
+const TILL    = process.env.NEXT_PUBLIC_MPESA_TILL    ?? '';
+const PAYBILL = process.env.NEXT_PUBLIC_MPESA_PAYBILL ?? '880100';
+const ACCOUNT = process.env.NEXT_PUBLIC_MPESA_ACCOUNT ?? '124498';
+
 function formatPhone(p: string): string {
   const d = p.replace(/\D/g, '');
   if (d.startsWith('07') || d.startsWith('01')) return '254' + d.slice(1);
@@ -28,6 +32,7 @@ export default function MpesaPrompt({ amount, type, referenceId, onSuccess, onCa
   const [error,         setError]         = useState('');
   const [transactionId, setTransactionId] = useState('');
   const [receiptNo,     setReceiptNo]     = useState('');
+  const [etimsNo,       setEtimsNo]       = useState('');
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const handleSend = async () => {
@@ -62,6 +67,7 @@ export default function MpesaPrompt({ amount, type, referenceId, onSuccess, onCa
         if (data.status === 'COMPLETED') {
           clearInterval(pollRef.current!);
           setReceiptNo(data.mpesaReceiptNo ?? '');
+          setEtimsNo(data.etimsReceiptNo ?? '');
           setStage('success');
         } else if (data.status === 'FAILED') {
           clearInterval(pollRef.current!);
@@ -116,14 +122,23 @@ export default function MpesaPrompt({ amount, type, referenceId, onSuccess, onCa
             </div>
 
             <div className="bg-white/5 rounded-xl p-3.5 text-xs text-gray-400 space-y-1">
-              <div className="flex justify-between">
-                <span>Paybill</span>
-                <strong className="text-white">880100</strong>
-              </div>
-              <div className="flex justify-between">
-                <span>Account</span>
-                <strong className="text-white">124498</strong>
-              </div>
+              {TILL ? (
+                <div className="flex justify-between">
+                  <span>Till Number</span>
+                  <strong className="text-white">{TILL}</strong>
+                </div>
+              ) : (
+                <>
+                  <div className="flex justify-between">
+                    <span>Paybill</span>
+                    <strong className="text-white">{PAYBILL}</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Account</span>
+                    <strong className="text-white">{ACCOUNT}</strong>
+                  </div>
+                </>
+              )}
               <p className="text-gray-600 pt-1">An STK push will be sent to your phone.</p>
             </div>
 
@@ -166,9 +181,25 @@ export default function MpesaPrompt({ amount, type, referenceId, onSuccess, onCa
             <div>
               <p className="text-green-400 font-bold text-xl">Payment Confirmed!</p>
               <p className="text-gray-400 text-sm mt-2">
-                KES {amount.toLocaleString()} received. Redirecting…
+                KES {amount.toLocaleString()} received.
               </p>
+              {receiptNo && (
+                <p className="text-xs text-gray-500 mt-1">M-PESA: <span className="text-yellow-400 font-mono">{receiptNo}</span></p>
+              )}
+              {etimsNo && (
+                <p className="text-xs text-gray-500 mt-0.5">Receipt: <span className="text-yellow-400 font-mono">{etimsNo}</span></p>
+              )}
             </div>
+            {transactionId && (
+              <a
+                href={`/payments/receipt/${transactionId}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-block text-xs bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition"
+              >
+                View / Print eTIMS Receipt →
+              </a>
+            )}
           </div>
         )}
 

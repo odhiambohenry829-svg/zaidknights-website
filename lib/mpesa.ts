@@ -1,5 +1,9 @@
 // Safaricom Daraja API — M-PESA STK Push (Lipa Na M-PESA Online)
 // Docs: https://developer.safaricom.co.ke/APIs/MpesaExpressSimulate
+//
+// Supports two collection modes:
+//  - Till (Buy Goods): set MPESA_TILL → money goes directly to your M-Pesa (0726027966)
+//  - Paybill:          set MPESA_PAYBILL → money goes to business paybill
 
 const BASE_URL = process.env.MPESA_ENV === 'production'
   ? 'https://api.safaricom.co.ke'
@@ -7,9 +11,14 @@ const BASE_URL = process.env.MPESA_ENV === 'production'
 
 const CONSUMER_KEY    = process.env.MPESA_CONSUMER_KEY!.trim();
 const CONSUMER_SECRET = process.env.MPESA_CONSUMER_SECRET!.trim();
-const PAYBILL         = process.env.MPESA_PAYBILL!.trim();
 const PASSKEY         = process.env.MPESA_PASSKEY!.trim();
 const CALLBACK_URL    = process.env.MPESA_CALLBACK_URL!.trim();
+
+// Use MPESA_TILL for direct-to-phone (Buy Goods), fallback to MPESA_PAYBILL
+const TILL     = process.env.MPESA_TILL?.trim() ?? '';
+const PAYBILL  = process.env.MPESA_PAYBILL?.trim() ?? '';
+const SHORTCODE = TILL || PAYBILL;
+const TRANSACTION_TYPE = TILL ? 'CustomerBuyGoodsOnline' : 'CustomerPayBillOnline';
 
 function getTimestamp(): string {
   return new Date()
@@ -19,7 +28,7 @@ function getTimestamp(): string {
 }
 
 function getPassword(timestamp: string): string {
-  const raw = `${PAYBILL}${PASSKEY}${timestamp}`;
+  const raw = `${SHORTCODE}${PASSKEY}${timestamp}`;
   return Buffer.from(raw).toString('base64');
 }
 
@@ -59,13 +68,13 @@ export async function initiateStkPush(params: StkPushParams): Promise<StkPushRes
   if (phone.startsWith('0'))  phone = `254${phone.slice(1)}`;
 
   const body = {
-    BusinessShortCode: PAYBILL,
+    BusinessShortCode: SHORTCODE,
     Password:          password,
     Timestamp:         timestamp,
-    TransactionType:   'CustomerPayBillOnline',
+    TransactionType:   TRANSACTION_TYPE,
     Amount:            Math.ceil(params.amount),
     PartyA:            phone,
-    PartyB:            PAYBILL,
+    PartyB:            SHORTCODE,
     PhoneNumber:       phone,
     CallBackURL:       CALLBACK_URL,
     AccountReference:  params.accountReference,
