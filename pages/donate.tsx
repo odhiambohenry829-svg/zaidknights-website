@@ -13,15 +13,22 @@ const IMPACT = [
   { amount: 'KES 10,000', icon: '🌍', desc: 'Funds a player to represent Kenya' },
 ];
 
-type Step = 'amount' | 'details' | 'processing';
+type Step = 'amount' | 'payment' | 'confirmation' | 'success';
 
 export default function DonatePage() {
-  const [step,       setStep]       = useState<Step>('amount');
-  const [amount,     setAmount]     = useState('');
-  const [custom,     setCustom]     = useState(false);
-  const [error,      setError]      = useState('');
-  const [form,       setForm]       = useState({
-    firstName: '', lastName: '', email: '', phone: '',
+  const [step, setStep] = useState<Step>('amount');
+  const [amount, setAmount] = useState('');
+  const [custom, setCustom] = useState(false);
+  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [form, setForm] = useState({
+    donorName: '',
+    donorEmail: '',
+    paymentMethod: 'mpesa-send' as 'bank' | 'mpesa-paybill' | 'mpesa-send',
+    mpesaReceiptNo: '',
+    transactionCode: '',
+    message: '',
   });
 
   const selectedAmount = parseInt(amount) || 0;
@@ -38,48 +45,74 @@ export default function DonatePage() {
       return;
     }
     setError('');
-    setStep('details');
+    setStep('payment');
   };
 
-  const handlePay = async () => {
-    if (!form.firstName || !form.lastName || !form.email || !form.phone) {
-      setError('Please fill in all fields');
-      return;
-    }
-    if (!/^\+?[\d\s-]{9,}$/.test(form.phone)) {
-      setError('Please enter a valid phone number');
-      return;
-    }
+  const handleCopy = (text: string, field: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
 
+  const handleConfirm = () => {
+    if (!form.donorName || !form.donorEmail) {
+      setError('Please fill in your name and email');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.donorEmail)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+    if (!form.mpesaReceiptNo && !form.transactionCode) {
+      setError('Please provide your M-Pesa receipt number or transaction code');
+      return;
+    }
     setError('');
-    setStep('processing');
+    setStep('confirmation');
+  };
 
+  const handleSubmit = async () => {
+    setError('');
     try {
-      const res = await fetch('/api/payments/pesapal/initiate', {
+      const res = await fetch('/api/donations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          donorName: form.donorName,
+          donorEmail: form.donorEmail,
           amount: selectedAmount,
-          currency: 'KES',
-          firstName: form.firstName,
-          lastName:  form.lastName,
-          email:     form.email,
-          phone:     form.phone.replace(/\s/g, ''),
-          description: `Donation to Zaid Knights Chess Club — KES ${selectedAmount}`,
+          category: 'GENERAL',
+          donorType: 'INDIVIDUAL',
+          anonymous: false,
+          message: form.message || undefined,
+          dedication: form.mpesaReceiptNo || form.transactionCode,
+          taxReceipt: false,
+          campaign: 'MANUAL_PAYMENT',
         }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok || !data.redirectUrl) {
-        throw new Error(data.error || 'Payment failed. Please try again.');
+      if (!res.ok) {
+        throw new Error('Failed to submit donation confirmation');
       }
 
-      // Redirect to Pesapal payment page
-      window.location.href = data.redirectUrl;
+      setSuccessMessage(`Thank you for your donation of KES ${selectedAmount.toLocaleString()}! We've recorded your payment and will send a receipt to ${form.donorEmail}.`);
+      setStep('success');
 
+      // Reset form after 2 seconds
+      setTimeout(() => {
+        setStep('amount');
+        setAmount('');
+        setForm({
+          donorName: '',
+          donorEmail: '',
+          paymentMethod: 'mpesa-send',
+          mpesaReceiptNo: '',
+          transactionCode: '',
+          message: '',
+        });
+      }, 2000);
     } catch (err: unknown) {
-      setStep('details');
+      setStep('confirmation');
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     }
   };
@@ -113,16 +146,16 @@ export default function DonatePage() {
 
               {/* Progress indicator */}
               <div className="flex items-center gap-3 mb-8">
-                {['amount', 'details', 'processing'].map((s, i) => (
+                {['amount', 'payment', 'confirmation', 'success'].map((s, i) => (
                   <div key={s} className="flex items-center gap-2">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
                       step === s ? 'bg-yellow-500 text-black' :
-                      ['amount', 'details', 'processing'].indexOf(step) > i ? 'bg-green-500 text-white' :
+                      ['amount', 'payment', 'confirmation', 'success'].indexOf(step) > i ? 'bg-green-500 text-white' :
                       'bg-white/10 text-gray-500'
                     }`}>
-                      {['amount', 'details', 'processing'].indexOf(step) > i ? '✓' : i + 1}
+                      {['amount', 'payment', 'confirmation', 'success'].indexOf(step) > i ? '✓' : i + 1}
                     </div>
-                    {i < 2 && <div className={`flex-1 h-0.5 w-8 ${['amount', 'details', 'processing'].indexOf(step) > i ? 'bg-green-500' : 'bg-white/10'}`} />}
+                    {i < 3 && <div className={`flex-1 h-0.5 w-8 ${['amount', 'payment', 'confirmation', 'success'].indexOf(step) > i ? 'bg-green-500' : 'bg-white/10'}`} />}
                   </div>
                 ))}
                 <span className="text-gray-400 text-sm ml-1 capitalize">{step}</span>
@@ -181,64 +214,219 @@ export default function DonatePage() {
                 </div>
               )}
 
-              {/* ── STEP 2: Details ── */}
-              {step === 'details' && (
+              {/* ── STEP 2: Payment Details ── */}
+              {step === 'payment' && (
                 <div>
                   <button onClick={() => setStep('amount')} className="text-gray-400 text-sm mb-4 hover:text-white flex items-center gap-1">
                     ← Back
                   </button>
-                  <h2 className="text-xl font-bold text-white mb-2">Your Details</h2>
+                  <h2 className="text-xl font-bold text-white mb-2">Payment Instructions</h2>
                   <p className="text-gray-400 text-sm mb-6">
-                    Donating <span className="text-yellow-400 font-bold">KES {selectedAmount.toLocaleString()}</span> — these details appear on your receipt
+                    Donating <span className="text-yellow-400 font-bold">KES {selectedAmount.toLocaleString()}</span> — choose your payment method below
+                  </p>
+
+                  <div className="space-y-4 mb-6">
+                    {/* Bank Transfer */}
+                    <label className="block">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="bank"
+                        checked={form.paymentMethod === 'bank'}
+                        onChange={e => setForm({ ...form, paymentMethod: 'bank' as const })}
+                        className="mr-3"
+                      />
+                      <span className="text-white font-medium">Bank Transfer (NCBA)</span>
+                    </label>
+                    {form.paymentMethod === 'bank' && (
+                      <div className="ml-6 bg-white/5 p-4 rounded-lg space-y-3">
+                        <div className="flex justify-between items-center py-2 border-b border-white/10">
+                          <span className="text-gray-400 text-sm">Account Name</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-yellow-400 font-bold text-sm">Zaid Knights Chess Club</span>
+                            <button
+                              onClick={() => handleCopy('Zaid Knights Chess Club', 'bank-name')}
+                              className="text-xs text-gray-400 hover:text-yellow-400 transition"
+                            >
+                              {copiedField === 'bank-name' ? '✓ Copied' : '📋 Copy'}
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b border-white/10">
+                          <span className="text-gray-400 text-sm">Account Number</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-yellow-400 font-bold text-sm">100063394827</span>
+                            <button
+                              onClick={() => handleCopy('100063394827', 'bank-number')}
+                              className="text-xs text-gray-400 hover:text-yellow-400 transition"
+                            >
+                              {copiedField === 'bank-number' ? '✓ Copied' : '📋 Copy'}
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center py-2">
+                          <span className="text-gray-400 text-sm">Bank</span>
+                          <span className="text-white text-sm font-medium">NCBA Bank Kenya</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* M-Pesa Paybill */}
+                    <label className="block">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="mpesa-paybill"
+                        checked={form.paymentMethod === 'mpesa-paybill'}
+                        onChange={e => setForm({ ...form, paymentMethod: 'mpesa-paybill' as const })}
+                        className="mr-3"
+                      />
+                      <span className="text-white font-medium">M-Pesa Paybill</span>
+                    </label>
+                    {form.paymentMethod === 'mpesa-paybill' && (
+                      <div className="ml-6 bg-white/5 p-4 rounded-lg space-y-3">
+                        <div className="flex justify-between items-center py-2 border-b border-white/10">
+                          <span className="text-gray-400 text-sm">Paybill Number</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-yellow-400 font-bold text-sm">880100</span>
+                            <button
+                              onClick={() => handleCopy('880100', 'paybill')}
+                              className="text-xs text-gray-400 hover:text-yellow-400 transition"
+                            >
+                              {copiedField === 'paybill' ? '✓ Copied' : '📋 Copy'}
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center py-2">
+                          <span className="text-gray-400 text-sm">Account Number</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-yellow-400 font-bold text-sm">124498</span>
+                            <button
+                              onClick={() => handleCopy('124498', 'account')}
+                              className="text-xs text-gray-400 hover:text-yellow-400 transition"
+                            >
+                              {copiedField === 'account' ? '✓ Copied' : '📋 Copy'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* M-Pesa Send Money */}
+                    <label className="block">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="mpesa-send"
+                        checked={form.paymentMethod === 'mpesa-send'}
+                        onChange={e => setForm({ ...form, paymentMethod: 'mpesa-send' as const })}
+                        className="mr-3"
+                      />
+                      <span className="text-white font-medium">M-Pesa Send Money (Direct)</span>
+                    </label>
+                    {form.paymentMethod === 'mpesa-send' && (
+                      <div className="ml-6 bg-white/5 p-4 rounded-lg space-y-3">
+                        <div className="flex justify-between items-center py-2">
+                          <span className="text-gray-400 text-sm">Phone Number</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-yellow-400 font-bold text-sm">0726027966</span>
+                            <button
+                              onClick={() => handleCopy('0726027966', 'phone')}
+                              className="text-xs text-gray-400 hover:text-yellow-400 transition"
+                            >
+                              {copiedField === 'phone' ? '✓ Copied' : '📋 Copy'}
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-gray-500 text-xs mt-2">Use "Send Money" on your M-Pesa menu, then confirm payment below.</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <button onClick={() => setStep('confirmation')} className="btn-primary w-full py-4 text-base">
+                    I've Made Payment →
+                  </button>
+                </div>
+              )}
+
+              {/* ── STEP 3: Confirmation Form ── */}
+              {step === 'confirmation' && (
+                <div>
+                  <button onClick={() => setStep('payment')} className="text-gray-400 text-sm mb-4 hover:text-white flex items-center gap-1">
+                    ← Back
+                  </button>
+                  <h2 className="text-xl font-bold text-white mb-2">Confirm Payment</h2>
+                  <p className="text-gray-400 text-sm mb-6">
+                    Please provide your details and M-Pesa confirmation
                   </p>
 
                   <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="label">First Name *</label>
-                        <input type="text" className="input" placeholder="John"
-                          value={form.firstName} onChange={e => setForm({ ...form, firstName: e.target.value })} />
-                      </div>
-                      <div>
-                        <label className="label">Last Name *</label>
-                        <input type="text" className="input" placeholder="Doe"
-                          value={form.lastName} onChange={e => setForm({ ...form, lastName: e.target.value })} />
-                      </div>
+                    <div>
+                      <label className="label">Your Name *</label>
+                      <input
+                        type="text"
+                        className="input"
+                        placeholder="John Doe"
+                        value={form.donorName}
+                        onChange={e => setForm({ ...form, donorName: e.target.value })}
+                      />
                     </div>
+
                     <div>
                       <label className="label">Email Address *</label>
-                      <input type="email" className="input" placeholder="you@example.com"
-                        value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+                      <input
+                        type="email"
+                        className="input"
+                        placeholder="you@example.com"
+                        value={form.donorEmail}
+                        onChange={e => setForm({ ...form, donorEmail: e.target.value })}
+                      />
                       <p className="text-gray-500 text-xs mt-1">Your receipt will be sent here</p>
                     </div>
+
                     <div>
-                      <label className="label">Phone Number *</label>
-                      <input type="tel" className="input" placeholder="+254 7XX XXX XXX"
-                        value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
-                      <p className="text-gray-500 text-xs mt-1">For M-Pesa payments, use your Safaricom number</p>
+                      <label className="label">M-Pesa Receipt/Transaction Code *</label>
+                      <input
+                        type="text"
+                        className="input"
+                        placeholder="e.g., ZK123ABC or transaction code"
+                        value={form.mpesaReceiptNo || form.transactionCode}
+                        onChange={e => setForm({ ...form, mpesaReceiptNo: e.target.value })}
+                      />
+                      <p className="text-gray-500 text-xs mt-1">This confirms your payment</p>
+                    </div>
+
+                    <div>
+                      <label className="label">Message (Optional)</label>
+                      <textarea
+                        className="input"
+                        placeholder="Add a message or dedication"
+                        rows={3}
+                        value={form.message}
+                        onChange={e => setForm({ ...form, message: e.target.value })}
+                      />
                     </div>
                   </div>
 
                   {error && <p className="text-red-400 text-sm mt-4">{error}</p>}
 
-                  <button onClick={handlePay} className="btn-primary w-full py-4 text-base mt-6">
-                    Proceed to Pay KES {selectedAmount.toLocaleString()} →
+                  <button onClick={handleSubmit} className="btn-primary w-full py-4 text-base mt-6">
+                    Submit & Confirm Donation →
                   </button>
 
                   <p className="text-gray-500 text-xs text-center mt-3">
-                    🔒 Secured by Pesapal. Supports M-Pesa, Visa, Mastercard & more.
+                    🔒 Your information is secure and will only be used for donation receipts.
                   </p>
                 </div>
               )}
 
-              {/* ── STEP 3: Processing ── */}
-              {step === 'processing' && (
+              {/* ── STEP 4: Success ── */}
+              {step === 'success' && (
                 <div className="text-center py-10">
-                  <div className="w-16 h-16 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto mb-6" />
-                  <h2 className="text-xl font-bold text-white mb-2">Redirecting to payment...</h2>
-                  <p className="text-gray-400 text-sm">
-                    You'll be taken to a secure Pesapal payment page where you can pay via M-Pesa, card, or bank transfer.
-                  </p>
+                  <div className="text-6xl mb-6">✓</div>
+                  <h2 className="text-2xl font-bold text-green-400 mb-4">Thank You!</h2>
+                  <p className="text-gray-300 mb-4">{successMessage}</p>
+                  <p className="text-gray-400 text-sm">Redirecting you back...</p>
                 </div>
               )}
             </div>
@@ -246,15 +434,14 @@ export default function DonatePage() {
             {/* ── Right side info ── */}
             <div className="space-y-6">
 
-              {/* Payment methods */}
+              {/* Payment methods summary */}
               <div className="glass p-6 rounded-xl">
-                <h3 className="text-white font-semibold mb-4">Accepted Payment Methods</h3>
-                <div className="grid grid-cols-2 gap-3">
+                <h3 className="text-white font-semibold mb-4">Payment Methods</h3>
+                <div className="space-y-3">
                   {[
-                    { icon: '📱', name: 'M-Pesa',       desc: 'STK Push to your phone' },
-                    { icon: '💳', name: 'Visa/Mastercard', desc: 'Credit & debit cards' },
-                    { icon: '🏦', name: 'Bank Transfer', desc: 'Direct bank payment' },
-                    { icon: '📲', name: 'Airtel Money',  desc: 'Airtel mobile money' },
+                    { icon: '🏦', name: 'Bank Transfer', desc: 'NCBA Bank Kenya' },
+                    { icon: '📱', name: 'M-Pesa Paybill', desc: 'Paybill 880100' },
+                    { icon: '💳', name: 'M-Pesa Send Money', desc: 'Direct to phone' },
                   ].map(m => (
                     <div key={m.name} className="bg-white/5 rounded-lg p-3">
                       <div className="text-2xl mb-1">{m.icon}</div>
@@ -265,28 +452,8 @@ export default function DonatePage() {
                 </div>
                 <div className="flex items-center gap-2 mt-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
                   <span className="text-green-400">🔒</span>
-                  <p className="text-green-400 text-xs">All payments are secured and encrypted by Pesapal</p>
+                  <p className="text-green-400 text-xs">All payments are manual and secure</p>
                 </div>
-              </div>
-
-              {/* Direct payment alternative */}
-              <div className="glass p-6 rounded-xl">
-                <h3 className="text-white font-semibold mb-4">Alternative — Direct M-Pesa</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center py-2 border-b border-white/5">
-                    <span className="text-gray-400 text-sm">Paybill</span>
-                    <span className="text-yellow-400 font-bold">880100</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2 border-b border-white/5">
-                    <span className="text-gray-400 text-sm">Account No.</span>
-                    <span className="text-yellow-400 font-bold">124498</span>
-                  </div>
-                  <div className="flex justify-between items-center py-2">
-                    <span className="text-gray-400 text-sm">Bank</span>
-                    <span className="text-white text-sm">NCBA Bank Kenya</span>
-                  </div>
-                </div>
-                <p className="text-gray-500 text-xs mt-3">After paying via Paybill, WhatsApp us on +254 726 027 960 with your M-Pesa confirmation code.</p>
               </div>
 
               {/* Your impact */}
@@ -303,6 +470,17 @@ export default function DonatePage() {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* FAQ */}
+              <div className="glass p-6 rounded-xl">
+                <h3 className="text-white font-semibold mb-4">Questions?</h3>
+                <p className="text-gray-400 text-sm mb-4">
+                  Need help? Contact us at <span className="text-yellow-400">+254 726 027 960</span> or email us.
+                </p>
+                <p className="text-gray-500 text-xs">
+                  We're here to assist with any payment questions.
+                </p>
               </div>
             </div>
           </div>

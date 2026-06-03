@@ -30,7 +30,7 @@ export default function AdminAI() {
   }
 
   return (
-    <ProtectedRoute allowedRoles={["ADMIN","COACH"]}>
+    <ProtectedRoute allowedRoles={["ADMIN", "COACH"]}>
       <Layout title="AI Tools | Zaid Knights Chess Club">
         <div className="max-w-4xl mx-auto p-6">
           <div className="mb-6 flex items-center justify-between gap-4">
@@ -42,23 +42,30 @@ export default function AdminAI() {
               Back to admin
             </Link>
           </div>
-        <form onSubmit={handleGenerate} className="space-y-4">
-          <label className="block">
-            <div className="text-sm text-gray-300 mb-1">Brief / prompt</div>
-            <textarea value={brief} onChange={e => setBrief(e.target.value)} rows={8} className="w-full p-3 rounded bg-gray-900" />
-          </label>
-          <div className="flex gap-3">
-            <button type="submit" className="btn-primary" disabled={loading || !brief}>
-              {loading ? 'Generating…' : 'Generate Article'}
-            </button>
-          </div>
-        </form>
 
-        <div className="mt-6">
+          <form onSubmit={handleGenerate} className="space-y-4">
+            <label className="block">
+              <div className="text-sm text-gray-300 mb-1">Brief / prompt</div>
+              <textarea
+                value={brief}
+                onChange={e => setBrief(e.target.value)}
+                rows={8}
+                className="w-full p-3 rounded bg-gray-900"
+              />
+            </label>
+            <div className="flex gap-3">
+              <button type="submit" className="btn-primary" disabled={loading || !brief}>
+                {loading ? 'Generating…' : 'Generate Article'}
+              </button>
+            </div>
+          </form>
+
+          <div className="mt-6">
             <h2 className="text-lg font-semibold mb-2">Result</h2>
             <pre className="whitespace-pre-wrap bg-black/30 p-4 rounded">{result ?? 'No result yet'}</pre>
           </div>
         </div>
       </Layout>
+    </ProtectedRoute>
   );
 }
